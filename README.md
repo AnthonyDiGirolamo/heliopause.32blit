@@ -1,4 +1,4 @@
-# 32blit Project
+# Heliopause's 32blit Project
 
 ## Clone the repo
 
@@ -58,3 +58,9 @@ More info on bootstrap can be found in the [Pigweed Getting Started docs](https:
    cmake -G Ninja -S ./ -B ./build
    ninja -C build
    ```
+
+## Credits
+
+- 32blit and all related code / art are "Copyright (c) 2019 Pimoroni Ltd" https://github.com/32blit/32blit-sdk
+- SimplexNoise is "Copyright (c) 2012-2018 Sebastien Rombauts (sebastien.rombauts@gmail.com)" https://github.com/SRombauts/SimplexNoise
+
