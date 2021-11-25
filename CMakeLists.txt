@@ -6,10 +6,10 @@ project(game)
 
 # Add your sources here (adding headers is optional, but helps some CMake generators)
 set(PROJECT_SOURCE
-  game.cpp
-  game.hpp
-  SimplexNoise.cpp
-  SimplexNoise.h
+  source/game.cpp
+  source/game.hpp
+  source/SimplexNoise.cpp
+  source/SimplexNoise.h
   )
 
 # ... and any other files you want in the release here
