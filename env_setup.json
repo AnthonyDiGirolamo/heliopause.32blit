@@ -1,5 +1,5 @@
 {
-  "root_variable": "PIGWEED_EXPERIMENTAL_ROOT",
+  "root_variable": "THIRTYTWO_BLIT_PROJECT_ROOT",
   "cipd_package_files": [
     "third_party/pigweed/pw_env_setup/py/pw_env_setup/cipd_setup/pigweed.json",
     "third_party/pigweed/pw_env_setup/py/pw_env_setup/cipd_setup/bazel.json",

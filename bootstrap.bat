@@ -27,7 +27,7 @@
 :: First, activate the Pigweed development environment.
 set "_pw_bootstrap_script=%~dp0.\third_party\pigweed\bootstrap.bat"
 set "PW_PROJECT_ROOT=%~dp0."
-set "PIGWEED_EXPERIMENTAL_ROOT=%PW_PROJECT_ROOT%"
+set "THIRTYTWO_BLIT_PROJECT_ROOT=%PW_PROJECT_ROOT%"
 
 :: Set your project's banner and color.
 set "PW_BRANDING_BANNER=%PW_PROJECT_ROOT%\banner.txt"
