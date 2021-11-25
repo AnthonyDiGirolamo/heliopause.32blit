@@ -72,8 +72,8 @@ void render(uint32_t time) {
       float noise = 0;
 
       for (int n = 0; n < planet.noise_octaves; n++) {
-        noise = noise + SimplexNoise::noise(noisedx + freq * (x * 0.03f),
-                                            noisedy + freq * (y * 0.03f));
+        noise = noise + SimplexNoise::noise(noisedx + freq * (x * 0.02f),
+                                            noisedy + freq * (y * 0.02f));
         max_amp = max_amp + amp;
         amp = amp * planet.noise_persistance;
         freq = freq * 2;

@@ -81,6 +81,7 @@ PW_BANNER_FUNC="THIRTYTWO_BLIT_PROJECT_banner"
 
 export PICO_SDK_PATH="$THIRTYTWO_BLIT_PROJECT_ROOT/third_party/pico-sdk"
 export PICO_EXTRAS_PATH="$THIRTYTWO_BLIT_PROJECT_ROOT/third_party/pico-extras"
+export BLIT_SDK_PATH="$THIRTYTWO_BLIT_PROJECT_ROOT/third_party/32blit-sdk"
 
 ########## END PROJECT-SPECIFIC CODE ##########
 export PW_BANNER_FUNC
