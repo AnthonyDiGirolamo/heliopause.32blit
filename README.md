@@ -29,6 +29,8 @@ The first run will take a while. Everything will be installed inside the project
 bootstrap.bat
 ```
 
+![Bootstrap](./images/bootstrap.png)
+
 The downloads are handled using [CIPD](https://chromium.googlesource.com/infra/luci/luci-go/+/refs/heads/main/cipd/). Artifacts are cached (usually in `~/.cipd-cache-dir`) so subsequent bootstrap runs will be faster. To see the full list of installed packages see [the json files in this directory](https://cs.opensource.google/pigweed/pigweed/+/master:pw_env_setup/py/pw_env_setup/cipd_setup/pigweed.json).
 
 More info on bootstrap can be found in the [Pigweed Getting Started docs](https://pigweed.dev/docs/getting_started.html).
