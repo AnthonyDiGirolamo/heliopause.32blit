@@ -9,6 +9,8 @@ cd heliopause.32blit
 git submodule update --init
 cd third_party/pico-sdk
 git submodule update --init
+cd ../../third_party/pico-extras
+git submodule update --init
 ```
 
 ## Install the toolchains
@@ -53,7 +55,6 @@ More info on bootstrap can be found in the [Pigweed Getting Started docs](https:
 
    ```sh
    mkdir -p build
-   cd build
-   cmake ..
-   make
+   cmake -G Ninja -S ./ -B ./build
+   ninja -C build
    ```
