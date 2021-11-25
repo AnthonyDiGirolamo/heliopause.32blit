@@ -1,0 +1,49 @@
+# Copyright 2021 The Pigweed Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+import("//build_overrides/pigweed.gni")
+
+import("$dir_pw_build/python.gni")
+import("$dir_pw_unit_test/test.gni")
+
+# Lists all the targets build by default with e.g. `ninja -C out`.
+group("default") {
+  deps = [
+    ":host",
+    ":python",
+  ]
+}
+
+# Group all targets that run on host only, e.g. tests, utils.
+group("host") {
+  deps = [
+    # No host tests yet
+    # ":host_tests(//targets/host:host_debug_tests)"
+  ]
+}
+
+# Python packages are built using the host toolchain.
+pw_python_group("python") {
+  python_deps = [
+    ":32blit_requirements",
+    "//third_party/pigweed/pw_env_setup:python",
+    "//third_party/pigweed/pw_env_setup:target_support_packages",
+  ]
+}
+
+pw_python_requirements("32blit_requirements") {
+  requirements = [
+    "32blit",
+  ]
+}
