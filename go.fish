@@ -50,21 +50,21 @@ function flash_32blit
   ninja -C out/stm32 flash
 end
 
-cmake -G Ninja \
-   -S $THIRTYTWO_BLIT_PROJECT_ROOT \
-   -B ./out/pico \
-   $COMMON_ARGS \
-   -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/pico.toolchain \
-   -DPICO_BOARD=pimoroni_picosystem \
-   && ninja -C out/pico \
-   && flash_pico
+# cmake -G Ninja \
+#    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
+#    -B ./out/pico \
+#    $COMMON_ARGS \
+#    -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/pico.toolchain \
+#    -DPICO_BOARD=pimoroni_picosystem \
+#    && ninja -C out/pico \
+#    && flash_pico
 
-cmake -G Ninja \
-   -S $THIRTYTWO_BLIT_PROJECT_ROOT \
-   -B ./out/stm32 \
-   $COMMON_ARGS \
-   -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/32blit.toolchain \
-   && ninja -C out/stm32
+# cmake -G Ninja \
+#    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
+#    -B ./out/stm32 \
+#    $COMMON_ARGS \
+#    -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/32blit.toolchain \
+#    && ninja -C out/stm32
 
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \

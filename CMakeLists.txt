@@ -8,8 +8,8 @@ project(game)
 set(PROJECT_SOURCE
   source/game.cpp
   source/game.hpp
-  source/colors.h
-  source/planet.h
+  source/colors.hpp
+  source/planet.hpp
   source/SimplexNoise.cpp
   source/SimplexNoise.h
   )
@@ -24,12 +24,22 @@ else()
   add_compile_options("-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
 endif()
 
+set(PIGWEED_ROOT "third_party/pigweed")
+
 find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk $ENV{PATH_32BLIT_SDK})
 
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
 blit_assets_yaml (${PROJECT_NAME} assets.yml)
 blit_metadata (${PROJECT_NAME} metadata.yml)
 add_custom_target (flash DEPENDS ${PROJECT_NAME}.flash)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${PIGWEED_ROOT}/pw_span/public_overrides
+  ${PIGWEED_ROOT}/pw_span/public
+  ${PIGWEED_ROOT}/pw_polyfill/public
+  ${PIGWEED_ROOT}/pw_polyfill/standard_library_public
+  ${PIGWEED_ROOT}/pw_polyfill/public_overrides
+  )
 
 # setup release packages
 install (FILES ${PROJECT_DISTRIBS} DESTINATION .)

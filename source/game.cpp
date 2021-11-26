@@ -2,7 +2,8 @@
 #include "SimplexNoise.h"
 #include "engine/engine.hpp"
 #include "math/constants.hpp"
-#include <cstdint>
+#include "planet.hpp"
+#include <stdint.h>
 
 using namespace blit;
 
@@ -18,7 +19,8 @@ Surface planet_terrain((uint8_t *)planet_pixel_data, PixelFormat::P,
 #define RANDOM_TYPE_PRNG 1
 
 uint8_t current_random_source = RANDOM_TYPE_PRNG;
-uint32_t current_random_seed = 0x64063701;
+// uint32_t current_random_seed = 0x64063701;
+uint32_t current_random_seed = 0x3701;
 
 uint32_t prng_lfsr = 0;
 const uint16_t prng_tap = 0x74b8;
@@ -51,14 +53,13 @@ void init() {
   reset_seed();
 
   planet_terrain.palette = PICO8;
+  Planet current_planet = kTerranPlanet;
 
-  Planet planet;
+  int terrain_color_count = current_planet.color_map.size();
 
-  int terrain_color_count = 19;
-
-  float noisedx = (float)(get_random_number() % 1024); // 12.0f;
-  float noisedy = (float)(get_random_number() % 1024); // 33.0f;
-  float noisedz = (float)(get_random_number() % 1024); // 8.0f;
+  float noisedx = (float)(get_random_number() % 1024);
+  float noisedy = (float)(get_random_number() % 1024);
+  float noisedz = (float)(get_random_number() % 1024);
 
   // noise_factor_vert=random_int(planet_type.max_noise_stretch_factor + 1,
   // planet_type.min_noise_stretch_factor);
@@ -73,22 +74,39 @@ void init() {
   float phi = pi * -0.5f;
   float phi_increment = pi / PLANET_HEIGHT;
 
-  SimplexNoise simplex_noise(planet.noise_zoom, 1.0, 3.0,
-                             planet.noise_persistance);
+  SimplexNoise simplex_noise(current_planet.noise_zoom, 1.0, 2.5,
+                             current_planet.noise_persistance);
 
   for (int y = 0; y < PLANET_HEIGHT; y++) {
 
     theta = 0;
 
     for (int x = 0; x < PLANET_WIDTH; x++) {
-      // float freq = planet.noise_zoom;
-      // float max_amp = 0;
-      // float amp = 1;
+
       float noise = 0;
 
+      // clang-format off
       noise = simplex_noise.fractal(
-          planet.noise_octaves, noisedx + cosf(phi) * cosf(theta),
-          noisedy + cosf(phi) * sinf(theta), noisedz + sinf(phi));
+          current_planet.noise_octaves,
+          noisedx + cosf(phi) * cosf(theta),
+          noisedy + cosf(phi) * sinf(theta),
+          noisedz + sinf(phi));
+      // clang-format on
+
+      // // Manual Octave Summation
+      // float freq = current_planet.noise_zoom;
+      // float max_amp = 0;
+      // float amp = 1;
+      // for (int n = 0; n < current_planet.noise_octaves; n++) {
+      //   noise = noise + SimplexNoise::noise(
+      //     noisedx + cosf(phi) * cosf(theta),
+      //     noisedy + cosf(phi) * sinf(theta),
+      //     noisedz + sinf(phi));
+      //   max_amp = max_amp + amp;
+      //   amp = amp * current_planet.noise_persistance;
+      //   freq = freq * 2;
+      // }
+      // noise = noise / max_amp;
 
       if (noise > max_noise)
         max_noise = noise;
@@ -113,7 +131,8 @@ void init() {
       //              (int)terrain_color_index);
       // planet_terrain.pen = PICO8[terran_color_map[terrain_color_index]];
 
-      planet_terrain.pen = terran_color_map[terrain_color_index];
+      // Get indexed color value
+      planet_terrain.pen = current_planet.color_map[terrain_color_index];
       planet_terrain.pixel(Point(x, y));
 
       theta += theta_increment;
@@ -126,6 +145,25 @@ void init() {
                (int)((min_noise - (int)min_noise) * 1000000));
   blit::debugf("max: %d.%.6d\n", (int)max_noise,
                (int)((max_noise - (int)max_noise) * 1000000));
+
+  blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
+  for (Planet *p : PlanetSpan) {
+    blit::debugf("Type: %d = %s\n", p->type, p->type_name);
+
+    blit::debugf("ColorMap: ");
+    for (int i : p->color_map) {
+      blit::debugf("%d, ", i);
+    }
+    blit::debugf("\n");
+  }
+
+  // for (int i : current_planet.color_map) {
+  //   blit::debugf("kTerranColorMap: %d\n", i);
+  // }
+
+  // for (int i = 0; i < kTerranColorMap.size(); i++) {
+  //   blit::debugf("kTerranColorMap: %d = %d\n", i, kTerranColorMap[i]);
+  // }
 }
 
 ///////////////////////////////////////////////////////////////////////////
