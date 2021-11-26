@@ -1,48 +1,100 @@
 #include "game.hpp"
 #include "SimplexNoise.h"
 #include "engine/engine.hpp"
+#include "math/constants.hpp"
 #include <cstdint>
 
 using namespace blit;
 
 namespace {
-#define PLANET_WIDTH 64
-#define PLANET_HEIGHT 32
+#define PLANET_WIDTH 120
+#define PLANET_HEIGHT 60
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
 Surface planet_terrain((uint8_t *)planet_pixel_data, PixelFormat::P,
                        Size(PLANET_WIDTH, PLANET_HEIGHT));
+
+#define RANDOM_TYPE_HRNG 0
+#define RANDOM_TYPE_PRNG 1
+
+uint8_t current_random_source = RANDOM_TYPE_PRNG;
+uint32_t current_random_seed = 0x64063701;
+
+uint32_t prng_lfsr = 0;
+const uint16_t prng_tap = 0x74b8;
+
+void reset_seed() { prng_lfsr = current_random_seed; }
+
+uint32_t get_random_number() {
+  switch (current_random_source) {
+  default:
+    return 0;
+  case RANDOM_TYPE_HRNG:
+    return blit::random();
+  case RANDOM_TYPE_PRNG:
+    uint8_t lsb = prng_lfsr & 1;
+    prng_lfsr >>= 1;
+
+    if (lsb) {
+      prng_lfsr ^= prng_tap;
+    }
+    return prng_lfsr;
+  }
+}
+
 } // namespace
 
 ///////////////////////////////////////////////////////////////////////////
 void init() {
   set_screen_mode(ScreenMode::lores);
+
+  reset_seed();
+
   planet_terrain.palette = PICO8;
 
   Planet planet;
 
   int terrain_color_count = 19;
-  float noisedx = 42.0f;
-  float noisedy = 16.0f;
-  float noisedz = 32.0f;
 
-  // TODO: Convert to 3D noise sampled in the shape of a sphere.
-  for (int x = 0; x < PLANET_WIDTH; x++) {
-    for (int y = 0; y < PLANET_HEIGHT; y++) {
-      float freq = planet.noise_zoom;
-      float max_amp = 0;
-      float amp = 1;
+  float noisedx = (float)(get_random_number() % 1024); // 12.0f;
+  float noisedy = (float)(get_random_number() % 1024); // 33.0f;
+  float noisedz = (float)(get_random_number() % 1024); // 8.0f;
+
+  // noise_factor_vert=random_int(planet_type.max_noise_stretch_factor + 1,
+  // planet_type.min_noise_stretch_factor);
+
+  float min_noise = 2;
+  float max_noise = -2;
+
+  float theta_start = 0;
+  float theta_end = 2.0f * pi;
+  float theta_increment = theta_end / PLANET_WIDTH;
+  float theta = theta_start;
+  float phi = pi * -0.5f;
+  float phi_increment = pi / PLANET_HEIGHT;
+
+  SimplexNoise simplex_noise(planet.noise_zoom, 1.0, 3.0,
+                             planet.noise_persistance);
+
+  for (int y = 0; y < PLANET_HEIGHT; y++) {
+
+    theta = 0;
+
+    for (int x = 0; x < PLANET_WIDTH; x++) {
+      // float freq = planet.noise_zoom;
+      // float max_amp = 0;
+      // float amp = 1;
       float noise = 0;
 
-      for (int n = 0; n < planet.noise_octaves; n++) {
-        // 2D Noise for now
-        noise = noise + SimplexNoise::noise(noisedx + freq * (x * 0.02f),
-                                            noisedy + freq * (y * 0.02f));
-        max_amp = max_amp + amp;
-        amp = amp * planet.noise_persistance;
-        freq = freq * 2;
-      }
-      noise = noise / max_amp;
+      noise = simplex_noise.fractal(
+          planet.noise_octaves, noisedx + cosf(phi) * cosf(theta),
+          noisedy + cosf(phi) * sinf(theta), noisedz + sinf(phi));
+
+      if (noise > max_noise)
+        max_noise = noise;
+      if (noise < min_noise)
+        min_noise = noise;
+
       if (noise > 1)
         noise = 1;
       if (noise < -1)
@@ -59,13 +111,21 @@ void init() {
       // blit::debugf("%d.%.6d -> %d\n", (int)noise,
       //              (int)((noise - (int)noise) * 1000000),
       //              (int)terrain_color_index);
-
       // planet_terrain.pen = PICO8[terran_color_map[terrain_color_index]];
 
       planet_terrain.pen = terran_color_map[terrain_color_index];
       planet_terrain.pixel(Point(x, y));
+
+      theta += theta_increment;
     }
+
+    phi += phi_increment;
   }
+
+  blit::debugf("min: %d.%.6d\n", (int)min_noise,
+               (int)((min_noise - (int)min_noise) * 1000000));
+  blit::debugf("max: %d.%.6d\n", (int)max_noise,
+               (int)((max_noise - (int)max_noise) * 1000000));
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -108,7 +168,8 @@ void render(uint32_t time) {
     screen.rectangle(Rect(2 + x, y, rect_width, rect_width));
   }
 
-  screen.blit(&planet_terrain, Rect(0, 0, 64, 32), Point(0, 44));
+  screen.blit(&planet_terrain, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
+              Point(0, 44));
   screen.pen = Pen(0, 0, 0);
 }
 

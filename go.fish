@@ -39,13 +39,25 @@ which ccache 2>/dev/null 1>/dev/null && set -x -a COMMON_ARGS -DCMAKE_C_COMPILER
 # ninja -C out/stm32
 # ninja -C out/host && ./out/host/game
 
+function flash_pico
+  set PICO_DIR /run/media/$USER/RPI-RP2
+  if test -d $PICO_DIR
+      cp ./out/pico/game.uf2 $PICO_DIR/
+  end
+end
+
+function flash_32blit
+  ninja -C out/stm32 flash
+end
+
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
    -B ./out/pico \
    $COMMON_ARGS \
    -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/pico.toolchain \
    -DPICO_BOARD=pimoroni_picosystem \
-   && ninja -C out/pico
+   && ninja -C out/pico \
+   && flash_pico
 
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
