@@ -8,6 +8,8 @@ project(game)
 set(PROJECT_SOURCE
   source/game.cpp
   source/game.hpp
+  source/colors.h
+  source/planet.h
   source/SimplexNoise.cpp
   source/SimplexNoise.h
   )
