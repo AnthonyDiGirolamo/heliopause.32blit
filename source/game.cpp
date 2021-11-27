@@ -3,13 +3,15 @@
 #include "engine/engine.hpp"
 #include "math/constants.hpp"
 #include "planet.hpp"
+#include "planet_types.hpp"
+#include <chrono>
 #include <stdint.h>
 
 using namespace blit;
 
 namespace {
-#define PLANET_WIDTH 120
-#define PLANET_HEIGHT 60
+#define PLANET_WIDTH 320
+#define PLANET_HEIGHT 160
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
 Surface planet_terrain((uint8_t *)planet_pixel_data, PixelFormat::P,
@@ -44,25 +46,31 @@ uint32_t get_random_number() {
   }
 }
 
-} // namespace
+int selected_planet_index = 0;
 
-///////////////////////////////////////////////////////////////////////////
-void init() {
-  set_screen_mode(ScreenMode::lores);
-
-  reset_seed();
-
+void render_planet() {
+  Planet *current_planet = PlanetSpan[selected_planet_index];
   planet_terrain.palette = PICO8;
-  Planet current_planet = kTerranPlanet;
+  // Planet current_planet = kTerranPlanet;
 
-  int terrain_color_count = current_planet.color_map.size();
+  int terrain_color_count = current_planet->color_map.size();
 
   float noisedx = (float)(get_random_number() % 1024);
   float noisedy = (float)(get_random_number() % 1024);
   float noisedz = (float)(get_random_number() % 1024);
 
-  // noise_factor_vert=random_int(planet_type.max_noise_stretch_factor + 1,
-  // planet_type.min_noise_stretch_factor);
+  float noise_factor_vert = 1.0;
+  if (current_planet->max_noise_stretch - current_planet->min_noise_stretch >
+      0) {
+    int stretch_factor =
+        current_planet->min_noise_stretch +
+        (get_random_number() % (current_planet->max_noise_stretch -
+                                current_planet->min_noise_stretch));
+    noise_factor_vert = (float)stretch_factor;
+  }
+  // blit::debugf("noise_factor_vert: %d\n", (int)noise_factor_vert);
+  blit::debugf("noise_factor_vert: %d.%.6d\n", (int)noise_factor_vert,
+               (int)((noise_factor_vert - (int)noise_factor_vert) * 1000000));
 
   float min_noise = 2;
   float max_noise = -2;
@@ -74,8 +82,8 @@ void init() {
   float phi = pi * -0.5f;
   float phi_increment = pi / PLANET_HEIGHT;
 
-  SimplexNoise simplex_noise(current_planet.noise_zoom, 1.0, 2.5,
-                             current_planet.noise_persistance);
+  SimplexNoise simplex_noise(current_planet->noise_zoom, 1.0, 2.0,
+                             current_planet->noise_persistance);
 
   for (int y = 0; y < PLANET_HEIGHT; y++) {
 
@@ -87,10 +95,10 @@ void init() {
 
       // clang-format off
       noise = simplex_noise.fractal(
-          current_planet.noise_octaves,
+          current_planet->noise_octaves,
           noisedx + cosf(phi) * cosf(theta),
           noisedy + cosf(phi) * sinf(theta),
-          noisedz + sinf(phi));
+          noisedz + sinf(phi) * noise_factor_vert);
       // clang-format on
 
       // // Manual Octave Summation
@@ -132,7 +140,7 @@ void init() {
       // planet_terrain.pen = PICO8[terran_color_map[terrain_color_index]];
 
       // Get indexed color value
-      planet_terrain.pen = current_planet.color_map[terrain_color_index];
+      planet_terrain.pen = current_planet->color_map[terrain_color_index];
       planet_terrain.pixel(Point(x, y));
 
       theta += theta_increment;
@@ -150,7 +158,7 @@ void init() {
   for (Planet *p : PlanetSpan) {
     blit::debugf("Type: %d = %s\n", p->type, p->type_name);
 
-    blit::debugf("ColorMap: ");
+    blit::debugf("  ColorMap: ");
     for (int i : p->color_map) {
       blit::debugf("%d, ", i);
     }
@@ -164,6 +172,21 @@ void init() {
   // for (int i = 0; i < kTerranColorMap.size(); i++) {
   //   blit::debugf("kTerranColorMap: %d = %d\n", i, kTerranColorMap[i]);
   // }
+}
+
+void next_planet() {
+  selected_planet_index = (selected_planet_index + 1) % PlanetSpan.size();
+}
+
+} // namespace
+///////////////////////////////////////////////////////////////////////////
+void init() {
+  // set_screen_mode(ScreenMode::lores);
+  set_screen_mode(ScreenMode::hires);
+
+  reset_seed();
+
+  render_planet();
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -181,30 +204,30 @@ void render(uint32_t time) {
   screen.pen = Pen(255, 255, 255);
   screen.rectangle(Rect(0, 0, 320, 14));
   screen.pen = Pen(0, 0, 0);
-  screen.text("Hello 32blit!", minimal_font, Point(5, 4));
+  screen.text("Planet!", minimal_font, Point(5, 4));
 
-  int rect_width = 8;
+  // int rect_width = 8;
 
-  for (int i = 0; i < 16; i++) {
-    screen.pen = PICO8[i];
-    screen.rectangle(
-        Rect(2 + (i * (rect_width + 1)), 16, rect_width, rect_width));
-  }
+  // for (int i = 0; i < 16; i++) {
+  //   screen.pen = PICO8[i];
+  //   screen.rectangle(
+  //       Rect(2 + (i * (rect_width + 1)), 16, rect_width, rect_width));
+  // }
 
-  int x_offset = 0;
-  for (int i = 0; i < 32; i++) {
-    screen.pen = ENDESGA32[i];
+  // int x_offset = 0;
+  // for (int i = 0; i < 32; i++) {
+  //   screen.pen = ENDESGA32[i];
 
-    int x = (i * (rect_width + 1));
-    int y = 25;
-    if (i > 15) {
-      y = 34;
-      x -= x_offset + rect_width + 1;
-    } else {
-      x_offset = x;
-    }
-    screen.rectangle(Rect(2 + x, y, rect_width, rect_width));
-  }
+  //   int x = (i * (rect_width + 1));
+  //   int y = 25;
+  //   if (i > 15) {
+  //     y = 34;
+  //     x -= x_offset + rect_width + 1;
+  //   } else {
+  //     x_offset = x;
+  //   }
+  //   screen.rectangle(Rect(2 + x, y, rect_width, rect_width));
+  // }
 
   screen.blit(&planet_terrain, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
               Point(0, 44));
@@ -219,6 +242,19 @@ void render(uint32_t time) {
 // amount if milliseconds elapsed since the start of your game
 //
 void update(uint32_t time) {
+
+  if (buttons.pressed & Button::DPAD_UP) {
+    current_random_seed += 1;
+    reset_seed();
+    render_planet();
+  } else if (buttons.pressed & Button::DPAD_DOWN) {
+    current_random_seed -= 1;
+    reset_seed();
+    render_planet();
+  } else if (buttons.pressed & Button::DPAD_RIGHT) {
+    next_planet();
+    render_planet();
+  }
   // blit::debugf("Hello from 32blit time = %lu - %d,%d\n", time,
   //              screen.bounds.w, screen.bounds.h);
   // float x     = 0.123f;                   // Define a float coordinate

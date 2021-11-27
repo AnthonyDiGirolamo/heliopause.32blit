@@ -10,6 +10,7 @@ set(PROJECT_SOURCE
   source/game.hpp
   source/colors.hpp
   source/planet.hpp
+  source/planet_types.hpp
   source/SimplexNoise.cpp
   source/SimplexNoise.h
   )
