@@ -1,4 +1,5 @@
 #include "planet.hpp"
+#include <math.h>
 
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   seed = seed_value;
@@ -98,16 +99,22 @@ int Planet::GetTerrainColorIndex(float noise) {
 }
 
 void Planet::render_equirectangular(blit::Surface *framebuffer) {
+  framebuffer->clear();
 
   min_noise = 2;
   max_noise = -2;
 
   int map_width = PixelWidth();
   int map_height = PixelHeight();
+  // Theta value (longitude)
+  // We will map all the way around the sphere [0, 2pi]
   float theta_start = 0;
   float theta_end = 2.0f * blit::pi;
   float theta_increment = theta_end / map_width;
   float theta = theta_start;
+
+  // Phi value (lattitude)
+  // North to south pole [-pi/2, pi]
   float phi = blit::pi * -0.5f;
   float phi_increment = blit::pi / map_height;
 
@@ -132,4 +139,50 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
   //              (int)((min_noise - (int)min_noise) * 1000000));
   // blit::debugf("max: %d.%.6d\n", (int)max_noise,
   //              (int)((max_noise - (int)max_noise) * 1000000));
+}
+
+void Planet::render_orthographic(blit::Surface *framebuffer) {
+  framebuffer->clear();
+  int map_width = PixelWidth();
+  int map_height = PixelHeight();
+  float r = (float)radius;
+  // phi0 = origin latitude
+  float phi0 = 0;
+  // lambda0 = origin longitude
+  float lambda0 = blit::pi;
+  float centerx = r;
+  float centery = r;
+
+  for (int y = 0; y < map_height; y++) {
+    for (int x = 0; x < map_height; x++) {
+      // TODO: should be transparent color
+      int color_index = 0;
+      framebuffer->pen = color_index;
+
+      float xf = (float)x - centerx;
+      float yf = (float)y - centery;
+        // p (rho) = sqrt(x*x + y*y)
+      float p = sqrtf(xf * xf + yf * yf);
+
+      if (p <= r) {
+        // R = radius
+        // float p = sqrtf(xf*xf + yf*yf);
+        // c = arcsin(p/R)
+        float c = asinf(p / r);
+
+        float phi =
+            asinf(cosf(c) * sinf(phi0) + ((yf * sinf(c) * cosf(phi0)) / p));
+
+        // longitude (lambda)
+        float lambda =
+            lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
+                                            (yf * sinf(c) * sinf(phi0))));
+        float noise = GetNoise(lambda, phi);
+        color_index = GetTerrainColorIndex(noise);
+        framebuffer->pen = terrain.color_map[color_index];
+      }
+
+      framebuffer->pixel(blit::Point(x, y));
+    }
+  }
 }

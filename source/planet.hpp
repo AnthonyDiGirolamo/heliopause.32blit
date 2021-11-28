@@ -58,6 +58,7 @@ public:
   int GetTerrainColorIndex(float noise);
 
   void render_equirectangular(blit::Surface *framebuffer);
+  void render_orthographic(blit::Surface *framebuffer);
 
 private:
   float max_noise;

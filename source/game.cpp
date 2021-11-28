@@ -38,7 +38,7 @@ void init() {
 
   Random::RestartSeed();
 
-  current_planet.render_equirectangular(&planet_famebuffer);
+  current_planet.render_orthographic(&planet_famebuffer);
 
   // blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
 
@@ -125,16 +125,19 @@ void update(uint32_t time) {
     blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
     current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
                                      AllPlanets[selected_planet_index]);
-    current_planet.render_equirectangular(&planet_famebuffer);
+    // current_planet.render_equirectangular(&planet_famebuffer);
+    current_planet.render_orthographic(&planet_famebuffer);
   } else if (buttons.pressed & Button::DPAD_DOWN) {
     Random::IncrementSeed(-1);
     blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
     current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
                                      AllPlanets[selected_planet_index]);
-    current_planet.render_equirectangular(&planet_famebuffer);
+    // current_planet.render_equirectangular(&planet_famebuffer);
+    current_planet.render_orthographic(&planet_famebuffer);
   } else if (buttons.pressed & Button::DPAD_RIGHT) {
     next_planet();
-    current_planet.render_equirectangular(&planet_famebuffer);
+    // current_planet.render_equirectangular(&planet_famebuffer);
+    current_planet.render_orthographic(&planet_famebuffer);
   }
   // blit::debugf("Hello from 32blit time = %lu - %d,%d\n", time,
   //              screen.bounds.w, screen.bounds.h);
