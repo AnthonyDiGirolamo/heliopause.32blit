@@ -4,6 +4,7 @@
 #include "math/constants.hpp"
 #include "planet.hpp"
 #include "planet_types.hpp"
+#include "random.hpp"
 #include <chrono>
 #include <stdint.h>
 
@@ -14,156 +15,42 @@ namespace {
 #define PLANET_HEIGHT 160
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
-Surface planet_terrain((uint8_t *)planet_pixel_data, PixelFormat::P,
-                       Size(PLANET_WIDTH, PLANET_HEIGHT));
 
-#define RANDOM_TYPE_HRNG 0
-#define RANDOM_TYPE_PRNG 1
-
-uint8_t current_random_source = RANDOM_TYPE_PRNG;
-// uint32_t current_random_seed = 0x64063701;
-uint32_t current_random_seed = 0x3701;
-
-uint32_t prng_lfsr = 0;
-const uint16_t prng_tap = 0x74b8;
-
-void reset_seed() { prng_lfsr = current_random_seed; }
-
-uint32_t get_random_number() {
-  switch (current_random_source) {
-  default:
-    return 0;
-  case RANDOM_TYPE_HRNG:
-    return blit::random();
-  case RANDOM_TYPE_PRNG:
-    uint8_t lsb = prng_lfsr & 1;
-    prng_lfsr >>= 1;
-
-    if (lsb) {
-      prng_lfsr ^= prng_tap;
-    }
-    return prng_lfsr;
-  }
-}
+Surface planet_famebuffer((uint8_t *)planet_pixel_data, PixelFormat::P,
+                          Size(PLANET_WIDTH, PLANET_HEIGHT));
 
 int selected_planet_index = 0;
 
-void render_planet() {
-  Planet *current_planet = PlanetSpan[selected_planet_index];
-  planet_terrain.palette = PICO8;
-  // Planet current_planet = kTerranPlanet;
+Planet current_planet = Planet(0x64063701, AllPlanets[selected_planet_index]);
 
-  int terrain_color_count = current_planet->color_map.size();
+void next_planet() {
+  selected_planet_index = (selected_planet_index + 1) % PlanetSpan.size();
+  current_planet.SetTerrain(AllPlanets[selected_planet_index]);
+  current_planet.Regen();
+}
 
-  float noisedx = (float)(get_random_number() % 1024);
-  float noisedy = (float)(get_random_number() % 1024);
-  float noisedz = (float)(get_random_number() % 1024);
+} // namespace
+///////////////////////////////////////////////////////////////////////////
+void init() {
+  // set_screen_mode(ScreenMode::lores);
+  set_screen_mode(ScreenMode::hires);
+  planet_famebuffer.palette = PICO8;
 
-  float noise_factor_vert = 1.0;
-  if (current_planet->max_noise_stretch - current_planet->min_noise_stretch >
-      0) {
-    int stretch_factor =
-        current_planet->min_noise_stretch +
-        (get_random_number() % (current_planet->max_noise_stretch -
-                                current_planet->min_noise_stretch));
-    noise_factor_vert = (float)stretch_factor;
-  }
-  // blit::debugf("noise_factor_vert: %d\n", (int)noise_factor_vert);
-  blit::debugf("noise_factor_vert: %d.%.6d\n", (int)noise_factor_vert,
-               (int)((noise_factor_vert - (int)noise_factor_vert) * 1000000));
+  Random::ResetSeed();
 
-  float min_noise = 2;
-  float max_noise = -2;
+  current_planet.render_equirectangular(&planet_famebuffer);
 
-  float theta_start = 0;
-  float theta_end = 2.0f * pi;
-  float theta_increment = theta_end / PLANET_WIDTH;
-  float theta = theta_start;
-  float phi = pi * -0.5f;
-  float phi_increment = pi / PLANET_HEIGHT;
+  // blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
 
-  SimplexNoise simplex_noise(current_planet->noise_zoom, 1.0, 2.0,
-                             current_planet->noise_persistance);
+  // for (Planet *p : PlanetSpan) {
+  //   blit::debugf("Type: %d = %s\n", p->type, p->type_name);
 
-  for (int y = 0; y < PLANET_HEIGHT; y++) {
-
-    theta = 0;
-
-    for (int x = 0; x < PLANET_WIDTH; x++) {
-
-      float noise = 0;
-
-      // clang-format off
-      noise = simplex_noise.fractal(
-          current_planet->noise_octaves,
-          noisedx + cosf(phi) * cosf(theta),
-          noisedy + cosf(phi) * sinf(theta),
-          noisedz + sinf(phi) * noise_factor_vert);
-      // clang-format on
-
-      // // Manual Octave Summation
-      // float freq = current_planet.noise_zoom;
-      // float max_amp = 0;
-      // float amp = 1;
-      // for (int n = 0; n < current_planet.noise_octaves; n++) {
-      //   noise = noise + SimplexNoise::noise(
-      //     noisedx + cosf(phi) * cosf(theta),
-      //     noisedy + cosf(phi) * sinf(theta),
-      //     noisedz + sinf(phi));
-      //   max_amp = max_amp + amp;
-      //   amp = amp * current_planet.noise_persistance;
-      //   freq = freq * 2;
-      // }
-      // noise = noise / max_amp;
-
-      if (noise > max_noise)
-        max_noise = noise;
-      if (noise < min_noise)
-        min_noise = noise;
-
-      if (noise > 1)
-        noise = 1;
-      if (noise < -1)
-        noise = -1;
-      noise = noise + 1;
-
-      int terrain_color_index =
-          (int)(noise * 0.5f * (float)terrain_color_count);
-      if (terrain_color_index < 0)
-        terrain_color_index = 0;
-      if (terrain_color_index >= terrain_color_count)
-        terrain_color_index = terrain_color_count - 1;
-
-      // blit::debugf("%d.%.6d -> %d\n", (int)noise,
-      //              (int)((noise - (int)noise) * 1000000),
-      //              (int)terrain_color_index);
-      // planet_terrain.pen = PICO8[terran_color_map[terrain_color_index]];
-
-      // Get indexed color value
-      planet_terrain.pen = current_planet->color_map[terrain_color_index];
-      planet_terrain.pixel(Point(x, y));
-
-      theta += theta_increment;
-    }
-
-    phi += phi_increment;
-  }
-
-  blit::debugf("min: %d.%.6d\n", (int)min_noise,
-               (int)((min_noise - (int)min_noise) * 1000000));
-  blit::debugf("max: %d.%.6d\n", (int)max_noise,
-               (int)((max_noise - (int)max_noise) * 1000000));
-
-  blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
-  for (Planet *p : PlanetSpan) {
-    blit::debugf("Type: %d = %s\n", p->type, p->type_name);
-
-    blit::debugf("  ColorMap: ");
-    for (int i : p->color_map) {
-      blit::debugf("%d, ", i);
-    }
-    blit::debugf("\n");
-  }
+  //   blit::debugf("  ColorMap: ");
+  //   for (int i : p->color_map) {
+  //     blit::debugf("%d, ", i);
+  //   }
+  //   blit::debugf("\n");
+  // }
 
   // for (int i : current_planet.color_map) {
   //   blit::debugf("kTerranColorMap: %d\n", i);
@@ -172,21 +59,11 @@ void render_planet() {
   // for (int i = 0; i < kTerranColorMap.size(); i++) {
   //   blit::debugf("kTerranColorMap: %d = %d\n", i, kTerranColorMap[i]);
   // }
-}
-
-void next_planet() {
-  selected_planet_index = (selected_planet_index + 1) % PlanetSpan.size();
-}
-
-} // namespace
-///////////////////////////////////////////////////////////////////////////
-void init() {
-  // set_screen_mode(ScreenMode::lores);
-  set_screen_mode(ScreenMode::hires);
-
-  reset_seed();
-
-  render_planet();
+  float r = 0;
+  for (int i = 0; i < 100; i++) {
+    r = Random::GetRandomFloat(0, 1024.0);
+    blit::debugf("%d.%.6d\n", (int)r, (int)((r - (int)r) * 1000000));
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -229,7 +106,7 @@ void render(uint32_t time) {
   //   screen.rectangle(Rect(2 + x, y, rect_width, rect_width));
   // }
 
-  screen.blit(&planet_terrain, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
+  screen.blit(&planet_famebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
               Point(0, 44));
   screen.pen = Pen(0, 0, 0);
 }
@@ -244,21 +121,21 @@ void render(uint32_t time) {
 void update(uint32_t time) {
 
   if (buttons.pressed & Button::DPAD_UP) {
-    current_random_seed += 1;
-    reset_seed();
-    render_planet();
+    Random::IncrementSeed(1);
+    blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
+    current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
+                                     AllPlanets[selected_planet_index]);
+    current_planet.render_equirectangular(&planet_famebuffer);
   } else if (buttons.pressed & Button::DPAD_DOWN) {
-    current_random_seed -= 1;
-    reset_seed();
-    render_planet();
+    Random::IncrementSeed(-1);
+    blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
+    current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
+                                     AllPlanets[selected_planet_index]);
+    current_planet.render_equirectangular(&planet_famebuffer);
   } else if (buttons.pressed & Button::DPAD_RIGHT) {
     next_planet();
-    render_planet();
+    current_planet.render_equirectangular(&planet_famebuffer);
   }
   // blit::debugf("Hello from 32blit time = %lu - %d,%d\n", time,
   //              screen.bounds.w, screen.bounds.h);
-  // float x     = 0.123f;                   // Define a float coordinate
-  // float noise = SimplexNoise::noise(x, x, x);   // Get the noise value for
-  // the coordinate blit::debugf("%d.%.6d\n", (int)noise,
-  //              (int)((noise-(int)noise)*1000000));
 }

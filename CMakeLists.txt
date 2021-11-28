@@ -10,9 +10,12 @@ set(PROJECT_SOURCE
   source/game.hpp
   source/colors.hpp
   source/planet.hpp
+  source/planet.cpp
   source/planet_types.hpp
   source/SimplexNoise.cpp
   source/SimplexNoise.h
+  source/random.hpp
+  source/random.cpp
   )
 
 # ... and any other files you want in the release here
@@ -22,7 +25,7 @@ set(PROJECT_DISTRIBS LICENSE README.md)
 if(MSVC)
   add_compile_options("/W4" "/wd4244" "/wd4324" "/wd4458" "/wd4100")
 else()
-  add_compile_options("-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
+  add_compile_options("-g" "-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
 endif()
 
 set(PIGWEED_ROOT "third_party/pigweed")

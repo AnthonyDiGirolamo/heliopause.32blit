@@ -2,12 +2,15 @@
 
 #include "32blit.hpp"
 #include "graphics/color.hpp"
-#include "planet.hpp"
-#include <sys/types.h>
+#include "types/vec3.hpp"
 
+#include "SimplexNoise.h"
+#include "random.hpp"
+
+#include "math.h"
 #include <span>
 
-enum PlanetType {
+enum PlanetTerrainType {
   tundra,
   desert,
   barren,
@@ -20,17 +23,44 @@ enum PlanetType {
   gas_giant_rainbow,
 };
 
-struct Planet {
-  PlanetType type;
-  char *type_name;
+struct PlanetTerrain {
+  PlanetTerrainType type;
   int noise_octaves;
   float noise_zoom;
   float noise_persistance;
   uint8_t map_icon_color;
   uint8_t full_shadow;
   uint8_t transparent_color;
-  int min_noise_stretch;
-  int max_noise_stretch;
+  float min_noise_stretch;
+  float max_noise_stretch;
   int min_size;
   std::span<const uint8_t> color_map;
+};
+
+class Planet {
+public:
+  uint32_t seed;
+  int radius;
+  blit::Vec3 noise_offset;
+  float noise_factor_vertical;
+  PlanetTerrain terrain;
+  SimplexNoise simplex_noise;
+
+  Planet(uint32_t seed_value, PlanetTerrain terrain);
+  void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
+  void SetSeed(uint32_t seed_value);
+  void SetTerrain(PlanetTerrain new_terrain);
+  void Regen();
+  int PixelHeight();
+  int PixelWidth();
+
+  float GetNoise(float theta, float phi);
+  int GetTerrainColorIndex(float noise);
+
+  void render_equirectangular(blit::Surface *framebuffer);
+
+private:
+  float max_noise;
+  float min_noise;
+  int terrain_heightmap_color_count;
 };

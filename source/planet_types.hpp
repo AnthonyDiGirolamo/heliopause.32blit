@@ -15,6 +15,13 @@ static constexpr uint8_t kTerranColors[] = {
 
 constexpr std::span<const uint8_t> kTerranColorMap(kTerranColors);
 
+static constexpr uint8_t kLavaColors[] = {
+    0x0, 0x4, 0x0, 0x5, 0x0, 0x4, 0x0, 0x4, 0x9,
+    0x8, 0x4, 0x0, 0x4, 0x0, 0x5, 0x0, 0x4, 0x0,
+};
+
+constexpr std::span<const uint8_t> kLavaColorMap(kLavaColors);
+
 static constexpr uint8_t kIslandColors[] = {
     0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
     0x1, 0xd, 0xc, 0xf, 0xb, 0x3, 0x3, 0x3, 0x3, 0x3,
@@ -34,22 +41,39 @@ static constexpr uint8_t kBarrenColors[] = {
 
 constexpr std::span<const uint8_t> kBarrenColorMap(kBarrenColors);
 
+static constexpr uint8_t kDesertColors[] = {
+    0x4, 0x4, 0x9, 0x9, 0x4, 0x4, 0x9, 0x9, 0x4, 0x4, 0x9, 0x9, 0xb, 0x1, 0x9,
+    0x4, 0x9, 0x9, 0x4, 0x9, 0x9, 0x4, 0x9, 0x9, 0x4, 0x9, 0x9, 0x4, 0x9,
+};
+
+constexpr std::span<const uint8_t> kDesertColorMap(kDesertColors);
+
 static constexpr uint8_t kGasGiantRedColors[] = {
     0x7, 0xf, 0xe, 0x2, 0x1, 0x2, 0x8, 0x8,
 };
+constexpr std::span<const uint8_t> kGasGiantRedColorMap(kGasGiantRedColors);
+
 static constexpr uint8_t kGasGiantBlueColors[] = {
     0x7, 0x6, 0xd, 0x1, 0x2, 0x1, 0xc,
 };
+constexpr std::span<const uint8_t> kGasGiantBlueColorMap(kGasGiantBlueColors);
+
 static constexpr uint8_t kGasGiantYellowColors[] = {
     0xf, 0xa, 0x9, 0x4, 0x9, 0xa,
 };
+constexpr std::span<const uint8_t>
+    kGasGiantYellowColorMap(kGasGiantYellowColors);
 
-constexpr std::span<const uint8_t> kGasGiantRedColorMap(kGasGiantRedColors);
+static constexpr uint8_t kGasGiantRainbowColors[] = {
+    0x1, 0xd, 0xc, 0xb, 0xa, 0x9, 0xe, 0x8, 0x2,
+};
+
+constexpr std::span<const uint8_t>
+    kGasGiantRainbowColorMap(kGasGiantRainbowColors);
 
 // clang-format off
-Planet kTerranPlanet = {
+PlanetTerrain kTerranPlanet = {
   .type              = terran,
-  .type_name         = "terran",
   .noise_octaves     = 5,
   .noise_zoom        = 0.5,
   .noise_persistance = 0.65,
@@ -63,9 +87,8 @@ Planet kTerranPlanet = {
 };
 
 
-Planet kTundraPlanet = {
+PlanetTerrain kTundraPlanet = {
   .type              = tundra,
-  .type_name         = "tundra",
   .noise_octaves     = 5,
   .noise_zoom        = 0.5,
   .noise_persistance = 0.6,
@@ -79,9 +102,8 @@ Planet kTundraPlanet = {
 };
 
 
-Planet kGasGiantRedPlanet = {
+PlanetTerrain kGasGiantRedPlanet = {
   .type              = gas_giant_red,
-  .type_name         = "gas giant",
   .noise_octaves     = 1,
   .noise_zoom        = 0.4,
   .noise_persistance = 0.75,
@@ -95,9 +117,8 @@ Planet kGasGiantRedPlanet = {
 };
 
 
-Planet kIslandPlanet = {
+PlanetTerrain kIslandPlanet = {
   .type              = island,
-  .type_name         = "island",
   .noise_octaves     = 5,
   .noise_zoom        = 0.55,
   .noise_persistance = 0.65,
@@ -111,9 +132,8 @@ Planet kIslandPlanet = {
 };
 
 
-Planet kBarrenPlanet = {
+PlanetTerrain kBarrenPlanet = {
   .type              = barren,
-  .type_name         = "barren",
   .noise_octaves     = 5,
   .noise_zoom        = 0.55,
   .noise_persistance = 0.35,
@@ -126,13 +146,45 @@ Planet kBarrenPlanet = {
   .color_map         = kBarrenColorMap,
 };
 
-
-Planet *AllPlanets[] = {
-    &kTerranPlanet,      &kTundraPlanet, &kBarrenPlanet,
-    &kGasGiantRedPlanet, &kIslandPlanet,
+PlanetTerrain kDesertPlanet = {
+  .type              = desert,
+  .noise_octaves     = 5,
+  .noise_zoom        = 0.35,
+  .noise_persistance = 0.3,
+  .map_icon_color    = 9,
+  .full_shadow       = 1,
+  .transparent_color = 14,
+  .min_noise_stretch = 1,
+  .max_noise_stretch = 1,
+  .min_size          = 10,
+  .color_map         = kDesertColorMap,
 };
 
-std::span<Planet *> PlanetSpan(AllPlanets);
+PlanetTerrain kLavaPlanet = {
+  .type              = lava,
+  .noise_octaves     = 5,
+  .noise_zoom        = 0.55,
+  .noise_persistance = 0.65,
+  .map_icon_color    = 4,
+  .full_shadow       = 1,
+  .transparent_color = 14,
+  .min_noise_stretch = 1,
+  .max_noise_stretch = 1,
+  .min_size          = 10,
+  .color_map         = kLavaColorMap,
+};
+
+PlanetTerrain AllPlanets[] = {
+    kTerranPlanet,
+    kTundraPlanet,
+    kBarrenPlanet,
+    kGasGiantRedPlanet,
+    kIslandPlanet,
+    kDesertPlanet,
+    kLavaPlanet
+};
+
+std::span<PlanetTerrain> PlanetSpan(AllPlanets);
 
 
 // type_name,     noise_octaves, noise_zoom, noise_persistance, map_color, full_shadow, transparent_color, min_noise_stretch_factor, max_noise_stretch_factor, min_size, color_map
