@@ -1,9 +1,15 @@
 #include "planet.hpp"
 #include <math.h>
 
+constexpr float kPi = blit::pi;
+constexpr float kHalfPi = blit::pi * 0.5f;
+constexpr float kTwoPi = blit::pi * 2.0f;
+
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   seed = seed_value;
   terrain = new_terrain;
+  viewpoint_phi0 = 0;
+  viewpoint_lambda0 = kPi;
   Regen();
 }
 
@@ -109,14 +115,14 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
   // Theta value (longitude)
   // We will map all the way around the sphere [0, 2pi]
   float theta_start = 0;
-  float theta_end = 2.0f * blit::pi;
+  float theta_end = 2.0f * kPi;
   float theta_increment = theta_end / map_width;
   float theta = theta_start;
 
   // Phi value (lattitude)
   // North to south pole [-pi/2, pi]
-  float phi = blit::pi * -0.5f;
-  float phi_increment = blit::pi / map_height;
+  float phi = kPi * -0.5f;
+  float phi_increment = kPi / map_height;
 
   for (int y = 0; y < map_height; y++) {
     theta = 0;
@@ -135,10 +141,28 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
     phi += phi_increment;
   }
 
-  // blit::debugf("min: %d.%.6d\n", (int)min_noise,
-  //              (int)((min_noise - (int)min_noise) * 1000000));
-  // blit::debugf("max: %d.%.6d\n", (int)max_noise,
-  //              (int)((max_noise - (int)max_noise) * 1000000));
+  blit::debugf("min: %d.%.6d\n", (int)min_noise,
+               (int)((min_noise - (int)min_noise) * 1000000));
+  blit::debugf("max: %d.%.6d\n", (int)max_noise,
+               (int)((max_noise - (int)max_noise) * 1000000));
+}
+
+void Planet::AdjustViewpointLatitude(float amount) {
+  viewpoint_phi0 += amount;
+
+  if (viewpoint_phi0 > kHalfPi) {
+    viewpoint_phi0 = kHalfPi;
+  } else if (viewpoint_phi0 < -kHalfPi) {
+    viewpoint_phi0 = -kHalfPi;
+  }
+}
+void Planet::AdjustViewpointLongitude(float amount) {
+  viewpoint_lambda0 += amount;
+  if (viewpoint_lambda0 > kTwoPi) {
+    viewpoint_lambda0 -= kTwoPi;
+  } else if (viewpoint_lambda0 < 0) {
+    viewpoint_lambda0 += kTwoPi;
+  }
 }
 
 void Planet::render_orthographic(blit::Surface *framebuffer) {
@@ -147,9 +171,9 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   int map_height = PixelHeight();
   float r = (float)radius;
   // phi0 = origin latitude
-  float phi0 = 0;
+  float phi0 = viewpoint_phi0;
   // lambda0 = origin longitude
-  float lambda0 = blit::pi;
+  float lambda0 = viewpoint_lambda0;
   float centerx = r;
   float centery = r;
 
@@ -161,7 +185,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
 
       float xf = (float)x - centerx;
       float yf = (float)y - centery;
-        // p (rho) = sqrt(x*x + y*y)
+      // p (rho) = sqrt(x*x + y*y)
       float p = sqrtf(xf * xf + yf * yf);
 
       if (p <= r) {
@@ -185,4 +209,9 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
       framebuffer->pixel(blit::Point(x, y));
     }
   }
+
+  blit::debugf("min: %d.%.6d\n", (int)min_noise,
+               (int)((min_noise - (int)min_noise) * 1000000));
+  blit::debugf("max: %d.%.6d\n", (int)max_noise,
+               (int)((max_noise - (int)max_noise) * 1000000));
 }

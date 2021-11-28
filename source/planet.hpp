@@ -18,7 +18,7 @@ enum PlanetTerrainType {
   terran,
   island,
   gas_giant_red,
-  gas_giant_purple,
+  gas_giant_blue,
   gas_giant_yellow,
   gas_giant_rainbow,
 };
@@ -43,6 +43,8 @@ public:
   int radius;
   blit::Vec3 noise_offset;
   float noise_factor_vertical;
+  float viewpoint_phi0;
+  float viewpoint_lambda0;
   PlanetTerrain terrain;
   SimplexNoise simplex_noise;
 
@@ -53,6 +55,8 @@ public:
   void Regen();
   int PixelHeight();
   int PixelWidth();
+  void AdjustViewpointLatitude(float amount);
+  void AdjustViewpointLongitude(float amount);
 
   float GetNoise(float theta, float phi);
   int GetTerrainColorIndex(float noise);

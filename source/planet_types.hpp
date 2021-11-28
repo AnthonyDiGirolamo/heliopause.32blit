@@ -116,6 +116,48 @@ PlanetTerrain kGasGiantRedPlanet = {
   .color_map         = kGasGiantRedColorMap,
 };
 
+PlanetTerrain kGasGiantBluePlanet = {
+  .type              = gas_giant_blue,
+  .noise_octaves     = 1,
+  .noise_zoom        = 0.4,
+  .noise_persistance = 0.75,
+  .map_icon_color    = 2,
+  .full_shadow       = 1,
+  .transparent_color = 14,
+  .min_noise_stretch = 4,
+  .max_noise_stretch = 20,
+  .min_size          = 20,
+  .color_map         = kGasGiantBlueColorMap,
+};
+
+PlanetTerrain kGasGiantYellowPlanet = {
+  .type              = gas_giant_yellow,
+  .noise_octaves     = 1,
+  .noise_zoom        = 0.7,
+  .noise_persistance = 0.75,
+  .map_icon_color    = 10,
+  .full_shadow       = 1,
+  .transparent_color = 14,
+  .min_noise_stretch = 4,
+  .max_noise_stretch = 20,
+  .min_size          = 20,
+  .color_map         = kGasGiantYellowColorMap,
+};
+
+PlanetTerrain kGasGiantRainbowPlanet = {
+  .type              = gas_giant_rainbow,
+  .noise_octaves     = 1,
+  .noise_zoom        = 0.7,
+  .noise_persistance = 0.75,
+  .map_icon_color    = 15,
+  .full_shadow       = 1,
+  .transparent_color = 4,
+  .min_noise_stretch = 4,
+  .max_noise_stretch = 20,
+  .min_size          = 20,
+  .color_map         = kGasGiantRainbowColorMap,
+};
+
 
 PlanetTerrain kIslandPlanet = {
   .type              = island,
@@ -178,10 +220,13 @@ PlanetTerrain AllPlanets[] = {
     kTerranPlanet,
     kTundraPlanet,
     kBarrenPlanet,
-    kGasGiantRedPlanet,
     kIslandPlanet,
     kDesertPlanet,
-    kLavaPlanet
+    kLavaPlanet,
+    kGasGiantRedPlanet,
+    kGasGiantBluePlanet,
+    kGasGiantYellowPlanet,
+    kGasGiantRainbowPlanet,
 };
 
 std::span<PlanetTerrain> PlanetSpan(AllPlanets);

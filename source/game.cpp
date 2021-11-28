@@ -28,6 +28,13 @@ void next_planet() {
   current_planet.SetTerrain(AllPlanets[selected_planet_index]);
   current_planet.Regen();
 }
+void previous_planet() {
+  selected_planet_index -= 1;
+  if (selected_planet_index < 0)
+    selected_planet_index = PlanetSpan.size() - 1;
+  current_planet.SetTerrain(AllPlanets[selected_planet_index]);
+  current_planet.Regen();
+}
 
 } // namespace
 ///////////////////////////////////////////////////////////////////////////
@@ -59,11 +66,6 @@ void init() {
   // for (int i = 0; i < kTerranColorMap.size(); i++) {
   //   blit::debugf("kTerranColorMap: %d = %d\n", i, kTerranColorMap[i]);
   // }
-  float r = 0;
-  for (int i = 0; i < 100; i++) {
-    r = Random::GetRandomFloat(0, 1024.0);
-    blit::debugf("%d.%.6d\n", (int)r, (int)((r - (int)r) * 1000000));
-  }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -119,26 +121,43 @@ void render(uint32_t time) {
 // amount if milliseconds elapsed since the start of your game
 //
 void update(uint32_t time) {
+  bool rerender = false;
 
-  if (buttons.pressed & Button::DPAD_UP) {
+  if (buttons.pressed & Button::Y) {
     Random::IncrementSeed(1);
     blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
     current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
                                      AllPlanets[selected_planet_index]);
-    // current_planet.render_equirectangular(&planet_famebuffer);
-    current_planet.render_orthographic(&planet_famebuffer);
-  } else if (buttons.pressed & Button::DPAD_DOWN) {
+    rerender = true;
+
+  } else if (buttons.pressed & Button::X) {
     Random::IncrementSeed(-1);
     blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
     current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
                                      AllPlanets[selected_planet_index]);
-    // current_planet.render_equirectangular(&planet_famebuffer);
-    current_planet.render_orthographic(&planet_famebuffer);
-  } else if (buttons.pressed & Button::DPAD_RIGHT) {
+    rerender = true;
+  } else if (buttons.pressed & Button::A) {
     next_planet();
+    rerender = true;
+  } else if (buttons.pressed & Button::B) {
+    previous_planet();
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_UP) {
+    current_planet.AdjustViewpointLatitude(blit::pi * 0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_DOWN) {
+    current_planet.AdjustViewpointLatitude(blit::pi * -0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_LEFT) {
+    current_planet.AdjustViewpointLongitude(blit::pi * -0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_RIGHT) {
+    current_planet.AdjustViewpointLongitude(blit::pi * 0.1f);
+    rerender = true;
+  }
+
+  if (rerender) {
     // current_planet.render_equirectangular(&planet_famebuffer);
     current_planet.render_orthographic(&planet_famebuffer);
   }
-  // blit::debugf("Hello from 32blit time = %lu - %d,%d\n", time,
-  //              screen.bounds.w, screen.bounds.h);
 }
