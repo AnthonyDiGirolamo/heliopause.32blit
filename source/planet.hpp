@@ -9,6 +9,7 @@
 
 #include "math.h"
 #include <span>
+#include <string>
 
 enum PlanetTerrainType {
   tundra,
@@ -25,6 +26,7 @@ enum PlanetTerrainType {
 
 struct PlanetTerrain {
   PlanetTerrainType type;
+  std::string_view type_string;
   int noise_octaves;
   float noise_zoom;
   float noise_persistance;

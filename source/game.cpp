@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include "SimplexNoise.h"
+#include "colors.hpp"
 #include "engine/engine.hpp"
 #include "math/constants.hpp"
 #include "planet.hpp"
@@ -7,6 +8,7 @@
 #include "random.hpp"
 #include <chrono>
 #include <stdint.h>
+#include <string>
 
 using namespace blit;
 
@@ -29,6 +31,7 @@ Surface planet_famebuffer((uint8_t *)planet_pixel_data, PixelFormat::P,
 int selected_planet_index = 0;
 
 Planet current_planet = Planet(0x64063701, AllPlanets[selected_planet_index]);
+bool not_rendered = true;
 
 void next_planet() {
   selected_planet_index = (selected_planet_index + 1) % PlanetSpan.size();
@@ -42,6 +45,10 @@ void previous_planet() {
   current_planet.SetTerrain(AllPlanets[selected_planet_index]);
   current_planet.Regen();
 }
+
+uint32_t last_render_duration = 0;
+std::string last_render_duration_string;
+
 void render_planet() {
   // Erase to black
   planet_famebuffer.pen = 0;
@@ -58,8 +65,12 @@ void render_planet() {
   // Bottom
   planet_famebuffer.h_span(Point(0, PLANET_HEIGHT - 1), PLANET_HEIGHT);
 
+  uint32_t start_time = blit::now();
   current_planet.render_orthographic(&planet_famebuffer);
   // current_planet.render_equirectangular(&planet_famebuffer);
+  last_render_duration = blit::now() - start_time;
+  blit::debugf("Render time: %d\n", last_render_duration);
+  last_render_duration_string = std::to_string(last_render_duration);
 }
 
 } // namespace
@@ -71,11 +82,12 @@ void init() {
   set_screen_mode(ScreenMode::lores);
 #endif
   planet_famebuffer.palette = PICO8;
+  planet_famebuffer.pen = 0;
+  planet_famebuffer.clear();
 
   Random::RestartSeed();
 
   current_planet.SetRadius((int)((float)PLANET_HEIGHT * 0.5f));
-  render_planet();
 
   // blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
 
@@ -111,15 +123,14 @@ void render(uint32_t time) {
 
   screen.blit(&planet_famebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
               Point(0, 0));
-  // blit::debugf("Hello from 32blit time = %lu - %d,%d\n", time,
-  // screen.bounds.w, screen.bounds.h);
 
-  // draw some text at the top of the screen
   screen.pen = Pen(255, 255, 255);
-  screen.text("Planet!", minimal_font, Point(2, 2));
+  screen.text(current_planet.terrain.type_string, minimal_font, Point(2, 1));
+
+  screen.text(last_render_duration_string, minimal_font,
+              Point(2, PLANET_HEIGHT - 8));
 
   // int rect_width = 8;
-
   // for (int i = 0; i < 16; i++) {
   //   screen.pen = PICO8[i];
   //   screen.rectangle(
@@ -129,7 +140,6 @@ void render(uint32_t time) {
   // int x_offset = 0;
   // for (int i = 0; i < 32; i++) {
   //   screen.pen = ENDESGA32[i];
-
   //   int x = (i * (rect_width + 1));
   //   int y = 25;
   //   if (i > 15) {
@@ -151,6 +161,10 @@ void render(uint32_t time) {
 //
 void update(uint32_t time) {
   bool rerender = false;
+  if (not_rendered) {
+    rerender = true;
+    not_rendered = false;
+  }
 
   if (buttons.pressed & Button::Y) {
     Random::IncrementSeed(1);
