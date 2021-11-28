@@ -10,10 +10,13 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   terrain = new_terrain;
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
+  radius = 30; // Should be 1/2 of the framebuffer height.
   Regen();
 }
 
 void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
+
+void Planet::SetRadius(int new_radius) { radius = new_radius; }
 
 void Planet::SetSeed(uint32_t seed_value) { seed = seed_value; }
 
@@ -25,7 +28,6 @@ void Planet::SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain) {
 
 void Planet::Regen() {
   noise_factor_vertical = 1.0;
-  radius = 80; // pixel height = 160 width = 320
 
   Random::SetSeed(seed);
 
@@ -105,13 +107,13 @@ int Planet::GetTerrainColorIndex(float noise) {
 }
 
 void Planet::render_equirectangular(blit::Surface *framebuffer) {
-  framebuffer->clear();
+  // framebuffer->clear();
 
   min_noise = 2;
   max_noise = -2;
 
   int map_width = PixelWidth();
-  int map_height = PixelHeight();
+  int map_height = (int)((float)PixelHeight() * 0.5f);
   // Theta value (longitude)
   // We will map all the way around the sphere [0, 2pi]
   float theta_start = 0;
@@ -166,7 +168,7 @@ void Planet::AdjustViewpointLongitude(float amount) {
 }
 
 void Planet::render_orthographic(blit::Surface *framebuffer) {
-  framebuffer->clear();
+  // framebuffer->clear();
   int map_width = PixelWidth();
   int map_height = PixelHeight();
   float r = (float)radius;
@@ -181,7 +183,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
     for (int x = 0; x < map_height; x++) {
       // TODO: should be transparent color
       int color_index = 0;
-      framebuffer->pen = color_index;
+      // framebuffer->pen = color_index;
 
       float xf = (float)x - centerx;
       float yf = (float)y - centery;
@@ -204,9 +206,10 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
         float noise = GetNoise(lambda, phi);
         color_index = GetTerrainColorIndex(noise);
         framebuffer->pen = terrain.color_map[color_index];
+        framebuffer->pixel(blit::Point(x, y));
       }
 
-      framebuffer->pixel(blit::Point(x, y));
+      // If out of bounds
     }
   }
 

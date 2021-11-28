@@ -50,6 +50,7 @@ public:
 
   Planet(uint32_t seed_value, PlanetTerrain terrain);
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
+  void SetRadius(int new_radius);
   void SetSeed(uint32_t seed_value);
   void SetTerrain(PlanetTerrain new_terrain);
   void Regen();
