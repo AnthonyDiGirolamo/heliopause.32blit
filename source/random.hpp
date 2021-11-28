@@ -5,7 +5,7 @@
 namespace Random {
 
 uint32_t GetCurrentSeed();
-void ResetSeed();
+void RestartSeed();
 void IncrementSeed(int diff);
 void SetSeed(uint32_t seed);
 uint32_t GetRandomNumber();

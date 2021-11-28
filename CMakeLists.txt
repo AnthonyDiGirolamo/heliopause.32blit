@@ -38,6 +38,9 @@ blit_metadata (${PROJECT_NAME} metadata.yml)
 add_custom_target (flash DEPENDS ${PROJECT_NAME}.flash)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+  ${PIGWEED_ROOT}/pw_status/public
+  ${PIGWEED_ROOT}/pw_bytes/public
+  ${PIGWEED_ROOT}/pw_random/public
   ${PIGWEED_ROOT}/pw_span/public_overrides
   ${PIGWEED_ROOT}/pw_span/public
   ${PIGWEED_ROOT}/pw_polyfill/public

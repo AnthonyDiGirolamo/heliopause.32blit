@@ -36,7 +36,7 @@ void init() {
   set_screen_mode(ScreenMode::hires);
   planet_famebuffer.palette = PICO8;
 
-  Random::ResetSeed();
+  Random::RestartSeed();
 
   current_planet.render_equirectangular(&planet_famebuffer);
 

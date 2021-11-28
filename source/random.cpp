@@ -3,14 +3,22 @@
 
 #include <stdint.h>
 
-namespace Random {
+#include "pw_random/random.h"
+#include "pw_random/xor_shift.h"
 
-namespace {
+namespace Random {
 
 #define RANDOM_TYPE_HRNG 0
 #define RANDOM_TYPE_PRNG 1
+#define RANDOM_TYPE_PW_PRNG 2
 
-uint8_t current_random_source = RANDOM_TYPE_PRNG;
+namespace {
+
+constexpr uint64_t kRandomSeed = 314159265358979;
+static pw::random::XorShiftStarRng64 rng(kRandomSeed);
+
+uint32_t random_seed_offset = 0;
+uint8_t current_random_source = RANDOM_TYPE_PW_PRNG;
 uint32_t current_random_seed = 0x64063701;
 uint32_t prng_lfsr = 0;
 const uint16_t prng_tap = 0x74b8;
@@ -19,22 +27,26 @@ const uint16_t prng_tap = 0x74b8;
 
 uint32_t GetCurrentSeed() { return current_random_seed; }
 
-void ResetSeed() { prng_lfsr = current_random_seed; }
+void RestartSeed() {
+  prng_lfsr = current_random_seed;
+  rng = pw::random::XorShiftStarRng64(kRandomSeed + random_seed_offset);
+}
 
 void IncrementSeed(int diff) {
   current_random_seed += diff;
-  ResetSeed();
+  random_seed_offset += diff;
+  RestartSeed();
 }
 
-void SetSeed(uint32_t seed) { current_random_seed = seed; }
+void SetSeed(uint32_t seed) {
+  current_random_seed = seed;
+  RestartSeed();
+}
 
 uint32_t GetRandomNumber() {
-  switch (current_random_source) {
-  default:
-    return 0;
-  case RANDOM_TYPE_HRNG:
+  if (current_random_source == RANDOM_TYPE_HRNG) {
     return blit::random();
-  case RANDOM_TYPE_PRNG:
+  } else if (current_random_source == RANDOM_TYPE_PRNG) {
     uint8_t lsb = prng_lfsr & 1;
     prng_lfsr >>= 1;
 
@@ -42,7 +54,12 @@ uint32_t GetRandomNumber() {
       prng_lfsr ^= prng_tap;
     }
     return prng_lfsr;
+  } else if (current_random_source == RANDOM_TYPE_PW_PRNG) {
+    int random_value = 0;
+    rng.GetInt(random_value);
+    return (uint32_t)random_value;
   }
+  return 0;
 }
 
 int GetRandomInteger(uint32_t max_value) {
