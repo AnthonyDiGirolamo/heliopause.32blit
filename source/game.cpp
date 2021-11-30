@@ -46,6 +46,7 @@ void previous_planet() {
   current_planet.Regen();
 }
 
+uint32_t last_rotation = 0;
 uint32_t last_render_duration = 0;
 std::string last_render_duration_string;
 
@@ -68,7 +69,8 @@ void render_planet() {
   uint32_t start_time = blit::now();
   current_planet.render_orthographic(&planet_famebuffer);
   // current_planet.render_equirectangular(&planet_famebuffer);
-  last_render_duration = blit::now() - start_time;
+  last_rotation = blit::now();
+  last_render_duration = last_rotation - start_time;
   blit::debugf("Render time: %d\n", last_render_duration);
   last_render_duration_string = std::to_string(last_render_duration);
 }
@@ -198,6 +200,13 @@ void update(uint32_t time) {
     current_planet.AdjustViewpointLongitude(blit::pi * 0.1f);
     rerender = true;
   }
+
+  // // Auto rotate - only good on host machine
+  // uint32_t time_now = blit::now();
+  // if (time_now > last_rotation + 40) {
+  //   current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+  //   rerender = true;
+  // }
 
   if (rerender) {
     render_planet();

@@ -21,7 +21,43 @@ Pen PICO8[] = {
     Pen(0x29, 0xad, 0xff), // 0x2d7f,  // #29adff 12 BLUE
     Pen(0x83, 0x76, 0x9c), // 0x83b3,  // #83769c 13 INDIGO
     Pen(0xff, 0x77, 0xa8), // 0xfbb5,  // #ff77a8 14 PINK
-    Pen(0xff, 0xcc, 0xaa)  // 0xfe75,  // #ffccaa 15 PEACH
+    Pen(0xff, 0xcc, 0xaa), // 0xfe75,  // #ffccaa 15 PEACH
+
+    // Colors * 0.5
+    Pen(0, 0, 0),
+    Pen(15, 22, 42),
+    Pen(63, 19, 42),
+    Pen(0, 68, 41),
+    Pen(86, 41, 27),
+    Pen(48, 44, 40),
+    Pen(97, 98, 100),
+    Pen(128, 121, 116),
+    Pen(128, 0, 39),
+    Pen(128, 82, 0),
+    Pen(128, 118, 20),
+    Pen(0, 114, 27),
+    Pen(21, 87, 128),
+    Pen(66, 59, 78),
+    Pen(128, 60, 84),
+    Pen(128, 102, 85),
+
+    // Colors * 0.25
+    Pen(0, 0, 0),
+    Pen(7, 11, 21),
+    Pen(32, 9, 21),
+    Pen(0, 34, 20),
+    Pen(43, 21, 14),
+    Pen(24, 22, 20),
+    Pen(49, 49, 50),
+    Pen(64, 60, 58),
+    Pen(64, 0, 19),
+    Pen(64, 41, 0),
+    Pen(64, 59, 10),
+    Pen(0, 57, 14),
+    Pen(10, 43, 64),
+    Pen(33, 30, 39),
+    Pen(64, 30, 42),
+    Pen(64, 51, 43),
 };
 
 #define PICO8_BLACK PICO8[0]

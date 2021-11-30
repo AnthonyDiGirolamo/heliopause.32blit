@@ -70,5 +70,7 @@ public:
 private:
   float max_noise;
   float min_noise;
+  float min_lambda;
+  float max_lambda;
   int terrain_heightmap_color_count;
 };

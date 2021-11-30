@@ -64,6 +64,10 @@ float Planet::GetNoise(float theta, float phi) {
       noise_offset.z + sinf(phi) * noise_factor_vertical);
   // clang-format on
 
+  if (theta > max_lambda)
+    max_lambda = theta;
+  if (theta < min_lambda)
+    min_lambda = theta;
   if (noise > max_noise)
     max_noise = noise;
   if (noise < min_noise)
@@ -109,8 +113,11 @@ int Planet::GetTerrainColorIndex(float noise) {
 void Planet::render_equirectangular(blit::Surface *framebuffer) {
   // framebuffer->clear();
 
+  // Reset min/max tracking
   min_noise = 2;
   max_noise = -2;
+  min_lambda = 1000;
+  max_lambda = -1000;
 
   int map_width = PixelWidth();
   int map_height = (int)((float)PixelHeight() * 0.5f);
@@ -133,9 +140,9 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
       float noise = GetNoise(theta, phi);
 
       // Get indexed color value
-      int color_index = GetTerrainColorIndex(noise);
+      int heightmap_color_index = GetTerrainColorIndex(noise);
 
-      framebuffer->pen = terrain.color_map[color_index];
+      framebuffer->pen = terrain.color_map[heightmap_color_index];
       framebuffer->pixel(blit::Point(x, y));
       theta += theta_increment;
     }
@@ -169,6 +176,12 @@ void Planet::AdjustViewpointLongitude(float amount) {
 
 void Planet::render_orthographic(blit::Surface *framebuffer) {
   // framebuffer->clear();
+  // Reset min/max tracking
+  min_noise = 2;
+  max_noise = -2;
+  min_lambda = 1000;
+  max_lambda = -1000;
+
   int map_width = PixelWidth();
   int map_height = PixelHeight();
   float r = (float)radius;
@@ -182,8 +195,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   for (int y = 0; y < map_height; y++) {
     for (int x = 0; x < map_height; x++) {
       // TODO: should be transparent color
-      int color_index = 0;
-      // framebuffer->pen = color_index;
+      int heightmap_color_index = 0;
+      // framebuffer->pen = heightmap_color_index;
 
       float xf = (float)x - centerx;
       float yf = (float)y - centery;
@@ -204,8 +217,22 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
             lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
                                             (yf * sinf(c) * sinf(phi0))));
         float noise = GetNoise(lambda, phi);
-        color_index = GetTerrainColorIndex(noise);
-        framebuffer->pen = terrain.color_map[color_index];
+        heightmap_color_index = GetTerrainColorIndex(noise);
+        int palette_color_index = terrain.color_map[heightmap_color_index];
+
+        // TODO: Calculate phase based on solar system sun position
+        // Darken colors if phase of the planet is facing the sun
+        float phase_offset = kPi * -0.2f;
+        // Negative: left terminator shadow goes away from camera, right terminator gets closer to camera
+        // Positive: left terminator shadow gets closer to the camera, right terminator goes farther away
+        if ((lambda > (viewpoint_lambda0 + phase_offset + kHalfPi)) ||
+            (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi))
+        )
+          // This color should be darker
+          palette_color_index += 16;
+
+        // Set color and draw the pixel
+        framebuffer->pen = palette_color_index;
         framebuffer->pixel(blit::Point(x, y));
       }
 
@@ -213,8 +240,18 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
     }
   }
 
-  blit::debugf("min: %d.%.6d\n", (int)min_noise,
+  // Debugging info
+  blit::debugf("min_noise: %d.%.6d\n", (int)min_noise,
                (int)((min_noise - (int)min_noise) * 1000000));
-  blit::debugf("max: %d.%.6d\n", (int)max_noise,
+  blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
                (int)((max_noise - (int)max_noise) * 1000000));
+  blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
+               (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) * 1000000));
+  blit::debugf("min_lambda: %d.%.6d\n", (int)min_lambda,
+               (int)((min_lambda - (int)min_lambda) * 1000000));
+  blit::debugf("max_lambda: %d.%.6d\n", (int)max_lambda,
+               (int)((max_lambda - (int)max_lambda) * 1000000));
+  float lambda_diff = max_lambda - min_lambda;
+  blit::debugf("lambda_diff: %d.%.6d\n", (int)lambda_diff,
+               (int)((lambda_diff - (int)lambda_diff) * 1000000));
 }
