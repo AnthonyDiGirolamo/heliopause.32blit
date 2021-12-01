@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include "SimplexNoise.h"
 #include "colors.hpp"
+#include "draw.hpp"
 #include "engine/engine.hpp"
 #include "math/constants.hpp"
 #include "planet.hpp"
@@ -13,20 +14,21 @@
 using namespace blit;
 
 namespace {
-// #define SCREEN_MODE_HIRES 1
+#define SCREEN_MODE_HIRES 1
 // #define SCREEN_MODE_LORES 1
 #ifdef SCREEN_MODE_HIRES
-#define PLANET_WIDTH 240
-#define PLANET_HEIGHT 240
+// Total orthographic pixel span should be odd
+#define PLANET_WIDTH 239
+#define PLANET_HEIGHT 239
 #else
-#define PLANET_WIDTH 120
-#define PLANET_HEIGHT 120
+#define PLANET_WIDTH 119
+#define PLANET_HEIGHT 119
 #endif
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
 
-Surface planet_famebuffer((uint8_t *)planet_pixel_data, PixelFormat::P,
-                          Size(PLANET_WIDTH, PLANET_HEIGHT));
+Surface planet_framebuffer((uint8_t *)planet_pixel_data, PixelFormat::P,
+                           Size(PLANET_WIDTH, PLANET_HEIGHT));
 
 int selected_planet_index = 0;
 
@@ -52,27 +54,25 @@ std::string last_render_duration_string;
 
 void render_planet() {
   // Erase to black
-  planet_famebuffer.pen = 0;
-  planet_famebuffer.clear();
+  planet_framebuffer.pen = 0;
+  planet_framebuffer.clear();
 
-  // White box outline
-  planet_famebuffer.pen = 7;
-  // Left
-  planet_famebuffer.v_span(Point(0, 0), PLANET_HEIGHT);
-  // Top
-  planet_famebuffer.h_span(Point(0, 0), PLANET_HEIGHT);
-  // Right
-  planet_famebuffer.v_span(Point(PLANET_HEIGHT - 1, 0), PLANET_HEIGHT);
-  // Bottom
-  planet_famebuffer.h_span(Point(0, PLANET_HEIGHT - 1), PLANET_HEIGHT);
+  // Box outline
+  planet_framebuffer.pen = current_planet.terrain.map_icon_color;
+  Draw::rectangle(&planet_framebuffer, 0, 0, PLANET_HEIGHT - 1,
+                  PLANET_HEIGHT - 1);
 
   uint32_t start_time = blit::now();
-  current_planet.render_orthographic(&planet_famebuffer);
-  // current_planet.render_equirectangular(&planet_famebuffer);
+  current_planet.render_orthographic(&planet_framebuffer);
+  // current_planet.render_equirectangular(&planet_framebuffer);
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
   blit::debugf("Render time: %d\n", last_render_duration);
   last_render_duration_string = std::to_string(last_render_duration);
+
+  int center = (int)((float)PLANET_HEIGHT * 0.5f);
+  planet_framebuffer.pen = 7;
+  Draw::circle(&planet_framebuffer, center, center, center);
 }
 
 } // namespace
@@ -83,10 +83,10 @@ void init() {
 #else
   set_screen_mode(ScreenMode::lores);
 #endif
-  planet_famebuffer.palette = PICO8;
-  planet_famebuffer.transparent_index = 255;
-  planet_famebuffer.pen = 0;
-  planet_famebuffer.clear();
+  planet_framebuffer.palette = PICO8;
+  planet_framebuffer.transparent_index = 255;
+  planet_framebuffer.pen = 0;
+  planet_framebuffer.clear();
 
   Random::RestartSeed();
 
@@ -124,10 +124,14 @@ void render(uint32_t time) {
   screen.alpha = 255;
   screen.mask = nullptr;
 
-  screen.blit(&planet_famebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
+  screen.blit(&planet_framebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
               Point(0, 0));
 
-  screen.pen = Pen(255, 255, 255);
+  // Text Shadow
+  screen.pen = PICO8[current_planet.terrain.map_icon_color + 16];
+  screen.text(current_planet.terrain.type_string, minimal_font, Point(3, 2));
+  // Text
+  screen.pen = PICO8[current_planet.terrain.map_icon_color];
   screen.text(current_planet.terrain.type_string, minimal_font, Point(2, 1));
 
   screen.text(last_render_duration_string, minimal_font,

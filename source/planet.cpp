@@ -15,9 +15,7 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   Regen();
 }
 
-void Planet::SetTerrain(PlanetTerrain new_terrain) {
-  terrain = new_terrain;
-}
+void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
 
 void Planet::SetRadius(int new_radius) { radius = new_radius; }
 
@@ -40,12 +38,10 @@ void Planet::RebuildHeightMap() {
     if (i < terrain.color_padding_start) {
       // Use the first color
       height_map[i] = terrain.color_map[0];
-    }
-    else if (i >= terrain.color_padding_start + terrain.color_map.size() ) {
+    } else if (i >= terrain.color_padding_start + terrain.color_map.size()) {
       // Use the last color
-      height_map[i] = terrain.color_map[terrain.color_map.size()-1];
-    }
-    else {
+      height_map[i] = terrain.color_map[terrain.color_map.size() - 1];
+    } else {
       height_map[i] = terrain.color_map[i - terrain.color_padding_start];
     }
   }
@@ -141,8 +137,6 @@ int Planet::GetTerrainColorIndex(float noise) {
 }
 
 void Planet::render_equirectangular(blit::Surface *framebuffer) {
-  // framebuffer->clear();
-
   // Reset min/max tracking
   min_color_index = 255;
   max_color_index = 0;
@@ -207,7 +201,7 @@ void Planet::AdjustViewpointLongitude(float amount) {
 }
 
 void Planet::render_orthographic(blit::Surface *framebuffer) {
-  // framebuffer->clear();
+  // https://en.wikipedia.org/wiki/Orthographic_map_projection
   // Reset min/max tracking
   min_color_index = 255;
   max_color_index = 0;
@@ -257,11 +251,11 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
         // TODO: Calculate phase based on solar system sun position
         // Darken colors if phase of the planet is facing the sun
         float phase_offset = kPi * -0.2f;
-        // Negative: left terminator shadow goes away from camera, right terminator gets closer to camera
-        // Positive: left terminator shadow gets closer to the camera, right terminator goes farther away
+        // Negative: left terminator shadow goes away from camera, right
+        // terminator gets closer to camera Positive: left terminator shadow
+        // gets closer to the camera, right terminator goes farther away
         if ((lambda > (viewpoint_lambda0 + phase_offset + kHalfPi)) ||
-            (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi))
-        )
+            (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi)))
           // This color should be darker
           palette_color_index += 16;
 
@@ -280,10 +274,12 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
                (int)((max_noise - (int)max_noise) * 1000000));
 
-  blit::debugf("color_index min, max: %d, %d\n", min_color_index, max_color_index);
+  blit::debugf("color_index min, max: %d, %d\n", min_color_index,
+               max_color_index);
 
   // blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
-  //              (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) * 1000000));
+  //              (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) *
+  //              1000000));
   // blit::debugf("min_lambda: %d.%.6d\n", (int)min_lambda,
   //              (int)((min_lambda - (int)min_lambda) * 1000000));
   // blit::debugf("max_lambda: %d.%.6d\n", (int)max_lambda,

@@ -6,6 +6,8 @@ project(game)
 
 # Add your sources here (adding headers is optional, but helps some CMake generators)
 set(PROJECT_SOURCE
+  source/draw.cpp
+  source/draw.hpp
   source/game.cpp
   source/game.hpp
   source/colors.hpp
