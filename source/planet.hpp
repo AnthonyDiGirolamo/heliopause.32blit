@@ -8,6 +8,7 @@
 #include "random.hpp"
 
 #include "math.h"
+#include <cstdint>
 #include <span>
 #include <string>
 
@@ -37,6 +38,8 @@ struct PlanetTerrain {
   float max_noise_stretch;
   int min_size;
   std::span<const uint8_t> color_map;
+  uint8_t color_padding_start;
+  uint8_t color_padding_end;
 };
 
 class Planet {
@@ -49,8 +52,10 @@ public:
   float viewpoint_lambda0;
   PlanetTerrain terrain;
   SimplexNoise simplex_noise;
+  uint8_t height_map[32];
 
   Planet(uint32_t seed_value, PlanetTerrain terrain);
+  void RebuildHeightMap();
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
   void SetRadius(int new_radius);
   void SetSeed(uint32_t seed_value);
@@ -68,6 +73,8 @@ public:
   void render_orthographic(blit::Surface *framebuffer);
 
 private:
+  int min_color_index;
+  int max_color_index;
   float max_noise;
   float min_noise;
   float min_lambda;

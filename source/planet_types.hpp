@@ -8,9 +8,8 @@
 #include <span>
 
 static constexpr uint8_t kTerranColors[] = {
-    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
-    0x1, 0x1, 0x1, 0xd, 0xc, 0xf, 0xb, 0xb, 0x3, 0x3, 0x3,
-    0x4, 0x5, 0x6, 0x7, 0x7, 0x7, 0x7, 0x7, 0x7, 0x7, 0x7,
+    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd, 0xc, 0xf, 0xb, 0xb, 0x3,
+    0x3, 0x3, 0x4, 0x5, 0x6, 0x7,
 };
 
 constexpr std::span<const uint8_t> kTerranColorMap(kTerranColors);
@@ -23,8 +22,8 @@ static constexpr uint8_t kLavaColors[] = {
 constexpr std::span<const uint8_t> kLavaColorMap(kLavaColors);
 
 static constexpr uint8_t kIslandColors[] = {
-    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
-    0x1, 0xd, 0xc, 0xf, 0xb, 0x3, 0x3, 0x3, 0x3, 0x3,
+    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd,
+    0xc, 0xf, 0xb, 0x3,
 };
 
 constexpr std::span<const uint8_t> kIslandColorMap(kIslandColors);
@@ -85,6 +84,8 @@ PlanetTerrain kTerranPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kTerranColorMap,
+  .color_padding_start = 7,
+  .color_padding_end   = 7,
 };
 
 
@@ -101,6 +102,8 @@ PlanetTerrain kTundraPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kTundraColorMap,
+  .color_padding_start = 7,
+  .color_padding_end = 7,
 };
 
 
@@ -117,6 +120,8 @@ PlanetTerrain kGasGiantRedPlanet = {
   .max_noise_stretch = 20,
   .min_size          = 20,
   .color_map         = kGasGiantRedColorMap,
+  .color_padding_start = 0,
+  .color_padding_end = 0,
 };
 
 PlanetTerrain kGasGiantBluePlanet = {
@@ -132,6 +137,8 @@ PlanetTerrain kGasGiantBluePlanet = {
   .max_noise_stretch = 20,
   .min_size          = 20,
   .color_map         = kGasGiantBlueColorMap,
+  .color_padding_start = 0,
+  .color_padding_end = 0,
 };
 
 PlanetTerrain kGasGiantYellowPlanet = {
@@ -147,6 +154,8 @@ PlanetTerrain kGasGiantYellowPlanet = {
   .max_noise_stretch = 20,
   .min_size          = 20,
   .color_map         = kGasGiantYellowColorMap,
+  .color_padding_start = 0,
+  .color_padding_end = 0,
 };
 
 PlanetTerrain kGasGiantRainbowPlanet = {
@@ -162,6 +171,8 @@ PlanetTerrain kGasGiantRainbowPlanet = {
   .max_noise_stretch = 20,
   .min_size          = 20,
   .color_map         = kGasGiantRainbowColorMap,
+  .color_padding_start = 0,
+  .color_padding_end = 0,
 };
 
 PlanetTerrain kIslandPlanet = {
@@ -177,6 +188,8 @@ PlanetTerrain kIslandPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kIslandColorMap,
+  .color_padding_start = 7,
+  .color_padding_end = 4,
 };
 
 
@@ -193,12 +206,14 @@ PlanetTerrain kBarrenPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kBarrenColorMap,
+  .color_padding_start = 7,
+  .color_padding_end = 7,
 };
 
 PlanetTerrain kDesertPlanet = {
   .type              = desert,
   .type_string       = std::string_view {"desert"},
-  .noise_octaves     = 5,
+  .noise_octaves     = 1,
   .noise_zoom        = 0.35,
   .noise_persistance = 0.3,
   .map_icon_color    = 9,
@@ -208,6 +223,8 @@ PlanetTerrain kDesertPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kDesertColorMap,
+  .color_padding_start = 5,
+  .color_padding_end = 5,
 };
 
 PlanetTerrain kLavaPlanet = {
@@ -223,6 +240,8 @@ PlanetTerrain kLavaPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kLavaColorMap,
+  .color_padding_start = 5,
+  .color_padding_end = 5,
 };
 
 PlanetTerrain AllPlanets[] = {

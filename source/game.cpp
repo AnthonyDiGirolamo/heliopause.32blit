@@ -84,6 +84,7 @@ void init() {
   set_screen_mode(ScreenMode::lores);
 #endif
   planet_famebuffer.palette = PICO8;
+  planet_famebuffer.transparent_index = 255;
   planet_famebuffer.pen = 0;
   planet_famebuffer.clear();
 

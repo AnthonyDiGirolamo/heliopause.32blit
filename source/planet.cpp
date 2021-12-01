@@ -1,4 +1,5 @@
 #include "planet.hpp"
+#include <cstdint>
 #include <math.h>
 
 constexpr float kPi = blit::pi;
@@ -14,7 +15,9 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   Regen();
 }
 
-void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
+void Planet::SetTerrain(PlanetTerrain new_terrain) {
+  terrain = new_terrain;
+}
 
 void Planet::SetRadius(int new_radius) { radius = new_radius; }
 
@@ -26,15 +29,37 @@ void Planet::SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain) {
   Regen();
 }
 
+void Planet::RebuildHeightMap() {
+  terrain_heightmap_color_count = terrain.color_map.size();
+  terrain_heightmap_color_count += terrain.color_padding_start;
+  terrain_heightmap_color_count += terrain.color_padding_end;
+
+  // 3       5           2
+  // 0 1 2 - 3 4 5 6 7 - 8 9
+  for (int i = 0; i < terrain_heightmap_color_count; i++) {
+    if (i < terrain.color_padding_start) {
+      // Use the first color
+      height_map[i] = terrain.color_map[0];
+    }
+    else if (i >= terrain.color_padding_start + terrain.color_map.size() ) {
+      // Use the last color
+      height_map[i] = terrain.color_map[terrain.color_map.size()-1];
+    }
+    else {
+      height_map[i] = terrain.color_map[i - terrain.color_padding_start];
+    }
+  }
+}
+
 void Planet::Regen() {
+  RebuildHeightMap();
+
   noise_factor_vertical = 1.0;
 
   Random::SetSeed(seed);
 
   simplex_noise =
       SimplexNoise(terrain.noise_zoom, 1.0f, 2.0f, terrain.noise_persistance);
-
-  terrain_heightmap_color_count = terrain.color_map.size();
 
   noise_offset.x = Random::GetRandomFloat(1024);
   noise_offset.y = Random::GetRandomFloat(1024);
@@ -104,8 +129,13 @@ int Planet::GetTerrainColorIndex(float noise) {
   int index = (int)(noise * (float)terrain_heightmap_color_count);
   if (index < 0)
     index = 0;
-  if (index >= terrain_heightmap_color_count)
+  else if (index >= terrain_heightmap_color_count)
     index = terrain_heightmap_color_count - 1;
+
+  if (index > max_color_index)
+    max_color_index = index;
+  if (index < min_color_index)
+    min_color_index = index;
 
   return index;
 }
@@ -114,6 +144,8 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
   // framebuffer->clear();
 
   // Reset min/max tracking
+  min_color_index = 255;
+  max_color_index = 0;
   min_noise = 2;
   max_noise = -2;
   min_lambda = 1000;
@@ -142,7 +174,7 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
       // Get indexed color value
       int heightmap_color_index = GetTerrainColorIndex(noise);
 
-      framebuffer->pen = terrain.color_map[heightmap_color_index];
+      framebuffer->pen = height_map[heightmap_color_index];
       framebuffer->pixel(blit::Point(x, y));
       theta += theta_increment;
     }
@@ -177,6 +209,8 @@ void Planet::AdjustViewpointLongitude(float amount) {
 void Planet::render_orthographic(blit::Surface *framebuffer) {
   // framebuffer->clear();
   // Reset min/max tracking
+  min_color_index = 255;
+  max_color_index = 0;
   min_noise = 2;
   max_noise = -2;
   min_lambda = 1000;
@@ -218,7 +252,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
                                             (yf * sinf(c) * sinf(phi0))));
         float noise = GetNoise(lambda, phi);
         heightmap_color_index = GetTerrainColorIndex(noise);
-        int palette_color_index = terrain.color_map[heightmap_color_index];
+        int palette_color_index = height_map[heightmap_color_index];
 
         // TODO: Calculate phase based on solar system sun position
         // Darken colors if phase of the planet is facing the sun
@@ -245,13 +279,16 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
                (int)((min_noise - (int)min_noise) * 1000000));
   blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
                (int)((max_noise - (int)max_noise) * 1000000));
-  blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
-               (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) * 1000000));
-  blit::debugf("min_lambda: %d.%.6d\n", (int)min_lambda,
-               (int)((min_lambda - (int)min_lambda) * 1000000));
-  blit::debugf("max_lambda: %d.%.6d\n", (int)max_lambda,
-               (int)((max_lambda - (int)max_lambda) * 1000000));
-  float lambda_diff = max_lambda - min_lambda;
-  blit::debugf("lambda_diff: %d.%.6d\n", (int)lambda_diff,
-               (int)((lambda_diff - (int)lambda_diff) * 1000000));
+
+  blit::debugf("color_index min, max: %d, %d\n", min_color_index, max_color_index);
+
+  // blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
+  //              (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) * 1000000));
+  // blit::debugf("min_lambda: %d.%.6d\n", (int)min_lambda,
+  //              (int)((min_lambda - (int)min_lambda) * 1000000));
+  // blit::debugf("max_lambda: %d.%.6d\n", (int)max_lambda,
+  //              (int)((max_lambda - (int)max_lambda) * 1000000));
+  // float lambda_diff = max_lambda - min_lambda;
+  // blit::debugf("lambda_diff: %d.%.6d\n", (int)lambda_diff,
+  //              (int)((lambda_diff - (int)lambda_diff) * 1000000));
 }
