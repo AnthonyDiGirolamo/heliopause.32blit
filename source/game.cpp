@@ -55,21 +55,24 @@ void render_planet() {
   uint32_t start_time = blit::now();
   // planet_framebuffer.clip = Rect(0, 0, 10, 10);
 
-  // Render full flattened map
-  current_planet.SetDrawOffset(0, 60);
-  current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+  // Black outline around planet
+  // planet_framebuffer.pen = 0;
+  // Draw::circle(&planet_framebuffer, 60, 60, 60, true);
 
-  planet_framebuffer.pen = 0;
-  Draw::circle(&planet_framebuffer, 60, 60, 60, true);
   current_planet.SetDrawOffset(0, 0);
   current_planet.render_orthographic(&planet_framebuffer, 120);
 
-  // // Render the planet facing the opposite side
-  // float original_lambda = current_planet.viewpoint_lambda0;
-  // current_planet.viewpoint_lambda0 += blit::pi;
-  // current_planet.SetDrawOffset(-1, 120);
-  // current_planet.render_orthographic(&planet_framebuffer, 120);
-  // current_planet.viewpoint_lambda0 = original_lambda;
+  // Render the planet facing the opposite side
+  float original_lambda = current_planet.viewpoint_lambda0;
+  current_planet.viewpoint_lambda0 += blit::pi;
+  current_planet.SetDrawOffset(120, 0);
+  current_planet.render_orthographic(&planet_framebuffer, 120);
+  current_planet.viewpoint_lambda0 = original_lambda;
+
+  // Render full flattened map
+  current_planet.SetDrawOffset(0, 120);
+  current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+
 
 
   last_rotation = blit::now();
@@ -122,6 +125,7 @@ void render(uint32_t time) {
   screen.alpha = 255;
   screen.mask = nullptr;
 
+  // Debug: Show planet_framebuffer draw bounds
   screen.pen = PICO8[13];
   int xoffset = 32;
   Draw::rectangle(&screen, xoffset + 0, 0, PLANET_WIDTH, PLANET_HEIGHT);
