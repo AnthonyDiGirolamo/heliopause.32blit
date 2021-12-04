@@ -14,7 +14,7 @@
 using namespace blit;
 
 namespace {
-// #define SCREEN_MODE_HIRES 1
+#define SCREEN_MODE_HIRES 1
 // #define SCREEN_MODE_LORES 1
 #ifdef SCREEN_MODE_HIRES
 #define PLANET_WIDTH 240
@@ -53,9 +53,19 @@ std::string last_render_duration_string;
 
 void render_planet() {
   uint32_t start_time = blit::now();
-  current_planet.render_orthographic(&planet_framebuffer, PLANET_HEIGHT);
-  // current_planet.render_equirectangular(&planet_framebuffer, PLANET_WIDTH,
-  //                                       PLANET_HEIGHT);
+  // planet_framebuffer.clip = Rect(0, 0, 10, 10);
+
+  current_planet.SetDrawOffset(-1, -1);
+  current_planet.render_orthographic(&planet_framebuffer, 120);
+
+  float original_lambda = current_planet.viewpoint_lambda0;
+  current_planet.viewpoint_lambda0 += blit::pi;
+  current_planet.SetDrawOffset(-1, 120);
+  current_planet.render_orthographic(&planet_framebuffer, 120);
+  current_planet.viewpoint_lambda0 = original_lambda;
+  // current_planet.SetDrawOffset(0, 120);
+  // current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
   // blit::debugf("Render time: %d\n", last_render_duration);
@@ -73,7 +83,7 @@ void init() {
   planet_framebuffer.palette = PICO8;
   // This color should exist in the palette
   planet_framebuffer.transparent_index = 48;
-  planet_framebuffer.pen = 48;
+  planet_framebuffer.pen = 255;
   planet_framebuffer.clear();
 
   Random::RestartSeed();
@@ -101,16 +111,14 @@ void init() {
 
 ///////////////////////////////////////////////////////////////////////////
 void render(uint32_t time) {
-
-  screen.pen = Pen(32, 32, 32);
+  screen.pen = Pen(64, 64, 64);
   screen.clear();
   screen.alpha = 255;
   screen.mask = nullptr;
 
   screen.pen = PICO8[13];
   int xoffset = 32;
-  Draw::rectangle(&screen, xoffset + 0, 0, xoffset + PLANET_WIDTH - 1,
-                  PLANET_HEIGHT - 1);
+  Draw::rectangle(&screen, xoffset + 0, 0, PLANET_WIDTH, PLANET_HEIGHT);
 
   screen.blit(&planet_framebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
               Point(xoffset + 0, 0));

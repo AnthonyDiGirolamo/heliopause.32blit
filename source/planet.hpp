@@ -59,6 +59,7 @@ public:
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
   void SetSeed(uint32_t seed_value);
   void SetTerrain(PlanetTerrain new_terrain);
+  void SetDrawOffset(int x, int y);
   void Regen();
   void AdjustViewpointLatitude(float amount);
   void AdjustViewpointLongitude(float amount);
@@ -71,6 +72,8 @@ public:
   void render_orthographic(blit::Surface *framebuffer, int map_size);
 
 private:
+  int draw_offsetx;
+  int draw_offsety;
   int min_color_index;
   int max_color_index;
   float max_noise;

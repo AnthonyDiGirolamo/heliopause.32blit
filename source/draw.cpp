@@ -2,20 +2,18 @@
 #include <stdint.h>
 
 namespace Draw {
-void rectangle(blit::Surface *fb, int x1, int y1, int x2, int y2,
+void rectangle(blit::Surface *fb, int x1, int y1, int w, int h,
                bool filled = false) {
-  int horizontal_width = x2 - x1 + 1;
-  int vertical_height = y2 - y1 + 1;
   if (filled) {
   } else {
     // Top
-    fb->h_span(blit::Point(x1, y1), horizontal_width);
+    fb->h_span(blit::Point(x1, y1), w);
     // Left
-    fb->v_span(blit::Point(x1, y1), vertical_height);
+    fb->v_span(blit::Point(x1, y1), h);
     // Right
-    fb->v_span(blit::Point(x2, y1), vertical_height);
+    fb->v_span(blit::Point(x1 + w - 1, y1), h);
     // Bottom
-    fb->h_span(blit::Point(x1, y2), horizontal_width);
+    fb->h_span(blit::Point(x1, y1 + h - 1), w);
   }
 }
 

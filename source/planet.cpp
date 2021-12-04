@@ -11,6 +11,8 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   terrain = new_terrain;
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
+  draw_offsetx = 0;
+  draw_offsety = 0;
   Regen();
 }
 
@@ -130,11 +132,18 @@ int Planet::GetTerrainColorIndex(float noise) {
   return index;
 }
 
+void Planet::SetDrawOffset(int x, int y) {
+  draw_offsetx = x;
+  draw_offsety = y;
+}
+
 void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
                                     int map_height) {
   // Erase to non-existent color palette index
   framebuffer->pen = 255;
-  framebuffer->clear();
+  // Clear draw area
+  framebuffer->rectangle(
+      blit::Rect(draw_offsetx, draw_offsety, map_width, map_height));
 
   // Reset min/max tracking
   min_color_index = 255;
@@ -160,13 +169,16 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
     theta = 0;
 
     for (int x = 0; x < map_width; x++) {
+      int dx = draw_offsetx + x;
+      int dy = draw_offsety + y;
+
       float noise = GetNoise(theta, phi);
 
       // Get indexed color value
       int heightmap_color_index = GetTerrainColorIndex(noise);
 
       framebuffer->pen = height_map[heightmap_color_index];
-      framebuffer->pixel(blit::Point(x, y));
+      framebuffer->pixel(blit::Point(dx, dy));
       theta += theta_increment;
     }
 
@@ -217,28 +229,31 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
   float phi0 = viewpoint_phi0;
   // lambda0 = origin longitude
   float lambda0 = viewpoint_lambda0;
-  float centerx = r;
-  float centery = r;
+  float centerx = pixel_radius;
+  float centery = pixel_radius;
 
   // Erase to non-existent color palette index
   framebuffer->pen = 255;
-  // TODO: Set clipping rectangle to area the planet is drawn in
-  // This should allow ploting more than one planet per framebuffer
-  framebuffer->clear();
+  // Clear draw area
+  framebuffer->rectangle(
+      blit::Rect(draw_offsetx, draw_offsety, map_size, map_size));
 
-  // Debug box outline
-  framebuffer->pen = 7;
-  // Rectangle defined by top-left corner to bottom-right corner
-  Draw::rectangle(framebuffer, 0, 0, map_size - 1, map_size - 1);
+  // // Debug box outline
+  // framebuffer->pen = 7;
+  // // Rectangle defined by top-left corner to bottom-right corner
+  // Draw::rectangle(framebuffer, draw_offsetx + 0, draw_offsety + 0, map_size,
+  //                 map_size);
 
   // Plot a circle we wish to fill with the planet image
   framebuffer->pen = 254;
-  Draw::circle(framebuffer, centerx, centery, pixel_radius - 1, true);
+  Draw::circle(framebuffer, draw_offsetx + centerx, draw_offsety + centery,
+               pixel_radius - 1, true);
 
   for (int y = 0; y < map_size; y++) {
     for (int x = 0; x < map_size; x++) {
       // Get the current pixel value.
-      uint8_t pixel_value = *framebuffer->ptr(x, y);
+      uint8_t pixel_value =
+          *framebuffer->ptr(draw_offsetx + x, draw_offsety + y);
 
       // If pixel is 254, we are inside the circle.
       if (pixel_value == 254) {
@@ -287,7 +302,9 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
 
         // Set color and draw the pixel
         framebuffer->pen = palette_color_index;
-        framebuffer->pixel(blit::Point(x, y));
+        int dx = draw_offsetx + x;
+        int dy = draw_offsety + y;
+        framebuffer->pixel(blit::Point(dx, dy));
       }
 
       // If out of bounds
