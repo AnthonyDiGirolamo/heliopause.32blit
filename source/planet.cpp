@@ -235,8 +235,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
   // Erase to non-existent color palette index
   framebuffer->pen = 255;
   // Clear draw area
-  framebuffer->rectangle(
-      blit::Rect(draw_offsetx, draw_offsety, map_size, map_size));
+  // framebuffer->rectangle(
+  //     blit::Rect(draw_offsetx, draw_offsety, map_size, map_size));
 
   // // Debug box outline
   // framebuffer->pen = 7;

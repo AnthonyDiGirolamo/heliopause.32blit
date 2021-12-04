@@ -55,16 +55,22 @@ void render_planet() {
   uint32_t start_time = blit::now();
   // planet_framebuffer.clip = Rect(0, 0, 10, 10);
 
-  current_planet.SetDrawOffset(-1, -1);
+  // Render full flattened map
+  current_planet.SetDrawOffset(0, 60);
+  current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+
+  planet_framebuffer.pen = 0;
+  Draw::circle(&planet_framebuffer, 60, 60, 60, true);
+  current_planet.SetDrawOffset(0, 0);
   current_planet.render_orthographic(&planet_framebuffer, 120);
 
-  float original_lambda = current_planet.viewpoint_lambda0;
-  current_planet.viewpoint_lambda0 += blit::pi;
-  current_planet.SetDrawOffset(-1, 120);
-  current_planet.render_orthographic(&planet_framebuffer, 120);
-  current_planet.viewpoint_lambda0 = original_lambda;
-  // current_planet.SetDrawOffset(0, 120);
-  // current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+  // // Render the planet facing the opposite side
+  // float original_lambda = current_planet.viewpoint_lambda0;
+  // current_planet.viewpoint_lambda0 += blit::pi;
+  // current_planet.SetDrawOffset(-1, 120);
+  // current_planet.render_orthographic(&planet_framebuffer, 120);
+  // current_planet.viewpoint_lambda0 = original_lambda;
+
 
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
