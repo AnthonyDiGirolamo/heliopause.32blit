@@ -14,15 +14,14 @@
 using namespace blit;
 
 namespace {
-#define SCREEN_MODE_HIRES 1
+// #define SCREEN_MODE_HIRES 1
 // #define SCREEN_MODE_LORES 1
 #ifdef SCREEN_MODE_HIRES
-// Total orthographic pixel span should be odd
-#define PLANET_WIDTH 239
-#define PLANET_HEIGHT 239
+#define PLANET_WIDTH 240
+#define PLANET_HEIGHT 240
 #else
-#define PLANET_WIDTH 119
-#define PLANET_HEIGHT 119
+#define PLANET_WIDTH 120
+#define PLANET_HEIGHT 120
 #endif
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
@@ -53,26 +52,14 @@ uint32_t last_render_duration = 0;
 std::string last_render_duration_string;
 
 void render_planet() {
-  // Erase to black
-  planet_framebuffer.pen = 0;
-  planet_framebuffer.clear();
-
-  // Box outline
-  planet_framebuffer.pen = current_planet.terrain.map_icon_color;
-  Draw::rectangle(&planet_framebuffer, 0, 0, PLANET_HEIGHT - 1,
-                  PLANET_HEIGHT - 1);
-
   uint32_t start_time = blit::now();
-  current_planet.render_orthographic(&planet_framebuffer);
-  // current_planet.render_equirectangular(&planet_framebuffer);
+  current_planet.render_orthographic(&planet_framebuffer, PLANET_HEIGHT);
+  // current_planet.render_equirectangular(&planet_framebuffer, PLANET_WIDTH,
+  //                                       PLANET_HEIGHT);
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
-  blit::debugf("Render time: %d\n", last_render_duration);
+  // blit::debugf("Render time: %d\n", last_render_duration);
   last_render_duration_string = std::to_string(last_render_duration);
-
-  int center = (int)((float)PLANET_HEIGHT * 0.5f);
-  planet_framebuffer.pen = 7;
-  Draw::circle(&planet_framebuffer, center, center, center);
 }
 
 } // namespace
@@ -84,13 +71,12 @@ void init() {
   set_screen_mode(ScreenMode::lores);
 #endif
   planet_framebuffer.palette = PICO8;
-  planet_framebuffer.transparent_index = 255;
-  planet_framebuffer.pen = 0;
+  // This color should exist in the palette
+  planet_framebuffer.transparent_index = 48;
+  planet_framebuffer.pen = 48;
   planet_framebuffer.clear();
 
   Random::RestartSeed();
-
-  current_planet.SetRadius((int)((float)PLANET_HEIGHT * 0.5f));
 
   // blit::debugf("PlanetSpanCount: %d\n", PlanetSpan.size());
 
@@ -116,16 +102,18 @@ void init() {
 ///////////////////////////////////////////////////////////////////////////
 void render(uint32_t time) {
 
-  // clear the screen -- screen is a reference to the frame buffer and can be
-  // used to draw all things with the 32blit
-
-  screen.pen = Pen(0, 0, 0);
+  screen.pen = Pen(32, 32, 32);
   screen.clear();
   screen.alpha = 255;
   screen.mask = nullptr;
 
+  screen.pen = PICO8[13];
+  int xoffset = 32;
+  Draw::rectangle(&screen, xoffset + 0, 0, xoffset + PLANET_WIDTH - 1,
+                  PLANET_HEIGHT - 1);
+
   screen.blit(&planet_framebuffer, Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
-              Point(0, 0));
+              Point(xoffset + 0, 0));
 
   // Text Shadow
   screen.pen = PICO8[current_planet.terrain.map_icon_color + 16];

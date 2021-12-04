@@ -5,6 +5,7 @@
 #include "types/vec3.hpp"
 
 #include "SimplexNoise.h"
+#include "draw.hpp"
 #include "random.hpp"
 
 #include "math.h"
@@ -45,7 +46,6 @@ struct PlanetTerrain {
 class Planet {
 public:
   uint32_t seed;
-  int radius;
   blit::Vec3 noise_offset;
   float noise_factor_vertical;
   float viewpoint_phi0;
@@ -57,20 +57,18 @@ public:
   Planet(uint32_t seed_value, PlanetTerrain terrain);
   void RebuildHeightMap();
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
-  void SetRadius(int new_radius);
   void SetSeed(uint32_t seed_value);
   void SetTerrain(PlanetTerrain new_terrain);
   void Regen();
-  int PixelHeight();
-  int PixelWidth();
   void AdjustViewpointLatitude(float amount);
   void AdjustViewpointLongitude(float amount);
 
   float GetNoise(float theta, float phi);
   int GetTerrainColorIndex(float noise);
 
-  void render_equirectangular(blit::Surface *framebuffer);
-  void render_orthographic(blit::Surface *framebuffer);
+  void render_equirectangular(blit::Surface *framebuffer, int map_width,
+                              int map_height);
+  void render_orthographic(blit::Surface *framebuffer, int map_size);
 
 private:
   int min_color_index;

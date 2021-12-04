@@ -11,13 +11,10 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   terrain = new_terrain;
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
-  radius = 30; // Should be 1/2 of the framebuffer height.
   Regen();
 }
 
 void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
-
-void Planet::SetRadius(int new_radius) { radius = new_radius; }
 
 void Planet::SetSeed(uint32_t seed_value) { seed = seed_value; }
 
@@ -72,9 +69,6 @@ void Planet::Regen() {
   //     "noise_factor_vertical: %d.%.6d\n", (int)noise_factor_vertical,
   //     (int)((noise_factor_vertical - (int)noise_factor_vertical) * 1000000));
 }
-
-int Planet::PixelHeight() { return radius * 2; }
-int Planet::PixelWidth() { return radius * 4; }
 
 float Planet::GetNoise(float theta, float phi) {
   // clang-format off
@@ -136,7 +130,12 @@ int Planet::GetTerrainColorIndex(float noise) {
   return index;
 }
 
-void Planet::render_equirectangular(blit::Surface *framebuffer) {
+void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
+                                    int map_height) {
+  // Erase to non-existent color palette index
+  framebuffer->pen = 255;
+  framebuffer->clear();
+
   // Reset min/max tracking
   min_color_index = 255;
   max_color_index = 0;
@@ -145,8 +144,6 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
   min_lambda = 1000;
   max_lambda = -1000;
 
-  int map_width = PixelWidth();
-  int map_height = (int)((float)PixelHeight() * 0.5f);
   // Theta value (longitude)
   // We will map all the way around the sphere [0, 2pi]
   float theta_start = 0;
@@ -176,10 +173,10 @@ void Planet::render_equirectangular(blit::Surface *framebuffer) {
     phi += phi_increment;
   }
 
-  blit::debugf("min: %d.%.6d\n", (int)min_noise,
-               (int)((min_noise - (int)min_noise) * 1000000));
-  blit::debugf("max: %d.%.6d\n", (int)max_noise,
-               (int)((max_noise - (int)max_noise) * 1000000));
+  // blit::debugf("min: %d.%.6d\n", (int)min_noise,
+  //              (int)((min_noise - (int)min_noise) * 1000000));
+  // blit::debugf("max: %d.%.6d\n", (int)max_noise,
+  //              (int)((max_noise - (int)max_noise) * 1000000));
 }
 
 void Planet::AdjustViewpointLatitude(float amount) {
@@ -200,8 +197,9 @@ void Planet::AdjustViewpointLongitude(float amount) {
   }
 }
 
-void Planet::render_orthographic(blit::Surface *framebuffer) {
+void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
   // https://en.wikipedia.org/wiki/Orthographic_map_projection
+
   // Reset min/max tracking
   min_color_index = 255;
   max_color_index = 0;
@@ -210,9 +208,11 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   min_lambda = 1000;
   max_lambda = -1000;
 
-  int map_width = PixelWidth();
-  int map_height = PixelHeight();
-  float r = (float)radius;
+  // floor(map_size / 2)
+  int pixel_radius = (int)((float)map_size * 0.5f);
+  // float r = (int)((float)map_size * 0.5f);
+  float r = pixel_radius;
+
   // phi0 = origin latitude
   float phi0 = viewpoint_phi0;
   // lambda0 = origin longitude
@@ -220,18 +220,40 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   float centerx = r;
   float centery = r;
 
-  for (int y = 0; y < map_height; y++) {
-    for (int x = 0; x < map_height; x++) {
-      // TODO: should be transparent color
-      int heightmap_color_index = 0;
-      // framebuffer->pen = heightmap_color_index;
+  // Erase to non-existent color palette index
+  framebuffer->pen = 255;
+  // TODO: Set clipping rectangle to area the planet is drawn in
+  // This should allow ploting more than one planet per framebuffer
+  framebuffer->clear();
 
-      float xf = (float)x - centerx;
-      float yf = (float)y - centery;
-      // p (rho) = sqrt(x*x + y*y)
-      float p = sqrtf(xf * xf + yf * yf);
+  // Debug box outline
+  framebuffer->pen = 7;
+  // Rectangle defined by top-left corner to bottom-right corner
+  Draw::rectangle(framebuffer, 0, 0, map_size - 1, map_size - 1);
 
-      if (p <= r) {
+  // Plot a circle we wish to fill with the planet image
+  framebuffer->pen = 254;
+  Draw::circle(framebuffer, centerx, centery, pixel_radius - 1, true);
+
+  for (int y = 0; y < map_size; y++) {
+    for (int x = 0; x < map_size; x++) {
+      // Get the current pixel value.
+      uint8_t pixel_value = *framebuffer->ptr(x, y);
+
+      // If pixel is 254, we are inside the circle.
+      if (pixel_value == 254) {
+
+        float xf = (float)x - centerx;
+        float yf = (float)y - centery;
+        // Some trig function breaks if xf and xy are both zero. Set a slight
+        // offset.
+        if ((y - centery == 0) && (x - centerx == 0)) {
+          xf = 0.0001;
+          yf = 0.0001;
+        }
+        // p (rho) = sqrt(x*x + y*y)
+        float p = sqrtf(xf * xf + yf * yf);
+
         // R = radius
         // float p = sqrtf(xf*xf + yf*yf);
         // c = arcsin(p/R)
@@ -245,8 +267,12 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
             lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
                                             (yf * sinf(c) * sinf(phi0))));
         float noise = GetNoise(lambda, phi);
-        heightmap_color_index = GetTerrainColorIndex(noise);
-        int palette_color_index = height_map[heightmap_color_index];
+
+        int heightmap_color_index = GetTerrainColorIndex(noise);
+        // TODO: should be transparent color
+        int palette_color_index = 0;
+        // TODO: Only update this if valid height_map color?
+        palette_color_index = height_map[heightmap_color_index];
 
         // TODO: Calculate phase based on solar system sun position
         // Darken colors if phase of the planet is facing the sun
@@ -269,13 +295,14 @@ void Planet::render_orthographic(blit::Surface *framebuffer) {
   }
 
   // Debugging info
-  blit::debugf("min_noise: %d.%.6d\n", (int)min_noise,
-               (int)((min_noise - (int)min_noise) * 1000000));
-  blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
-               (int)((max_noise - (int)max_noise) * 1000000));
 
-  blit::debugf("color_index min, max: %d, %d\n", min_color_index,
-               max_color_index);
+  // blit::debugf("min_noise: %d.%.6d\n", (int)min_noise,
+  //              (int)((min_noise - (int)min_noise) * 1000000));
+  // blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
+  //              (int)((max_noise - (int)max_noise) * 1000000));
+
+  // blit::debugf("color_index min, max: %d, %d\n", min_color_index,
+  //              max_color_index);
 
   // blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
   //              (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) *

@@ -58,6 +58,8 @@ Pen PICO8[] = {
     Pen(33, 30, 39),
     Pen(64, 30, 42),
     Pen(64, 51, 43),
+    // Transparent Color
+    Pen(255, 0, 255),
 };
 
 #define PICO8_BLACK PICO8[0]

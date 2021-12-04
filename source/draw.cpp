@@ -9,13 +9,13 @@ void rectangle(blit::Surface *fb, int x1, int y1, int x2, int y2,
   if (filled) {
   } else {
     // Top
-    fb->h_span(blit::Point(0, 0), horizontal_width);
+    fb->h_span(blit::Point(x1, y1), horizontal_width);
     // Left
-    fb->v_span(blit::Point(0, 0), vertical_height);
+    fb->v_span(blit::Point(x1, y1), vertical_height);
     // Right
-    fb->v_span(blit::Point(x2, 0), vertical_height);
+    fb->v_span(blit::Point(x2, y1), vertical_height);
     // Bottom
-    fb->h_span(blit::Point(0, y2), horizontal_width);
+    fb->h_span(blit::Point(x1, y2), horizontal_width);
   }
 }
 
