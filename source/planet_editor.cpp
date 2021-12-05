@@ -48,7 +48,8 @@ void previous_planet() {
 std::string_view get_noise_octaves_string() {
   static pw::StringBuffer<16> noise_octaves_value_string;
   noise_octaves_value_string.clear();
-  noise_octaves_value_string.Format("%d", current_planet.terrain.noise_octaves);
+  noise_octaves_value_string.Format("%d",
+                                    (int)current_planet.terrain.noise_octaves);
   return noise_octaves_value_string.view();
 }
 
@@ -69,7 +70,8 @@ void decrease_noise_octaves() {
 std::string_view get_noise_zoom_string() {
   static pw::StringBuffer<16> noise_zoom_value_string;
   noise_zoom_value_string.clear();
-  noise_zoom_value_string.Format("%.2f", current_planet.terrain.noise_zoom);
+  noise_zoom_value_string.Format("%.2f",
+                                 (double)current_planet.terrain.noise_zoom);
   return noise_zoom_value_string.view();
 }
 
@@ -81,7 +83,7 @@ std::string_view get_noise_persistance_string() {
   static pw::StringBuffer<16> noise_persistance_value_string;
   noise_persistance_value_string.clear();
   noise_persistance_value_string.Format(
-      "%.2f", current_planet.terrain.noise_persistance);
+      "%.2f", (double)current_planet.terrain.noise_persistance);
   return noise_persistance_value_string.view();
 }
 
@@ -282,7 +284,8 @@ void render_planet() {
   // blit::debugf("Render time: %d\n", last_render_duration);
   // last_render_duration_string = std::to_string(last_render_duration);
   last_render_update_message.clear();
-  last_render_update_message.Format("Render Time: %d ms", (int)last_render_duration);
+  last_render_update_message.Format("Render Time: %d ms",
+                                    (int)last_render_duration);
 }
 
 bool auto_rotate() {

@@ -26,7 +26,8 @@ function flash_pico () {
 }
 
 function flash_32blit () {
-  ninja -C out/stm32 flash
+  # ninja -C out/stm32 flash
+  DONE=true
 }
 
 
@@ -43,7 +44,7 @@ cmake -G Ninja \
    -B ./out/stm32 \
    $COMMON_ARGS \
    -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/32blit.toolchain \
-   && ninja -C out/stm32 # && flash_32blit
+   && ninja -C out/stm32 && flash_32blit
 
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \

@@ -1,6 +1,6 @@
 #pragma once
 
-#define SCREEN_MODE_HIRES 1
+// #define SCREEN_MODE_HIRES 1
 // #define SCREEN_MODE_LORES 1
 
 #ifdef SCREEN_MODE_HIRES

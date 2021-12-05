@@ -44,9 +44,9 @@ void init() {
 
 ///////////////////////////////////////////////////////////////////////////
 void render(uint32_t time) {
-  screen.pen = Pen(64, 64, 64);
-  screen.clear();
+  screen.pen = Pen(64, 64, 64, 255);
   screen.alpha = 255;
+  screen.clear();
   screen.mask = nullptr;
 
   int xoffset = 0;
@@ -154,8 +154,9 @@ void update(uint32_t time) {
     heliopause::PlanetEditor::render_planet();
 
     planet_metadata.clear();
-    planet_metadata.Format("Noise Range: [%.2f, %.2f]",
-                           heliopause::PlanetEditor::current_planet.min_noise,
-                           heliopause::PlanetEditor::current_planet.max_noise);
+    planet_metadata.Format(
+        "Noise Range: [%.2f, %.2f]",
+        (double)heliopause::PlanetEditor::current_planet.min_noise,
+        (double)heliopause::PlanetEditor::current_planet.max_noise);
   }
 }
