@@ -18,6 +18,8 @@ set(PROJECT_SOURCE
   source/game.hpp
   source/menu.cpp
   source/menu.hpp
+  source/planet_editor.cpp
+  source/planet_editor.hpp
   source/planet.cpp
   source/planet.hpp
   source/planet_types.hpp
