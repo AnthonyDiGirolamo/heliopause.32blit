@@ -38,7 +38,7 @@ void init() {
   heliopause::PlanetEditor::planet_framebuffer.transparent_index = 48;
   // Set to non-existent index and clear so pixels are not updaed when calling
   // screen.blit().
-  heliopause::PlanetEditor::planet_framebuffer.pen = 255;
+  heliopause::PlanetEditor::planet_framebuffer.pen = 0;
   heliopause::PlanetEditor::planet_framebuffer.clear();
   planet_metadata.Format("Rendering...");
 
@@ -47,7 +47,7 @@ void init() {
 
 ///////////////////////////////////////////////////////////////////////////
 void render(uint32_t time) {
-  screen.pen = Pen(64, 64, 64, 255);
+  screen.pen = Pen(0, 0, 0, 255);
   screen.alpha = 255;
   screen.clear();
   screen.mask = nullptr;
@@ -58,6 +58,10 @@ void render(uint32_t time) {
   // screen.pen = PICO8_INDIGO;
   // int xoffset = 32;
   // Draw::rectangle(&screen, xoffset + 0, 0, PLANET_WIDTH, PLANET_HEIGHT);
+
+  if (screen.bounds.w > screen.bounds.h) {
+    xoffset += (int)((screen.bounds.w - screen.bounds.h) * 0.5f);
+  }
 
   screen.blit(&heliopause::PlanetEditor::planet_framebuffer,
               Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT), Point(xoffset + 0, 0));
