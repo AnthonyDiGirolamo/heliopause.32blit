@@ -212,9 +212,9 @@ PlanetTerrain kBarrenPlanet = {
 PlanetTerrain kDesertPlanet = {
   .type              = desert,
   .type_string       = std::string_view {"desert"},
-  .noise_octaves     = 1,
-  .noise_zoom        = 0.35,
-  .noise_persistance = 0.3,
+  .noise_octaves     = 4,
+  .noise_zoom        = 0.65,
+  .noise_persistance = 0.65,
   .map_icon_color    = 9,
   .full_shadow       = 1,
   .transparent_color = 14,
@@ -222,8 +222,8 @@ PlanetTerrain kDesertPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kDesertColorMap,
-  .color_padding_start = 5,
-  .color_padding_end = 5,
+  .color_padding_start = 4,
+  .color_padding_end = 4,
 };
 
 PlanetTerrain kLavaPlanet = {

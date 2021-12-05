@@ -6,8 +6,16 @@ namespace heliopause {
 
 Menu::Menu(std::span<const MenuItem> menu_items) {
   items = menu_items;
-  title = std::string_view{"Parameters"};
+  title = std::string_view{"Planet Parameters"};
   active = false;
+
+  // Calculate max width of menu item titles.
+  max_name_length = 0;
+  for (const MenuItem item : items) {
+    if ((int)item.name.length() > max_name_length)
+      max_name_length = item.name.length();
+  }
+  max_name_length -= 1;
 }
 
 void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
@@ -19,21 +27,21 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
 
   int total_rows = 1;
   total_rows += items.size();
-  int max_name_length = 0;
-  for (const MenuItem item : items) {
-    if ((int)item.name.length() > max_name_length)
-      max_name_length = item.name.length();
-  }
 
+  // Shaded Background Rect
   framebuffer->pen = blit::Pen(0, 0, 0, 128);
-  framebuffer->rectangle(
-      Rect(posx, posy, char_w * (max_name_length + 5), char_h * total_rows));
+  framebuffer->rectangle(Rect(posx, posy, framebuffer->bounds.w,
+                              // char_w * (max_name_length + 20),
+                              char_h * total_rows));
 
   int row = 0;
+  // Menu title
+  framebuffer->pen = PICO8_ORANGE;
   framebuffer->text(title, blit::minimal_font,
                     blit::Point(posx, posy + (row * char_h)));
   row += 1;
 
+  // Items
   framebuffer->pen = PICO8_WHITE;
   int value_posx = max_name_length * char_w;
 

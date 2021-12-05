@@ -10,10 +10,9 @@ namespace heliopause::PlanetEditor {
 extern blit::Surface planet_framebuffer;
 extern Planet current_planet;
 extern heliopause::Menu planet_menu;
-extern pw::StringBuffer<64> last_render_update_message;
+extern pw::StringBuffer<24> last_render_update_message;
 
-void next_planet();
-void previous_planet();
 void render_planet();
+bool auto_rotate();
 
 } // namespace heliopause::PlanetEditor

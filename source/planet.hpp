@@ -53,6 +53,8 @@ public:
   PlanetTerrain terrain;
   SimplexNoise simplex_noise;
   uint8_t height_map[32];
+  float max_noise;
+  float min_noise;
 
   Planet(uint32_t seed_value, PlanetTerrain terrain);
   void RebuildHeightMap();
@@ -76,8 +78,6 @@ private:
   int draw_offsety;
   int min_color_index;
   int max_color_index;
-  float max_noise;
-  float min_noise;
   float min_lambda;
   float max_lambda;
   int terrain_heightmap_color_count;

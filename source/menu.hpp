@@ -17,7 +17,7 @@ class Menu {
 public:
   std::string_view title;
   int selected_item_index;
-  int total_items;
+  int max_name_length;
   bool active;
   std::span<const MenuItem> items;
 

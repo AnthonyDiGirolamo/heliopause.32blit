@@ -21,7 +21,7 @@ fi
 function flash_pico () {
   PICO_DIR=/run/media/$USER/RPI-RP2
   if test -d $PICO_DIR ; then
-      cp ./out/pico/game.uf2 $PICO_DIR/
+      cp ./out/pico/heliopause.uf2 $PICO_DIR/
   fi
 }
 
@@ -49,4 +49,4 @@ cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
    -B ./out/host \
    $COMMON_ARGS \
-   && ninja -C out/host && ./out/host/game
+   && ninja -C out/host && ./out/host/heliopause
