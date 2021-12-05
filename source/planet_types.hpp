@@ -72,7 +72,7 @@ constexpr std::span<const uint8_t>
 // clang-format off
 PlanetTerrain kTerranPlanet = {
   .type              = terran,
-  .type_string       = std::string_view {"terran"},
+  .type_string       = std::string_view {"Terran"},
   .noise_octaves     = 5,
   .noise_zoom        = 0.5,
   .noise_persistance = 0.65,
@@ -90,7 +90,7 @@ PlanetTerrain kTerranPlanet = {
 
 PlanetTerrain kTundraPlanet = {
   .type              = tundra,
-  .type_string       = std::string_view {"tundra"},
+  .type_string       = std::string_view {"Tundra"},
   .noise_octaves     = 5,
   .noise_zoom        = 0.5,
   .noise_persistance = 0.6,
@@ -108,7 +108,7 @@ PlanetTerrain kTundraPlanet = {
 
 PlanetTerrain kGasGiantRedPlanet = {
   .type              = gas_giant_red,
-  .type_string       = std::string_view {"gas giant red"},
+  .type_string       = std::string_view {"Red Giant"},
   .noise_octaves     = 1,
   .noise_zoom        = 0.4,
   .noise_persistance = 0.75,
@@ -125,7 +125,7 @@ PlanetTerrain kGasGiantRedPlanet = {
 
 PlanetTerrain kGasGiantBluePlanet = {
   .type              = gas_giant_blue,
-  .type_string       = std::string_view {"gas giant blue"},
+  .type_string       = std::string_view {"Blue Giant"},
   .noise_octaves     = 1,
   .noise_zoom        = 0.4,
   .noise_persistance = 0.75,
@@ -142,7 +142,7 @@ PlanetTerrain kGasGiantBluePlanet = {
 
 PlanetTerrain kGasGiantYellowPlanet = {
   .type              = gas_giant_yellow,
-  .type_string       = std::string_view {"gas giant yellow"},
+  .type_string       = std::string_view {"Yellow Giant"},
   .noise_octaves     = 1,
   .noise_zoom        = 0.7,
   .noise_persistance = 0.75,
@@ -159,7 +159,7 @@ PlanetTerrain kGasGiantYellowPlanet = {
 
 PlanetTerrain kGasGiantRainbowPlanet = {
   .type              = gas_giant_rainbow,
-  .type_string       = std::string_view {"gas giant rainbow"},
+  .type_string       = std::string_view {"Rainbow Giant"},
   .noise_octaves     = 1,
   .noise_zoom        = 0.7,
   .noise_persistance = 0.75,
@@ -176,7 +176,7 @@ PlanetTerrain kGasGiantRainbowPlanet = {
 
 PlanetTerrain kIslandPlanet = {
   .type              = island,
-  .type_string       = std::string_view {"island"},
+  .type_string       = std::string_view {"Island"},
   .noise_octaves     = 5,
   .noise_zoom        = 0.55,
   .noise_persistance = 0.65,
@@ -194,7 +194,7 @@ PlanetTerrain kIslandPlanet = {
 
 PlanetTerrain kBarrenPlanet = {
   .type              = barren,
-  .type_string       = std::string_view {"barren"},
+  .type_string       = std::string_view {"Barren"},
   .noise_octaves     = 5,
   .noise_zoom        = 0.55,
   .noise_persistance = 0.35,
@@ -211,7 +211,7 @@ PlanetTerrain kBarrenPlanet = {
 
 PlanetTerrain kDesertPlanet = {
   .type              = desert,
-  .type_string       = std::string_view {"desert"},
+  .type_string       = std::string_view {"Desert"},
   .noise_octaves     = 4,
   .noise_zoom        = 0.65,
   .noise_persistance = 0.65,
@@ -228,7 +228,7 @@ PlanetTerrain kDesertPlanet = {
 
 PlanetTerrain kLavaPlanet = {
   .type              = lava,
-  .type_string       = std::string_view {"lava"},
+  .type_string       = std::string_view {"Lava"},
   .noise_octaves     = 5,
   .noise_zoom        = 0.55,
   .noise_persistance = 0.65,

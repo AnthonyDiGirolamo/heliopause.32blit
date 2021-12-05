@@ -5,4 +5,9 @@
 assets.cpp:
   assets/no-image.png:
     name: asset_no_image
+font_asset.cpp:
+  m3x6.ttf:
+    name: m3x6_font
+    height: 16
+    space_width: 2
 

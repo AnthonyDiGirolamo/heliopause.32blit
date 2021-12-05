@@ -16,6 +16,7 @@
 #include "SimplexNoise.h"
 #include "colors.hpp"
 #include "draw.hpp"
+#include "font_asset.hpp"
 #include "planet_editor.hpp"
 #include "random.hpp"
 
@@ -23,6 +24,7 @@ using namespace blit;
 
 bool not_rendered = true;
 static pw::StringBuffer<40> planet_metadata;
+const Font custom_font(m3x6_font);
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -49,6 +51,7 @@ void render(uint32_t time) {
   screen.clear();
   screen.mask = nullptr;
 
+  int char_h_offset = -5;
   int xoffset = 0;
   // // Debug: Show planet_framebuffer draw bounds
   // screen.pen = PICO8_INDIGO;
@@ -69,30 +72,32 @@ void render(uint32_t time) {
         heliopause::PlanetEditor::current_planet.terrain.map_icon_color + 16;
     screen.pen = PICO8[color_index];
     screen.text(heliopause::PlanetEditor::current_planet.terrain.type_string,
-                minimal_font, Point(3, 2));
+                custom_font,
+                Point(3, screen.bounds.h - 24 + 1 + char_h_offset));
     // Text
     color_index =
         heliopause::PlanetEditor::current_planet.terrain.map_icon_color;
     screen.pen = PICO8[color_index];
     screen.text(heliopause::PlanetEditor::current_planet.terrain.type_string,
-                minimal_font, Point(2, 1));
+                custom_font, Point(2, screen.bounds.h - 24 + char_h_offset));
   }
 
   // Render time
   screen.pen = PICO8_BLACK;
   screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
-              minimal_font, Point(2 + 1, PLANET_HEIGHT - 16 + 1));
+              custom_font,
+              Point(2 + 1, screen.bounds.h - 16 + 1 + char_h_offset));
   screen.pen = PICO8_WHITE;
   screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
-              minimal_font, Point(2, PLANET_HEIGHT - 16));
+              custom_font, Point(2, screen.bounds.h - 16 + char_h_offset));
 
   // Planet info
   screen.pen = PICO8_BLACK;
-  screen.text(planet_metadata.view(), minimal_font,
-              Point(2 + 1, PLANET_HEIGHT - 8 + 1));
+  screen.text(planet_metadata.view(), custom_font,
+              Point(2 + 1, screen.bounds.h - 8 + 1 + char_h_offset));
   screen.pen = PICO8_WHITE;
-  screen.text(planet_metadata.view(), minimal_font,
-              Point(2, PLANET_HEIGHT - 8));
+  screen.text(planet_metadata.view(), custom_font,
+              Point(2, screen.bounds.h - 8 + char_h_offset));
 
   // int rect_width = 8;
   // for (int i = 0; i < 16; i++) {

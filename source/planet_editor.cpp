@@ -9,8 +9,8 @@ namespace {
 
 std::string_view enabled_string = {"true"};
 std::string_view disabled_string = {"false"};
-std::string_view orthographic_string = {"orthographic"};
-std::string_view equirectangular_string = {"equirectangular"};
+std::string_view orthographic_string = {"3D"};
+std::string_view equirectangular_string = {"Flat"};
 
 bool auto_rotation = false;
 bool display_mode_orthographic = true;
@@ -178,55 +178,55 @@ void decrease_color_padding_end() {
 
 static constexpr heliopause::MenuItem planet_menu_items[] = {
     {
-        .name = std::string_view{"type"},
+        .name = std::string_view{"Type"},
         .get_value = &get_planet_type_string,
         .increase_function = &next_planet,
         .decrease_function = &previous_planet,
     },
     {
-        .name = std::string_view{"seed"},
+        .name = std::string_view{"Seed"},
         .get_value = &get_seed_string,
         .increase_function = &increase_seed,
         .decrease_function = &decrease_seed,
     },
     {
-        .name = std::string_view{"noise octaves"},
+        .name = std::string_view{"Noise Octaves"},
         .get_value = &get_noise_octaves_string,
         .increase_function = &increase_noise_octaves,
         .decrease_function = &decrease_noise_octaves,
     },
     {
-        .name = std::string_view{"noise zoom"},
+        .name = std::string_view{"Noise Zoom"},
         .get_value = &get_noise_zoom_string,
         .increase_function = &increase_noise_zoom,
         .decrease_function = &decrease_noise_zoom,
     },
     {
-        .name = std::string_view{"noise persistance"},
+        .name = std::string_view{"Noise Persistance"},
         .get_value = &get_noise_persistance_string,
         .increase_function = &increase_noise_persistance,
         .decrease_function = &decrease_noise_persistance,
     },
     {
-        .name = std::string_view{"color padding - start"},
+        .name = std::string_view{"ColorPadding Start"},
         .get_value = &get_color_padding_start_string,
         .increase_function = &increase_color_padding_start,
         .decrease_function = &decrease_color_padding_start,
     },
     {
-        .name = std::string_view{"color padding - end"},
+        .name = std::string_view{"ColorPadding End"},
         .get_value = &get_color_padding_end_string,
         .increase_function = &increase_color_padding_end,
         .decrease_function = &decrease_color_padding_end,
     },
     {
-        .name = std::string_view{"display mode"},
+        .name = std::string_view{"DisplayMode"},
         .get_value = &get_display_mode_string,
         .increase_function = &toggle_display_mode,
         .decrease_function = &toggle_display_mode,
     },
     {
-        .name = std::string_view{"auto rotate"},
+        .name = std::string_view{"AutoRotate"},
         .get_value = &get_auto_rotation_string,
         .increase_function = &toggle_auto_rotation,
         .decrease_function = &toggle_auto_rotation,
