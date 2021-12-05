@@ -1,15 +1,25 @@
 #include "game.hpp"
-#include "SimplexNoise.h"
-#include "colors.hpp"
-#include "draw.hpp"
+// 32blit
+#include "32blit.hpp"
 #include "engine/engine.hpp"
 #include "math/constants.hpp"
-#include "planet.hpp"
-#include "planet_types.hpp"
-#include "random.hpp"
+// Pigweed
+#include "pw_string/format.h"
+#include "pw_string/string_builder.h"
+// std
 #include <chrono>
 #include <stdint.h>
 #include <string>
+#include <string_view>
+
+// Heliopause
+#include "SimplexNoise.h"
+#include "colors.hpp"
+#include "draw.hpp"
+#include "menu.hpp"
+#include "planet.hpp"
+#include "planet_types.hpp"
+#include "random.hpp"
 
 using namespace blit;
 
@@ -47,9 +57,34 @@ void previous_planet() {
   current_planet.Regen();
 }
 
+std::string_view get_octaves_string() {
+  static pw::StringBuffer<16> octaves_value_string;
+  octaves_value_string.clear();
+  octaves_value_string.Format("%d", current_planet.terrain.noise_octaves);
+  return octaves_value_string.view();
+}
+
+void increase_octaves() {}
+
+void decrease_octaves() {}
+
+static constexpr heliopause::MenuItem planet_menu_items[] = {
+    {
+        .name = std::string_view{"octaves"},
+        .get_value = &get_octaves_string,
+        .increase_function = &increase_octaves,
+        .decrease_function = &decrease_octaves,
+    },
+};
+
+constexpr std::span<const heliopause::MenuItem>
+    planet_menu_items_span(planet_menu_items);
+heliopause::Menu planet_menu = heliopause::Menu(planet_menu_items_span);
+
 uint32_t last_rotation = 0;
 uint32_t last_render_duration = 0;
-std::string last_render_duration_string;
+// std::string last_render_duration_string;
+pw::StringBuffer<64> last_render_update_message;
 
 void render_planet() {
   uint32_t start_time = blit::now();
@@ -73,12 +108,12 @@ void render_planet() {
   current_planet.SetDrawOffset(0, 120);
   current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
 
-
-
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
   // blit::debugf("Render time: %d\n", last_render_duration);
-  last_render_duration_string = std::to_string(last_render_duration);
+  // last_render_duration_string = std::to_string(last_render_duration);
+  last_render_update_message.clear();
+  last_render_update_message.Format("%d ms", (int)last_render_duration);
 }
 
 } // namespace
@@ -140,7 +175,7 @@ void render(uint32_t time) {
   screen.pen = PICO8[current_planet.terrain.map_icon_color];
   screen.text(current_planet.terrain.type_string, minimal_font, Point(2, 1));
 
-  screen.text(last_render_duration_string, minimal_font,
+  screen.text(last_render_update_message.view(), minimal_font,
               Point(2, PLANET_HEIGHT - 8));
 
   // int rect_width = 8;
@@ -163,6 +198,9 @@ void render(uint32_t time) {
   //   }
   //   screen.rectangle(Rect(2 + x, y, rect_width, rect_width));
   // }
+
+  // Draw the menu if active
+  planet_menu.Draw(&screen, 0, 0);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -179,16 +217,14 @@ void update(uint32_t time) {
     not_rendered = false;
   }
 
-  if (buttons.pressed & Button::Y) {
-    Random::IncrementSeed(1);
-    blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
-    current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
-                                     AllPlanets[selected_planet_index]);
-    rerender = true;
-
+  if (planet_menu.active) {
+    planet_menu.Update();
   } else if (buttons.pressed & Button::X) {
-    Random::IncrementSeed(-1);
-    blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
+    // Activate menu
+    planet_menu.ToggleActive();
+  } else if (buttons.pressed & Button::Y) {
+    Random::IncrementSeed(1);
+    // blit::debugf("Seed: %d\n", Random::GetCurrentSeed());
     current_planet.SetTerrainAndSeed(Random::GetCurrentSeed(),
                                      AllPlanets[selected_planet_index]);
     rerender = true;

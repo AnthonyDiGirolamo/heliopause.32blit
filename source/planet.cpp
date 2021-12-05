@@ -1,4 +1,5 @@
 #include "planet.hpp"
+#include "pw_string/string_builder.h"
 #include <cstdint>
 #include <math.h>
 

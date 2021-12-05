@@ -82,3 +82,7 @@ private:
   float max_lambda;
   int terrain_heightmap_color_count;
 };
+
+std::string_view get_octaves_string(Planet *planet);
+void increase_octaves(Planet *planet);
+void decrease_octaves(Planet *planet);
