@@ -57,23 +57,68 @@ void previous_planet() {
   current_planet.Regen();
 }
 
-std::string_view get_octaves_string() {
-  static pw::StringBuffer<16> octaves_value_string;
-  octaves_value_string.clear();
-  octaves_value_string.Format("%d", current_planet.terrain.noise_octaves);
-  return octaves_value_string.view();
+std::string_view get_noise_octaves_string() {
+  static pw::StringBuffer<16> noise_octaves_value_string;
+  noise_octaves_value_string.clear();
+  noise_octaves_value_string.Format("%d", current_planet.terrain.noise_octaves);
+  return noise_octaves_value_string.view();
 }
 
-void increase_octaves() {}
+void increase_noise_octaves() {
+  current_planet.terrain.noise_octaves += 1;
+  // Arbitrary upper limit
+  if (current_planet.terrain.noise_octaves > 16)
+    current_planet.terrain.noise_octaves = 16;
+}
 
-void decrease_octaves() {}
+void decrease_noise_octaves() {
+  int octaves = current_planet.terrain.noise_octaves - 1;
+  if (octaves < 1)
+    octaves = 1;
+  current_planet.terrain.noise_octaves = octaves;
+}
+
+std::string_view get_noise_zoom_string() {
+  static pw::StringBuffer<16> noise_zoom_value_string;
+  noise_zoom_value_string.clear();
+  noise_zoom_value_string.Format("%.2f", current_planet.terrain.noise_zoom);
+  return noise_zoom_value_string.view();
+}
+
+void increase_noise_zoom() {}
+
+void decrease_noise_zoom() {}
+
+std::string_view get_noise_persistance_string() {
+  static pw::StringBuffer<16> noise_persistance_value_string;
+  noise_persistance_value_string.clear();
+  noise_persistance_value_string.Format(
+      "%.2f", current_planet.terrain.noise_persistance);
+  return noise_persistance_value_string.view();
+}
+
+void increase_noise_persistance() {}
+
+void decrease_noise_persistance() {}
 
 static constexpr heliopause::MenuItem planet_menu_items[] = {
     {
-        .name = std::string_view{"octaves"},
-        .get_value = &get_octaves_string,
-        .increase_function = &increase_octaves,
-        .decrease_function = &decrease_octaves,
+        .name = std::string_view{"noise octaves"},
+        .get_value = &get_noise_octaves_string,
+        .increase_function = &increase_noise_octaves,
+        .decrease_function = &decrease_noise_octaves,
+    },
+    {
+        .name = std::string_view{"noise zoom"},
+        .get_value = &get_noise_zoom_string,
+        .increase_function = &increase_noise_zoom,
+        .decrease_function = &decrease_noise_zoom,
+    },
+    {
+        .name = std::string_view{"noise persistance"},
+        .get_value = &get_noise_persistance_string,
+        .increase_function = &increase_noise_persistance,
+        .decrease_function = &decrease_noise_persistance,
     },
 };
 
@@ -95,9 +140,14 @@ void render_planet() {
   // Draw::circle(&planet_framebuffer, 60, 60, 60, true);
 
   current_planet.SetDrawOffset(0, 0);
+  current_planet.render_orthographic(&planet_framebuffer, PLANET_HEIGHT);
+
+  /*
+  // Render the planet in 3d
+  current_planet.SetDrawOffset(0, 0);
   current_planet.render_orthographic(&planet_framebuffer, 120);
 
-  // Render the planet facing the opposite side
+  // Render the planet in 3d facing the opposite side
   float original_lambda = current_planet.viewpoint_lambda0;
   current_planet.viewpoint_lambda0 += blit::pi;
   current_planet.SetDrawOffset(120, 0);
@@ -107,6 +157,7 @@ void render_planet() {
   // Render full flattened map
   current_planet.SetDrawOffset(0, 120);
   current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
+  */
 
   last_rotation = blit::now();
   last_render_duration = last_rotation - start_time;
@@ -218,7 +269,7 @@ void update(uint32_t time) {
   }
 
   if (planet_menu.active) {
-    planet_menu.Update();
+    rerender = planet_menu.Update();
   } else if (buttons.pressed & Button::X) {
     // Activate menu
     planet_menu.ToggleActive();

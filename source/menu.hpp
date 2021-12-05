@@ -23,8 +23,10 @@ public:
 
   Menu(std::span<const MenuItem> menu_items);
   void Draw(blit::Surface *framebuffer, int posx, int posy);
-  void Update();
+  bool Update();
   void ToggleActive();
+  void NextItem();
+  void PrevItem();
 };
 
 } // namespace heliopause
