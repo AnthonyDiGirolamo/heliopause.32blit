@@ -40,6 +40,7 @@ void init() {
   // screen.blit().
   heliopause::PlanetEditor::planet_framebuffer.pen = 255;
   heliopause::PlanetEditor::planet_framebuffer.clear();
+  planet_metadata.Format("Rendering...");
 
   Random::RestartSeed();
 }
