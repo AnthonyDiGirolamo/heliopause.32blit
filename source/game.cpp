@@ -75,6 +75,9 @@ void render(uint32_t time) {
     xoffset += (int)((screen.bounds.w - screen.bounds.h) * 0.5f);
   }
 
+  if (!heliopause::PlanetEditor::display_mode_orthographic)
+    xoffset = 0;
+
   screen.blit(&heliopause::PlanetEditor::planet_framebuffer,
               Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT), Point(xoffset + 0, 0));
 

@@ -13,13 +13,14 @@ std::string_view orthographic_string = {"3D"};
 std::string_view equirectangular_string = {"Flat"};
 
 bool auto_rotation = false;
-bool display_mode_orthographic = true;
 
 int selected_planet_index = 0;
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
 
 } // namespace
+
+bool display_mode_orthographic = true;
 
 blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
                                  blit::PixelFormat::P,
