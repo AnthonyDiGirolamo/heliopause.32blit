@@ -7,6 +7,9 @@
 
 #include <span>
 
+#define PICO8_DARK_OFFSET 16
+#define ENDESGA32_DARK_OFFSET 33
+
 /* Color Palette
 
   0,  // #000000 BLACK
@@ -64,39 +67,42 @@
 
 static constexpr uint8_t kTerranColors[] = {
 
-  // pico8
-  1,  // #1d2b53 DARK_BLUE
-  1,  // #1d2b53 DARK_BLUE
-  1,  // #1d2b53 DARK_BLUE
-  1,  // #1d2b53 DARK_BLUE
-  1,  // #1d2b53 DARK_BLUE
-  1,  // #1d2b53 DARK_BLUE
-  13, // #83769c INDIGO
-  12, // #29adff BLUE
-  15, // #ffccaa PEACH
-  11, // #00e436 GREEN
-  11, // #00e436 GREEN
-  3,  // #008751 DARK_GREEN
-  3,  // #008751 DARK_GREEN
-  3,  // #008751 DARK_GREEN
-  4,  // #ab5236 BROWN
-  5,  // #5f574f DARK_GRAY
-  6,  // #c2c3c7 LIGHT_GRAY
-  7,  // #fff1e8 WHITE
+  // // pico8
+  // 1,  // #1d2b53 DARK_BLUE
+  // 1,  // #1d2b53 DARK_BLUE
+  // 1,  // #1d2b53 DARK_BLUE
+  // 1,  // #1d2b53 DARK_BLUE
+  // 1,  // #1d2b53 DARK_BLUE
+  // 1,  // #1d2b53 DARK_BLUE
+  // 13, // #83769c INDIGO
+  // 12, // #29adff BLUE
+  // 15, // #ffccaa PEACH
+  // 11, // #00e436 GREEN
+  // 11, // #00e436 GREEN
+  // 3,  // #008751 DARK_GREEN
+  // 3,  // #008751 DARK_GREEN
+  // 3,  // #008751 DARK_GREEN
+  // 4,  // #ab5236 BROWN
+  // 5,  // #5f574f DARK_GRAY
+  // 6,  // #c2c3c7 LIGHT_GRAY
+  // 7,  // #fff1e8 WHITE
 
-  // // endesga32
-  // 75, // #262b44
-  // 67, // #124e89
-  // 68, // #0099db
-  // 69, // #2ce8f5
-  // 53, // #ead4aa
-  // 63, // #63c74d
-  // 64, // #3e8948
-  // 65, // #265c42
-  // 56, // #733e39
-  // 55, // #b86f50
-  // 71, // #c0cbdc
-  // 70, // #ffffff
+  // endesga32
+  75, // #262b44
+  67, // #124e89
+  68, // #0099db
+  69, // #2ce8f5
+  53, // #ead4aa
+  63, // #63c74d
+  63, // #63c74d
+  64, // #3e8948
+  64, // #3e8948
+  65, // #265c42
+  65, // #265c42
+  56, // #733e39
+  55, // #b86f50
+  71, // #c0cbdc
+  70, // #ffffff
 
 };
 
@@ -215,9 +221,9 @@ PlanetTerrain kTerranPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kTerranColorMap,
-  .color_padding_start = 7,
+  .color_padding_start = 12,
   .color_padding_end   = 7,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = ENDESGA32_DARK_OFFSET,
 };
 
 
@@ -236,7 +242,7 @@ PlanetTerrain kTundraPlanet = {
   .color_map         = kTundraColorMap,
   .color_padding_start = 7,
   .color_padding_end = 7,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 
@@ -255,7 +261,7 @@ PlanetTerrain kGasGiantRedPlanet = {
   .color_map         = kGasGiantRedColorMap,
   .color_padding_start = 0,
   .color_padding_end = 0,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain kGasGiantBluePlanet = {
@@ -273,7 +279,7 @@ PlanetTerrain kGasGiantBluePlanet = {
   .color_map         = kGasGiantBlueColorMap,
   .color_padding_start = 0,
   .color_padding_end = 0,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain kGasGiantYellowPlanet = {
@@ -291,7 +297,7 @@ PlanetTerrain kGasGiantYellowPlanet = {
   .color_map         = kGasGiantYellowColorMap,
   .color_padding_start = 0,
   .color_padding_end = 0,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain kGasGiantRainbowPlanet = {
@@ -309,7 +315,7 @@ PlanetTerrain kGasGiantRainbowPlanet = {
   .color_map         = kGasGiantRainbowColorMap,
   .color_padding_start = 0,
   .color_padding_end = 0,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain kIslandPlanet = {
@@ -327,7 +333,7 @@ PlanetTerrain kIslandPlanet = {
   .color_map         = kIslandColorMap,
   .color_padding_start = 7,
   .color_padding_end = 4,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 
@@ -346,7 +352,7 @@ PlanetTerrain kBarrenPlanet = {
   .color_map         = kBarrenColorMap,
   .color_padding_start = 7,
   .color_padding_end = 7,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain kDesertPlanet = {
@@ -364,7 +370,7 @@ PlanetTerrain kDesertPlanet = {
   .color_map         = kDesertColorMap,
   .color_padding_start = 10,
   .color_padding_end = 5,
-  .palette_dark_offset = 33,
+  .palette_dark_offset = ENDESGA32_DARK_OFFSET,
 };
 
 PlanetTerrain kLavaPlanet = {
@@ -382,7 +388,7 @@ PlanetTerrain kLavaPlanet = {
   .color_map         = kLavaColorMap,
   .color_padding_start = 5,
   .color_padding_end = 5,
-  .palette_dark_offset = 16,
+  .palette_dark_offset = PICO8_DARK_OFFSET,
 };
 
 PlanetTerrain AllPlanets[] = {
