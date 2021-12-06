@@ -22,6 +22,8 @@
 
 using namespace blit;
 
+heliopause::Platform current_platform;
+
 bool not_rendered = true;
 static pw::StringBuffer<40> planet_metadata;
 const Font custom_font(m3x6_font);
@@ -33,13 +35,24 @@ void init() {
   set_screen_mode(ScreenMode::lores);
 #endif
 
+#if defined(TARGET_32BLIT_HW)
+  current_platform = heliopause::stm32blit;
+#elif defined(PICO_BOARD)
+  current_platform = heliopause::picosystem;
+#else
+  current_platform = heliopause::sdl;
+#endif
+
   heliopause::PlanetEditor::planet_framebuffer.palette = PICO8;
-  // This color should exist in the palette
+  // TODO: Does this matter?
+  heliopause::PlanetEditor::planet_framebuffer.alpha = 0;
+
+  // TODO: Figure out exactly to set transparent color index correctly. This
+  // seems to work with the index != pen when clearing.
   heliopause::PlanetEditor::planet_framebuffer.transparent_index = 48;
-  // Set to non-existent index and clear so pixels are not updaed when calling
-  // screen.blit().
-  heliopause::PlanetEditor::planet_framebuffer.pen = 0;
+  heliopause::PlanetEditor::planet_framebuffer.pen = 49;
   heliopause::PlanetEditor::planet_framebuffer.clear();
+
   planet_metadata.Format("Rendering...");
 
   Random::RestartSeed();
@@ -47,7 +60,7 @@ void init() {
 
 ///////////////////////////////////////////////////////////////////////////
 void render(uint32_t time) {
-  screen.pen = Pen(0, 0, 0, 255);
+  screen.pen = Pen(64, 64, 64, 255);
   screen.alpha = 255;
   screen.clear();
   screen.mask = nullptr;
@@ -58,7 +71,6 @@ void render(uint32_t time) {
   // screen.pen = PICO8_INDIGO;
   // int xoffset = 32;
   // Draw::rectangle(&screen, xoffset + 0, 0, PLANET_WIDTH, PLANET_HEIGHT);
-
   if (screen.bounds.w > screen.bounds.h) {
     xoffset += (int)((screen.bounds.w - screen.bounds.h) * 0.5f);
   }

@@ -14,3 +14,15 @@
 #endif
 
 extern const blit::Font custom_font;
+
+namespace heliopause {
+
+enum Platform {
+  picosystem,
+  stm32blit,
+  sdl,
+};
+
+extern Platform current_platform;
+
+}

@@ -128,7 +128,7 @@ std::string_view get_display_mode_string() {
 void toggle_display_mode() {
   display_mode_orthographic = not display_mode_orthographic;
 
-  planet_framebuffer.pen = 0;
+  planet_framebuffer.pen = 49;
   planet_framebuffer.clear();
 }
 

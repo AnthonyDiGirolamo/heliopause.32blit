@@ -57,8 +57,9 @@ Pen PICO8[] = {
     Pen(33, 30, 39),
     Pen(64, 30, 42),
     Pen(64, 51, 43),
-    // Transparent Color
-    Pen(255, 0, 255),
+    // TODO: Figure out why transparent color index isn't reliable
+    Pen(255, 0, 255, 0),  // Index 48
+    Pen(255, 0, 255, 0),  // Index 49
 };
 
 Pen ENDESGA32[] = {
