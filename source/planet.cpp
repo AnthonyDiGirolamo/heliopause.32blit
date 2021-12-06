@@ -299,7 +299,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
         if ((lambda > (viewpoint_lambda0 + phase_offset + kHalfPi)) ||
             (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi)))
           // This color should be darker
-          palette_color_index += 16;
+          palette_color_index += terrain.palette_dark_offset;
 
         // Set color and draw the pixel
         framebuffer->pen = palette_color_index;

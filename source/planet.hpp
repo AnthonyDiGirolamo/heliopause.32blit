@@ -41,6 +41,7 @@ struct PlanetTerrain {
   std::span<const uint8_t> color_map;
   uint8_t color_padding_start;
   uint8_t color_padding_end;
+  uint8_t palette_dark_offset;
 };
 
 class Planet {
@@ -52,7 +53,7 @@ public:
   float viewpoint_lambda0;
   PlanetTerrain terrain;
   SimplexNoise simplex_noise;
-  uint8_t height_map[32];
+  uint8_t height_map[64];
   float max_noise;
   float min_noise;
 
