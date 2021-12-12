@@ -14,6 +14,10 @@ std::string_view equirectangular_string = {"Flat"};
 
 bool auto_rotation = false;
 
+float camera_zoom = 1.5;
+int camera_pan_x = 0;
+int camera_pan_y = 0;
+
 int selected_planet_index = 0;
 
 uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
@@ -145,6 +149,41 @@ void increase_latitude_bias() { current_planet.terrain.latitude_bias += 0.01f; }
 
 void decrease_latitude_bias() { current_planet.terrain.latitude_bias -= 0.01f; }
 
+std::string_view get_camera_zoom_string() {
+  static pw::StringBuffer<16> camera_zoom_value_string;
+  camera_zoom_value_string.clear();
+  camera_zoom_value_string.Format("%.2f", (double)camera_zoom);
+  return camera_zoom_value_string.view();
+}
+void increase_camera_zoom() {
+  if (camera_zoom < 1.0f)
+    camera_zoom = 1.0f;
+  camera_zoom += 0.05f;
+}
+void decrease_camera_zoom() {
+  camera_zoom -= 0.05f;
+  if (camera_zoom < 0)
+    camera_zoom = 0;
+}
+
+std::string_view get_camera_pan_x_string() {
+  static pw::StringBuffer<16> camera_pan_x_value_string;
+  camera_pan_x_value_string.clear();
+  camera_pan_x_value_string.Format("%.2f", (double)camera_pan_x);
+  return camera_pan_x_value_string.view();
+}
+void increase_camera_pan_x() { camera_pan_x += 10; }
+void decrease_camera_pan_x() { camera_pan_x -= 10; }
+
+std::string_view get_camera_pan_y_string() {
+  static pw::StringBuffer<16> camera_pan_y_value_string;
+  camera_pan_y_value_string.clear();
+  camera_pan_y_value_string.Format("%.2f", (double)camera_pan_y);
+  return camera_pan_y_value_string.view();
+}
+void increase_camera_pan_y() { camera_pan_y += 10; }
+void decrease_camera_pan_y() { camera_pan_y -= 10; }
+
 std::string_view get_color_padding_start_string() {
   static pw::StringBuffer<8> color_padding_start_value_string;
   color_padding_start_value_string.clear();
@@ -245,6 +284,24 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .decrease_function = &toggle_display_mode,
     },
     {
+        .name = std::string_view{"Camera Zoom"},
+        .get_value = &get_camera_zoom_string,
+        .increase_function = &increase_camera_zoom,
+        .decrease_function = &decrease_camera_zoom,
+    },
+    {
+        .name = std::string_view{"Camera Pan_X"},
+        .get_value = &get_camera_pan_x_string,
+        .increase_function = &increase_camera_pan_x,
+        .decrease_function = &decrease_camera_pan_x,
+    },
+    {
+        .name = std::string_view{"Camera Pan_Y"},
+        .get_value = &get_camera_pan_y_string,
+        .increase_function = &increase_camera_pan_y,
+        .decrease_function = &decrease_camera_pan_y,
+    },
+    {
         .name = std::string_view{"AutoRotate"},
         .get_value = &get_auto_rotation_string,
         .increase_function = &toggle_auto_rotation,
@@ -274,7 +331,12 @@ void render_planet() {
 
   if (display_mode_orthographic) {
     current_planet.SetDrawOffset(0, 0);
-    current_planet.render_orthographic(&planet_framebuffer, PLANET_HEIGHT);
+    current_planet.render_orthographic(&planet_framebuffer,
+                                       PLANET_WIDTH,
+                                       PLANET_HEIGHT,
+                                       camera_zoom,
+                                       camera_pan_x, camera_pan_y
+                                       );
   } else {
     current_planet.SetDrawOffset(0, 0);
     current_planet.render_equirectangular(&planet_framebuffer, PLANET_WIDTH,

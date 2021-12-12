@@ -82,6 +82,9 @@ float Planet::GetNoise(float theta, float phi) {
       noise_offset.z + sinf(phi) * noise_factor_vertical);
   // clang-format on
 
+  float altitude_modifier = (phi*phi) * terrain.latitude_bias;
+  noise = noise + altitude_modifier;
+
   if (theta > max_lambda)
     max_lambda = theta;
   if (theta < min_lambda)
@@ -175,9 +178,6 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
 
       float noise = GetNoise(theta, phi);
 
-      float altitude_modifier = (phi*phi) * terrain.latitude_bias;
-      noise = noise + altitude_modifier;
-
       // Get indexed color value
       int heightmap_color_index = GetTerrainColorIndex(noise);
 
@@ -213,8 +213,25 @@ void Planet::AdjustViewpointLongitude(float amount) {
   }
 }
 
-void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
+void Planet::render_orthographic(blit::Surface *framebuffer,
+                                 int x_size,
+                                 int y_size,
+                                 float zoom,
+                                 int zoom_pan_x,
+                                 int zoom_pan_y
+                                 ) {
+  // Erase to non-existent color palette index
+  framebuffer->pen = 255;
+  // Clear draw area
+  framebuffer->rectangle(
+      blit::Rect(draw_offsetx, draw_offsety, x_size, y_size));
+
   // https://en.wikipedia.org/wiki/Orthographic_map_projection
+  int map_size = 0;
+  if (y_size <= x_size)
+    map_size = y_size;
+  else
+    map_size = x_size;
 
   // Reset min/max tracking
   min_color_index = 255;
@@ -227,6 +244,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
   // floor(map_size / 2)
   int pixel_radius = (int)((float)map_size * 0.5f);
   // float r = (int)((float)map_size * 0.5f);
+  if (zoom > 0)
+    pixel_radius = (int)((float)pixel_radius * zoom);
   float r = pixel_radius;
 
   // phi0 = origin latitude
@@ -248,28 +267,49 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
   // Draw::rectangle(framebuffer, draw_offsetx + 0, draw_offsety + 0, map_size,
   //                 map_size);
 
+  // Calculate initial zoom offset
+  int zoom_offset_x = 0;
+  int zoom_offset_y = 0;
+  if (2 * pixel_radius > x_size) {
+    zoom_offset_x -= (int)((float)(2 * pixel_radius - x_size) * 0.5f);
+  }
+  if (2 * pixel_radius > y_size) {
+    zoom_offset_y -= (int)((float)(2 * pixel_radius - y_size) * 0.5f);
+  }
+
+  // Pan the camera
+  zoom_offset_x -= zoom_pan_x;
+  zoom_offset_y -= zoom_pan_y;
+
   // Plot a circle we wish to fill with the planet image
   framebuffer->pen = 254;
-  Draw::circle(framebuffer, draw_offsetx + centerx, draw_offsety + centery,
-               pixel_radius - 1, true);
+  Draw::circle(framebuffer,
+               draw_offsetx + zoom_offset_x + centerx,
+               draw_offsety + zoom_offset_y + centery,
+               pixel_radius - 1,
+               true);
 
-  for (int y = 0; y < map_size; y++) {
-    for (int x = 0; x < map_size; x++) {
+  // Loop over every pixel in the draw buffer
+  for (int y = 0; y < y_size; y++) {
+    for (int x = 0; x < x_size; x++) {
       // Get the current pixel value.
-      uint8_t pixel_value =
-          *framebuffer->ptr(draw_offsetx + x, draw_offsety + y);
+      uint8_t pixel_value = *framebuffer->ptr(x, y);
 
       // If pixel is 254, we are inside the circle.
       if (pixel_value == 254) {
+        // Get x,y coords for map projection.
+        // xf, yf = 0, 0 should be at the center of the globe
+        float xf = (float)x - r - zoom_offset_x;
+        float yf = (float)y - r - zoom_offset_y;
 
-        float xf = (float)x - centerx;
-        float yf = (float)y - centery;
         // Some trig function breaks if xf and xy are both zero. Set a slight
         // offset.
-        if ((y - centery == 0) && (x - centerx == 0)) {
+        if ((y - pixel_radius - zoom_offset_y == 0) &&
+            (x - pixel_radius - zoom_offset_x == 0)) {
           xf = 0.0001;
           yf = 0.0001;
         }
+
         // p (rho) = sqrt(x*x + y*y)
         float p = sqrtf(xf * xf + yf * yf);
 
@@ -286,8 +326,6 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
             lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
                                             (yf * sinf(c) * sinf(phi0))));
         float noise = GetNoise(lambda, phi);
-        float altitude_modifier = (phi*phi) * terrain.latitude_bias;
-        noise = noise + altitude_modifier;
 
         int heightmap_color_index = GetTerrainColorIndex(noise);
         // TODO: should be transparent color
@@ -308,9 +346,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
 
         // Set color and draw the pixel
         framebuffer->pen = palette_color_index;
-        int dx = draw_offsetx + x;
-        int dy = draw_offsety + y;
-        framebuffer->pixel(blit::Point(dx, dy));
+        framebuffer->pixel(blit::Point(x, y));
       }
 
       // If out of bounds

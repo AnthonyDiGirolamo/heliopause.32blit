@@ -71,9 +71,10 @@ void render(uint32_t time) {
   // screen.pen = PICO8_INDIGO;
   // int xoffset = 32;
   // Draw::rectangle(&screen, xoffset + 0, 0, PLANET_WIDTH, PLANET_HEIGHT);
-  if (screen.bounds.w > screen.bounds.h) {
-    xoffset += (int)((screen.bounds.w - screen.bounds.h) * 0.5f);
-  }
+
+  // if (screen.bounds.w > screen.bounds.h) {
+  //   xoffset += (int)((screen.bounds.w - screen.bounds.h) * 0.5f);
+  // }
 
   if (!heliopause::PlanetEditor::display_mode_orthographic)
     xoffset = 0;

@@ -73,7 +73,13 @@ public:
 
   void render_equirectangular(blit::Surface *framebuffer, int map_width,
                               int map_height);
-  void render_orthographic(blit::Surface *framebuffer, int map_size);
+  void render_orthographic(blit::Surface *framebuffer,
+                           int x_size,
+                           int y_size,
+                           float zoom,
+                           int zoom_pan_x,
+                           int zoom_pan_y
+                           );
 
 private:
   int draw_offsetx;
