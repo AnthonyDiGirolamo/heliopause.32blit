@@ -133,6 +133,18 @@ void toggle_display_mode() {
   planet_framebuffer.clear();
 }
 
+std::string_view get_latitude_bias_string() {
+  static pw::StringBuffer<16> latitude_bias_value_string;
+  latitude_bias_value_string.clear();
+  latitude_bias_value_string.Format("%.2f",
+                                 (double)current_planet.terrain.latitude_bias);
+  return latitude_bias_value_string.view();
+}
+
+void increase_latitude_bias() { current_planet.terrain.latitude_bias += 0.01f; }
+
+void decrease_latitude_bias() { current_planet.terrain.latitude_bias -= 0.01f; }
+
 std::string_view get_color_padding_start_string() {
   static pw::StringBuffer<8> color_padding_start_value_string;
   color_padding_start_value_string.clear();
@@ -207,6 +219,12 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .get_value = &get_noise_persistance_string,
         .increase_function = &increase_noise_persistance,
         .decrease_function = &decrease_noise_persistance,
+    },
+    {
+        .name = std::string_view{"Latitude Bias"},
+        .get_value = &get_latitude_bias_string,
+        .increase_function = &increase_latitude_bias,
+        .decrease_function = &decrease_latitude_bias,
     },
     {
         .name = std::string_view{"ColorPadding Start"},

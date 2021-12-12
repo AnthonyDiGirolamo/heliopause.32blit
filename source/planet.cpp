@@ -175,6 +175,9 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
 
       float noise = GetNoise(theta, phi);
 
+      float altitude_modifier = (phi*phi) * terrain.latitude_bias;
+      noise = noise + altitude_modifier;
+
       // Get indexed color value
       int heightmap_color_index = GetTerrainColorIndex(noise);
 
@@ -283,6 +286,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int map_size) {
             lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
                                             (yf * sinf(c) * sinf(phi0))));
         float noise = GetNoise(lambda, phi);
+        float altitude_modifier = (phi*phi) * terrain.latitude_bias;
+        noise = noise + altitude_modifier;
 
         int heightmap_color_index = GetTerrainColorIndex(noise);
         // TODO: should be transparent color

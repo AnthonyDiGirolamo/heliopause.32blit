@@ -37,6 +37,7 @@ struct PlanetTerrain {
   uint8_t transparent_color;
   float min_noise_stretch;
   float max_noise_stretch;
+  float latitude_bias;
   int min_size;
   std::span<const uint8_t> color_map;
   uint8_t color_padding_start;
