@@ -81,6 +81,11 @@ void render(uint32_t time) {
   screen.blit(&heliopause::PlanetEditor::planet_framebuffer,
               Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT), Point(xoffset + 0, 0));
 
+  // // Draw at 2x size
+  // screen.stretch_blit(&heliopause::PlanetEditor::planet_framebuffer,
+  //                     Rect(0, 0, PLANET_WIDTH, PLANET_HEIGHT),
+  //                     Rect(xoffset + 0, 0, PLANET_WIDTH*2, PLANET_HEIGHT*2));
+
   if (heliopause::PlanetEditor::planet_menu.active) {
     // Draw the menu if active
     heliopause::PlanetEditor::planet_menu.Draw(&screen, 0, 0);

@@ -9,6 +9,7 @@
 
 #define PICO8_DARK_OFFSET 16
 #define ENDESGA32_DARK_OFFSET 33
+#define ENDESGA64_DARK_OFFSET 64
 
 /* Color Palette
 
@@ -22,13 +23,14 @@
   7,  // #fff1e8 WHITE
   8,  // #ff004d RED
   9,  // #ffa300 ORANGE
-  10, // #ffec27 YELLOW
-  11, // #00e436 GREEN
-  12, // #29adff BLUE
-  13, // #83769c INDIGO
-  14, // #ff77a8 PINK
-  15, // #ffccaa PEACH
+  10, // #ffec27 YELLOW a
+  11, // #00e436 GREEN  b
+  12, // #29adff BLUE   c
+  13, // #83769c INDIGO d
+  14, // #ff77a8 PINK   e
+  15, // #ffccaa PEACH  f
 
+  // Endesga32
   50, // #000000
   51, // #be4a2f
   52, // #d77643
@@ -63,6 +65,72 @@
   81, // #e8b796
   82, // #c28569
 
+  // Endesga64
+  116, // #ff0040
+  117, // #131313
+  118, // #1b1b1b
+  119, // #272727
+  120, // #3d3d3d
+  121, // #5d5d5d
+  122, // #858585
+  123, // #b4b4b4
+  124, // #ffffff
+  125, // #c7cfdd
+  126, // #92a1b9
+  127, // #657392
+  128, // #424c6e
+  129, // #2a2f4e
+  130, // #1a1932
+  131, // #0e071b
+  132, // #1c121c
+  133, // #391f21
+  134, // #5d2c28
+  135, // #8a4836
+  136, // #bf6f4a
+  137, // #e69c69
+  138, // #f6ca9f
+  139, // #f9e6cf
+  140, // #edab50
+  141, // #e07438
+  142, // #c64524
+  143, // #8e251d
+  144, // #ff5000
+  145, // #ed7614
+  146, // #ffa214
+  147, // #ffc825
+  148, // #ffeb57
+  149, // #d3fc7e
+  150, // #99e65f
+  151, // #5ac54f
+  152, // #33984b
+  153, // #1e6f50
+  154, // #134c4c
+  155, // #0c2e44
+  156, // #00396d
+  157, // #0069aa
+  158, // #0098dc
+  159, // #00cdf9
+  160, // #0cf1ff
+  161, // #94fdff
+  162, // #fdd2ed
+  163, // #f389f5
+  164, // #db3ffd
+  165, // #7a09fa
+  166, // #3003d9
+  167, // #0c0293
+  168, // #03193f
+  169, // #3b1443
+  170, // #622461
+  171, // #93388f
+  172, // #ca52c9
+  173, // #c85086
+  174, // #f68187
+  175, // #f5555d
+  176, // #ea323c
+  177, // #c42430
+  178, // #891e2b
+  179, // #571c27
+
 */
 
 static constexpr uint8_t kTerranColors[] = {
@@ -87,42 +155,139 @@ static constexpr uint8_t kTerranColors[] = {
   // 6,  // #c2c3c7 LIGHT_GRAY
   // 7,  // #fff1e8 WHITE
 
-  // endesga32
-  75, // #262b44
-  67, // #124e89
-  68, // #0099db
-  69, // #2ce8f5
-  53, // #ead4aa
-  63, // #63c74d
-  63, // #63c74d
-  64, // #3e8948
-  64, // #3e8948
-  65, // #265c42
-  65, // #265c42
-  56, // #733e39
-  55, // #b86f50
-  71, // #c0cbdc
-  70, // #ffffff
+  // // endesga32
+  // 75, // #262b44
+  // 67, // #124e89
+  // 68, // #0099db
+  // 69, // #2ce8f5
+  // 53, // #ead4aa
+  // 63, // #63c74d
+  // 63, // #63c74d
+  // 64, // #3e8948
+  // 64, // #3e8948
+  // 65, // #265c42
+  // 65, // #265c42
+  // 56, // #733e39
+  // 55, // #b86f50
+  // 71, // #c0cbdc
+  // 70, // #ffffff
+
+  // endesga64
+  129, // #2a2f4e
+  156, // #00396d
+  157, // #0069aa
+  159, // #00cdf9
+  139, // #f9e6cf
+  150, // #99e65f
+  149, // #d3fc7e
+  151, // #5ac54f
+  152, // #33984b
+  153, // #1e6f50
+  154, // #134c4c
+  135, // #8a4836
+  136, // #bf6f4a
+  125, // #c7cfdd
+  124, // #ffffff
 
 };
 
 constexpr std::span<const uint8_t> kTerranColorMap(kTerranColors);
 
 static constexpr uint8_t kLavaColors[] = {
-    0x0, 0x4, 0x0, 0x5, 0x0, 0x4, 0x0, 0x4, 0x9,
-    0x8, 0x4, 0x0, 0x4, 0x0, 0x5, 0x0, 0x4, 0x0,
+
+    // // pico8
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 5,  // #5f574f DARK_GRAY
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 9,  // #ffa300 ORANGE
+    // 8,  // #ff004d RED
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 5,  // #5f574f DARK_GRAY
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+
+  117, // #131313
+  134, // #5d2c28
+  135, // #8a4836
+  134, // #5d2c28
+  117, // #131313
+  119, // #272727
+  120, // #3d3d3d
+  121, // #5d5d5d
+  120, // #3d3d3d
+  117, // #131313
+  134, // #5d2c28
+  135, // #8a4836
+  141, // #e07438
+  144, // #ff5000
+  116, // #ff0040
+  177, // #c42430
+  143, // #8e251d
+  134, // #5d2c28
+  117, // #131313
+  119, // #272727
+  120, // #3d3d3d
+  121, // #5d5d5d
+  120, // #3d3d3d
+  117, // #131313
+  134, // #5d2c28
+  135, // #8a4836
+  141, // #e07438
+  144, // #ff5000
+  116, // #ff0040
+  177, // #c42430
+  143, // #8e251d
+  134, // #5d2c28
+  117, // #131313
+
+
 };
 
 constexpr std::span<const uint8_t> kLavaColorMap(kLavaColors);
 
 static constexpr uint8_t kIslandColors[] = {
-    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd, 0xc, 0xf, 0xb, 0x3,
+
+    // pico8
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    1,  // #1d2b53 DARK_BLUE
+    13, // #83769c INDIGO
+    12, // #29adff BLUE
+    15, // #ffccaa PEACH
+    11, // #00e436 GREEN
+    3,  // #008751 DARK_GREEN
+
 };
 
 constexpr std::span<const uint8_t> kIslandColorMap(kIslandColors);
 
 static constexpr uint8_t kTundraColors[] = {
-    0x7, 0x6, 0x5, 0x4, 0x5, 0x6, 0x7, 0x6, 0x5, 0x4, 0x3,
+    // pico8
+    7,  // #fff1e8 WHITE
+    6,  // #c2c3c7 LIGHT_GRAY
+    5,  // #5f574f DARK_GRAY
+    4,  // #ab5236 BROWN
+    5,  // #5f574f DARK_GRAY
+    6,  // #c2c3c7 LIGHT_GRAY
+    7,  // #fff1e8 WHITE
+    6,  // #c2c3c7 LIGHT_GRAY
+    5,  // #5f574f DARK_GRAY
+    4,  // #ab5236 BROWN
+    3,  // #008751 DARK_GREEN
 };
 
 constexpr std::span<const uint8_t> kTundraColorMap(kTundraColors);
@@ -180,6 +345,23 @@ static constexpr uint8_t kDesertColors[] = {
     55, // #b86f50
     56, // #733e39
     57, // #3e2731
+
+  //   // endesga64
+  // 139, // #f9e6cf
+  // 138, // #f6ca9f
+  // 137, // #e69c69
+  // 138, // #f6ca9f
+  // 139, // #f9e6cf
+  // 139, // #f9e6cf
+  // 138, // #f6ca9f
+  // 137, // #e69c69
+  // 141, // #e07438
+  // 142, // #c64524
+  // 136, // #bf6f4a
+  // 135, // #8a4836
+  // 134, // #5d2c28
+  // 133, // #391f21
+
 };
 
 constexpr std::span<const uint8_t> kDesertColorMap(kDesertColors);
@@ -211,7 +393,7 @@ constexpr std::span<const uint8_t>
 PlanetTerrain kTerranPlanet = {
   .type              = terran,
   .type_string       = std::string_view {"Terran"},
-  .noise_octaves     = 5,
+  .noise_octaves     = 7,
   .noise_zoom        = 0.5,
   .noise_persistance = 0.65,
   .map_icon_color    = 11,
@@ -221,9 +403,9 @@ PlanetTerrain kTerranPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kTerranColorMap,
-  .color_padding_start = 12,
+  .color_padding_start = 14,
   .color_padding_end   = 7,
-  .palette_dark_offset = ENDESGA32_DARK_OFFSET,
+  .palette_dark_offset = ENDESGA64_DARK_OFFSET,
 };
 
 
@@ -376,8 +558,8 @@ PlanetTerrain kDesertPlanet = {
 PlanetTerrain kLavaPlanet = {
   .type              = lava,
   .type_string       = std::string_view {"Lava"},
-  .noise_octaves     = 5,
-  .noise_zoom        = 0.55,
+  .noise_octaves     = 7,
+  .noise_zoom        = 0.8,
   .noise_persistance = 0.65,
   .map_icon_color    = 4,
   .full_shadow       = 1,
@@ -386,9 +568,9 @@ PlanetTerrain kLavaPlanet = {
   .max_noise_stretch = 1,
   .min_size          = 10,
   .color_map         = kLavaColorMap,
-  .color_padding_start = 5,
-  .color_padding_end = 5,
-  .palette_dark_offset = PICO8_DARK_OFFSET,
+  .color_padding_start = 10,
+  .color_padding_end = 10,
+  .palette_dark_offset = ENDESGA64_DARK_OFFSET,
 };
 
 PlanetTerrain AllPlanets[] = {
