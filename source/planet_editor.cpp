@@ -14,7 +14,7 @@ std::string_view equirectangular_string = {"Flat"};
 
 bool auto_rotation = false;
 
-float camera_zoom = 1.5;
+float camera_zoom = 1.0;
 int camera_pan_x = 0;
 int camera_pan_y = 0;
 
@@ -156,14 +156,12 @@ std::string_view get_camera_zoom_string() {
   return camera_zoom_value_string.view();
 }
 void increase_camera_zoom() {
-  if (camera_zoom < 1.0f)
-    camera_zoom = 1.0f;
   camera_zoom += 0.05f;
 }
 void decrease_camera_zoom() {
   camera_zoom -= 0.05f;
-  if (camera_zoom < 0)
-    camera_zoom = 0;
+  if (camera_zoom < 0.1f)
+    camera_zoom = 0.1f;
 }
 
 std::string_view get_camera_pan_x_string() {
@@ -301,12 +299,15 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .increase_function = &increase_camera_pan_y,
         .decrease_function = &decrease_camera_pan_y,
     },
+#if defined(PICO_BOARD)
+#else
     {
         .name = std::string_view{"AutoRotate"},
         .get_value = &get_auto_rotation_string,
         .increase_function = &toggle_auto_rotation,
         .decrease_function = &toggle_auto_rotation,
     },
+#endif
 };
 
 constexpr std::span<const heliopause::MenuItem>
@@ -375,7 +376,7 @@ bool auto_rotate() {
   // Auto rotate - only good on host machine
   uint32_t time_now = blit::now();
   if (time_now > last_render_time + 50) {
-    current_planet.AdjustViewpointLongitude(blit::pi * 0.005f);
+    current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
     return true;
   }
   return false;

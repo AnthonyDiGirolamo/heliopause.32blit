@@ -2,7 +2,7 @@
 
 #include "graphics/font.hpp"
 
-#define SCREEN_MODE_HIRES 1
+// #define SCREEN_MODE_HIRES 1
 
 #ifdef SCREEN_MODE_HIRES
 

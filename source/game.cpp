@@ -106,24 +106,24 @@ void render(uint32_t time) {
     screen.pen = PICO8[color_index];
     screen.text(heliopause::PlanetEditor::current_planet.terrain.type_string,
                 custom_font, Point(2, screen.bounds.h - 24 + char_h_offset));
+
+    // Planet info
+    screen.pen = PICO8_BLACK;
+    screen.text(planet_metadata.view(), custom_font,
+                Point(2 + 1, screen.bounds.h - 16 + 1 + char_h_offset));
+    screen.pen = PICO8_WHITE;
+    screen.text(planet_metadata.view(), custom_font,
+                Point(2, screen.bounds.h - 16 + char_h_offset));
   }
 
   // Render time
   screen.pen = PICO8_BLACK;
   screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
               custom_font,
-              Point(2 + 1, screen.bounds.h - 16 + 1 + char_h_offset));
-  screen.pen = PICO8_WHITE;
-  screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
-              custom_font, Point(2, screen.bounds.h - 16 + char_h_offset));
-
-  // Planet info
-  screen.pen = PICO8_BLACK;
-  screen.text(planet_metadata.view(), custom_font,
               Point(2 + 1, screen.bounds.h - 8 + 1 + char_h_offset));
   screen.pen = PICO8_WHITE;
-  screen.text(planet_metadata.view(), custom_font,
-              Point(2, screen.bounds.h - 8 + char_h_offset));
+  screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
+              custom_font, Point(2, screen.bounds.h - 8 + char_h_offset));
 
   // int rect_width = 8;
   // for (int i = 0; i < 16; i++) {
