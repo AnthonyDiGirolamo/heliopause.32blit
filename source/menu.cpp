@@ -1,8 +1,8 @@
 #include "menu.hpp"
 #include "32blit.hpp"
 #include "colors.hpp"
-#include "game.hpp"
 #include "graphics/font.hpp"
+#include "main.hpp"
 
 namespace heliopause {
 

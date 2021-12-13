@@ -82,7 +82,7 @@ float Planet::GetNoise(float theta, float phi) {
       noise_offset.z + sinf(phi) * noise_factor_vertical);
   // clang-format on
 
-  float altitude_modifier = (phi*phi) * terrain.latitude_bias;
+  float altitude_modifier = (phi * phi) * terrain.latitude_bias;
   noise = noise + altitude_modifier;
 
   if (theta > max_lambda)
@@ -213,13 +213,9 @@ void Planet::AdjustViewpointLongitude(float amount) {
   }
 }
 
-void Planet::render_orthographic(blit::Surface *framebuffer,
-                                 int x_size,
-                                 int y_size,
-                                 float zoom,
-                                 int zoom_pan_x,
-                                 int zoom_pan_y
-                                 ) {
+void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
+                                 int y_size, float zoom, int zoom_pan_x,
+                                 int zoom_pan_y) {
   // Erase to non-existent color palette index
   framebuffer->pen = 255;
   // Clear draw area
@@ -283,11 +279,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer,
 
   // Plot a circle we wish to fill with the planet image
   framebuffer->pen = 254;
-  Draw::circle(framebuffer,
-               draw_offsetx + zoom_offset_x + centerx,
-               draw_offsety + zoom_offset_y + centery,
-               pixel_radius - 1,
-               true);
+  Draw::circle(framebuffer, draw_offsetx + zoom_offset_x + centerx,
+               draw_offsety + zoom_offset_y + centery, pixel_radius - 1, true);
 
   // Loop over every pixel in the draw buffer
   for (int y = 0; y < y_size; y++) {

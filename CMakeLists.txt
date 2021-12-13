@@ -1,12 +1,10 @@
 # Basic parameters; check that these match your project / environment
 cmake_minimum_required(VERSION 3.9)
 
-# Replace "game" with a name for your project (this is used the name of the output)
 project(heliopause)
 
 set(PIGWEED_ROOT "third_party/pigweed")
 
-# Add your sources here (adding headers is optional, but helps some CMake generators)
 set(PROJECT_SOURCE
   source/SimplexNoise.cpp
   source/SimplexNoise.h
@@ -14,8 +12,8 @@ set(PROJECT_SOURCE
   source/colors.hpp
   source/draw.cpp
   source/draw.hpp
-  source/game.cpp
-  source/game.hpp
+  source/main.cpp
+  source/main.hpp
   source/menu.cpp
   source/menu.hpp
   source/planet_editor.cpp
@@ -30,7 +28,6 @@ set(PROJECT_SOURCE
   ${PIGWEED_ROOT}/pw_string/type_to_string.cc
   )
 
-# ... and any other files you want in the release here
 set(PROJECT_DISTRIBS LICENSE README.md)
 
 # Build configuration; approach this with caution!

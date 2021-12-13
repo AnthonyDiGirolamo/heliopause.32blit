@@ -13,6 +13,9 @@ extern heliopause::Menu planet_menu;
 extern pw::StringBuffer<24> last_render_update_message;
 extern bool display_mode_orthographic;
 
+void init();
+void render(uint32_t time);
+void update(uint32_t time);
 void render_planet();
 bool auto_rotate();
 

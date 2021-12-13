@@ -135,59 +135,59 @@
 
 static constexpr uint8_t kTerranColors[] = {
 
-  // // pico8
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 13, // #83769c INDIGO
-  // 12, // #29adff BLUE
-  // 15, // #ffccaa PEACH
-  // 11, // #00e436 GREEN
-  // 11, // #00e436 GREEN
-  // 3,  // #008751 DARK_GREEN
-  // 3,  // #008751 DARK_GREEN
-  // 3,  // #008751 DARK_GREEN
-  // 4,  // #ab5236 BROWN
-  // 5,  // #5f574f DARK_GRAY
-  // 6,  // #c2c3c7 LIGHT_GRAY
-  // 7,  // #fff1e8 WHITE
+    // // pico8
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 13, // #83769c INDIGO
+    // 12, // #29adff BLUE
+    // 15, // #ffccaa PEACH
+    // 11, // #00e436 GREEN
+    // 11, // #00e436 GREEN
+    // 3,  // #008751 DARK_GREEN
+    // 3,  // #008751 DARK_GREEN
+    // 3,  // #008751 DARK_GREEN
+    // 4,  // #ab5236 BROWN
+    // 5,  // #5f574f DARK_GRAY
+    // 6,  // #c2c3c7 LIGHT_GRAY
+    // 7,  // #fff1e8 WHITE
 
-  // // endesga32
-  // 75, // #262b44
-  // 67, // #124e89
-  // 68, // #0099db
-  // 69, // #2ce8f5
-  // 53, // #ead4aa
-  // 63, // #63c74d
-  // 63, // #63c74d
-  // 64, // #3e8948
-  // 64, // #3e8948
-  // 65, // #265c42
-  // 65, // #265c42
-  // 56, // #733e39
-  // 55, // #b86f50
-  // 71, // #c0cbdc
-  // 70, // #ffffff
+    // // endesga32
+    // 75, // #262b44
+    // 67, // #124e89
+    // 68, // #0099db
+    // 69, // #2ce8f5
+    // 53, // #ead4aa
+    // 63, // #63c74d
+    // 63, // #63c74d
+    // 64, // #3e8948
+    // 64, // #3e8948
+    // 65, // #265c42
+    // 65, // #265c42
+    // 56, // #733e39
+    // 55, // #b86f50
+    // 71, // #c0cbdc
+    // 70, // #ffffff
 
-  // endesga64
-  129, // #2a2f4e
-  156, // #00396d
-  157, // #0069aa
-  159, // #00cdf9
-  139, // #f9e6cf
-  150, // #99e65f
-  149, // #d3fc7e
-  151, // #5ac54f
-  152, // #33984b
-  153, // #1e6f50
-  154, // #134c4c
-  135, // #8a4836
-  136, // #bf6f4a
-  125, // #c7cfdd
-  124, // #ffffff
+    // endesga64
+    129, // #2a2f4e
+    156, // #00396d
+    157, // #0069aa
+    159, // #00cdf9
+    139, // #f9e6cf
+    150, // #99e65f
+    149, // #d3fc7e
+    151, // #5ac54f
+    152, // #33984b
+    153, // #1e6f50
+    154, // #134c4c
+    135, // #8a4836
+    136, // #bf6f4a
+    125, // #c7cfdd
+    124, // #ffffff
 
 };
 
@@ -195,61 +195,60 @@ constexpr std::span<const uint8_t> kTerranColorMap(kTerranColors);
 
 static constexpr uint8_t kLavaColors[] = {
 
-  // // pico8
-  // 0,  // #000000 BLACK
-  // 4,  // #ab5236 BROWN
-  // 0,  // #000000 BLACK
-  // 5,  // #5f574f DARK_GRAY
-  // 0,  // #000000 BLACK
-  // 4,  // #ab5236 BROWN
-  // 0,  // #000000 BLACK
-  // 4,  // #ab5236 BROWN
-  // 9,  // #ffa300 ORANGE
-  // 8,  // #ff004d RED
-  // 4,  // #ab5236 BROWN
-  // 0,  // #000000 BLACK
-  // 4,  // #ab5236 BROWN
-  // 0,  // #000000 BLACK
-  // 5,  // #5f574f DARK_GRAY
-  // 0,  // #000000 BLACK
-  // 4,  // #ab5236 BROWN
-  // 0,  // #000000 BLACK
+    // // pico8
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 5,  // #5f574f DARK_GRAY
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 9,  // #ffa300 ORANGE
+    // 8,  // #ff004d RED
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
+    // 5,  // #5f574f DARK_GRAY
+    // 0,  // #000000 BLACK
+    // 4,  // #ab5236 BROWN
+    // 0,  // #000000 BLACK
 
-  // endesga64
-  117, // #131313
-  134, // #5d2c28
-  135, // #8a4836
-  134, // #5d2c28
-  117, // #131313
-  119, // #272727
-  120, // #3d3d3d
-  121, // #5d5d5d
-  120, // #3d3d3d
-  117, // #131313
-  134, // #5d2c28
-  135, // #8a4836
-  141, // #e07438
-  144, // #ff5000
-  116, // #ff0040
-  177, // #c42430
-  143, // #8e251d
-  134, // #5d2c28
-  117, // #131313
-  119, // #272727
-  120, // #3d3d3d
-  121, // #5d5d5d
-  120, // #3d3d3d
-  117, // #131313
-  134, // #5d2c28
-  135, // #8a4836
-  141, // #e07438
-  144, // #ff5000
-  116, // #ff0040
-  177, // #c42430
-  143, // #8e251d
-  134, // #5d2c28
-  117, // #131313
-
+    // endesga64
+    117, // #131313
+    134, // #5d2c28
+    135, // #8a4836
+    134, // #5d2c28
+    117, // #131313
+    119, // #272727
+    120, // #3d3d3d
+    121, // #5d5d5d
+    120, // #3d3d3d
+    117, // #131313
+    134, // #5d2c28
+    135, // #8a4836
+    141, // #e07438
+    144, // #ff5000
+    116, // #ff0040
+    177, // #c42430
+    143, // #8e251d
+    134, // #5d2c28
+    117, // #131313
+    119, // #272727
+    120, // #3d3d3d
+    121, // #5d5d5d
+    120, // #3d3d3d
+    117, // #131313
+    134, // #5d2c28
+    135, // #8a4836
+    141, // #e07438
+    144, // #ff5000
+    116, // #ff0040
+    177, // #c42430
+    143, // #8e251d
+    134, // #5d2c28
+    117, // #131313
 
 };
 
@@ -257,61 +256,61 @@ constexpr std::span<const uint8_t> kLavaColorMap(kLavaColors);
 
 static constexpr uint8_t kIslandColors[] = {
 
-  // // pico8
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 1,  // #1d2b53 DARK_BLUE
-  // 13, // #83769c INDIGO
-  // 12, // #29adff BLUE
-  // 15, // #ffccaa PEACH
-  // 11, // #00e436 GREEN
-  // 3,  // #008751 DARK_GREEN
+    // // pico8
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 1,  // #1d2b53 DARK_BLUE
+    // 13, // #83769c INDIGO
+    // 12, // #29adff BLUE
+    // 15, // #ffccaa PEACH
+    // 11, // #00e436 GREEN
+    // 3,  // #008751 DARK_GREEN
 
-  155, // #0c2e44
-  156, // #00396d
-  157, // #0069aa
-  158, // #0098dc
-  159, // #00cdf9
-  139, // #f9e6cf
-  149, // #d3fc7e
-  150, // #99e65f
-  151, // #5ac54f
-  152, // #33984b
-  153, // #1e6f50
+    155, // #0c2e44
+    156, // #00396d
+    157, // #0069aa
+    158, // #0098dc
+    159, // #00cdf9
+    139, // #f9e6cf
+    149, // #d3fc7e
+    150, // #99e65f
+    151, // #5ac54f
+    152, // #33984b
+    153, // #1e6f50
 };
 
 constexpr std::span<const uint8_t> kIslandColorMap(kIslandColors);
 
 static constexpr uint8_t kTundraColors[] = {
 
-  // // pico8
-  // 7,  // #fff1e8 WHITE
-  // 6,  // #c2c3c7 LIGHT_GRAY
-  // 5,  // #5f574f DARK_GRAY
-  // 4,  // #ab5236 BROWN
-  // 5,  // #5f574f DARK_GRAY
-  // 6,  // #c2c3c7 LIGHT_GRAY
-  // 7,  // #fff1e8 WHITE
-  // 6,  // #c2c3c7 LIGHT_GRAY
-  // 5,  // #5f574f DARK_GRAY
-  // 4,  // #ab5236 BROWN
-  // 3,  // #008751 DARK_GREEN
+    // // pico8
+    // 7,  // #fff1e8 WHITE
+    // 6,  // #c2c3c7 LIGHT_GRAY
+    // 5,  // #5f574f DARK_GRAY
+    // 4,  // #ab5236 BROWN
+    // 5,  // #5f574f DARK_GRAY
+    // 6,  // #c2c3c7 LIGHT_GRAY
+    // 7,  // #fff1e8 WHITE
+    // 6,  // #c2c3c7 LIGHT_GRAY
+    // 5,  // #5f574f DARK_GRAY
+    // 4,  // #ab5236 BROWN
+    // 3,  // #008751 DARK_GREEN
 
-  154, // #134c4c
-  153, // #1e6f50
-  136, // #bf6f4a
-  135, // #8a4836
-  134, // #5d2c28
-  121, // #5d5d5d
-  122, // #858585
-  126, // #92a1b9
-  125, // #c7cfdd
-  124, // #ffffff
+    154, // #134c4c
+    153, // #1e6f50
+    136, // #bf6f4a
+    135, // #8a4836
+    134, // #5d2c28
+    121, // #5d5d5d
+    122, // #858585
+    126, // #92a1b9
+    125, // #c7cfdd
+    124, // #ffffff
 
 };
 

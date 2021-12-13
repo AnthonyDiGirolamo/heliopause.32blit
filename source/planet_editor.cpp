@@ -1,16 +1,35 @@
 #include "planet_editor.hpp"
-#include "game.hpp"
+#include "colors.hpp"
+#include "main.hpp"
 #include "planet_types.hpp"
 #include "random.hpp"
 
 namespace heliopause::PlanetEditor {
 
+bool display_mode_orthographic = true;
+
+uint8_t planet_pixel_data[PLANET_FRAMEBUFFER_WIDTH * PLANET_FRAMEBUFFER_HEIGHT];
+
+blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
+                                 blit::PixelFormat::P,
+                                 blit::Size(PLANET_FRAMEBUFFER_WIDTH,
+                                            PLANET_FRAMEBUFFER_HEIGHT));
+
+Planet current_planet = Planet(0x64063701, AllPlanets[0]);
+
 namespace {
+
+uint32_t last_render_time = 0;
+uint32_t last_render_duration = 0;
+
+bool not_rendered = true;
 
 std::string_view enabled_string = {"true"};
 std::string_view disabled_string = {"false"};
 std::string_view orthographic_string = {"3D"};
 std::string_view equirectangular_string = {"Flat"};
+
+pw::StringBuffer<20> menu_item_value;
 
 bool auto_rotation = false;
 
@@ -19,20 +38,6 @@ int camera_pan_x = 0;
 int camera_pan_y = 0;
 
 int selected_planet_index = 0;
-
-uint8_t planet_pixel_data[PLANET_WIDTH * PLANET_HEIGHT];
-
-} // namespace
-
-bool display_mode_orthographic = true;
-
-blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
-                                 blit::PixelFormat::P,
-                                 blit::Size(PLANET_WIDTH, PLANET_HEIGHT));
-
-Planet current_planet = Planet(0x64063701, AllPlanets[0]);
-
-namespace {
 
 std::string_view get_planet_type_string() {
   return current_planet.terrain.type_string;
@@ -51,11 +56,9 @@ void previous_planet() {
 }
 
 std::string_view get_noise_octaves_string() {
-  static pw::StringBuffer<16> noise_octaves_value_string;
-  noise_octaves_value_string.clear();
-  noise_octaves_value_string.Format("%d",
-                                    (int)current_planet.terrain.noise_octaves);
-  return noise_octaves_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%d", (int)current_planet.terrain.noise_octaves);
+  return menu_item_value.view();
 }
 
 void increase_noise_octaves() {
@@ -73,11 +76,9 @@ void decrease_noise_octaves() {
 }
 
 std::string_view get_noise_zoom_string() {
-  static pw::StringBuffer<16> noise_zoom_value_string;
-  noise_zoom_value_string.clear();
-  noise_zoom_value_string.Format("%.2f",
-                                 (double)current_planet.terrain.noise_zoom);
-  return noise_zoom_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f", (double)current_planet.terrain.noise_zoom);
+  return menu_item_value.view();
 }
 
 void increase_noise_zoom() { current_planet.terrain.noise_zoom += 0.05f; }
@@ -85,11 +86,10 @@ void increase_noise_zoom() { current_planet.terrain.noise_zoom += 0.05f; }
 void decrease_noise_zoom() { current_planet.terrain.noise_zoom -= 0.05f; }
 
 std::string_view get_noise_persistance_string() {
-  static pw::StringBuffer<16> noise_persistance_value_string;
-  noise_persistance_value_string.clear();
-  noise_persistance_value_string.Format(
-      "%.2f", (double)current_planet.terrain.noise_persistance);
-  return noise_persistance_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f",
+                         (double)current_planet.terrain.noise_persistance);
+  return menu_item_value.view();
 }
 
 void increase_noise_persistance() {
@@ -101,10 +101,9 @@ void decrease_noise_persistance() {
 }
 
 std::string_view get_seed_string() {
-  static pw::StringBuffer<16> seed_value_string;
-  seed_value_string.clear();
-  seed_value_string.Format("%d", (int)Random::GetCurrentSeed());
-  return seed_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%d", (int)Random::GetCurrentSeed());
+  return menu_item_value.view();
 }
 
 void increase_seed() {
@@ -138,11 +137,9 @@ void toggle_display_mode() {
 }
 
 std::string_view get_latitude_bias_string() {
-  static pw::StringBuffer<16> latitude_bias_value_string;
-  latitude_bias_value_string.clear();
-  latitude_bias_value_string.Format("%.2f",
-                                 (double)current_planet.terrain.latitude_bias);
-  return latitude_bias_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f", (double)current_planet.terrain.latitude_bias);
+  return menu_item_value.view();
 }
 
 void increase_latitude_bias() { current_planet.terrain.latitude_bias += 0.01f; }
@@ -150,14 +147,11 @@ void increase_latitude_bias() { current_planet.terrain.latitude_bias += 0.01f; }
 void decrease_latitude_bias() { current_planet.terrain.latitude_bias -= 0.01f; }
 
 std::string_view get_camera_zoom_string() {
-  static pw::StringBuffer<16> camera_zoom_value_string;
-  camera_zoom_value_string.clear();
-  camera_zoom_value_string.Format("%.2f", (double)camera_zoom);
-  return camera_zoom_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f", (double)camera_zoom);
+  return menu_item_value.view();
 }
-void increase_camera_zoom() {
-  camera_zoom += 0.05f;
-}
+void increase_camera_zoom() { camera_zoom += 0.05f; }
 void decrease_camera_zoom() {
   camera_zoom -= 0.05f;
   if (camera_zoom < 0.1f)
@@ -165,29 +159,25 @@ void decrease_camera_zoom() {
 }
 
 std::string_view get_camera_pan_x_string() {
-  static pw::StringBuffer<16> camera_pan_x_value_string;
-  camera_pan_x_value_string.clear();
-  camera_pan_x_value_string.Format("%.2f", (double)camera_pan_x);
-  return camera_pan_x_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f", (double)camera_pan_x);
+  return menu_item_value.view();
 }
 void increase_camera_pan_x() { camera_pan_x += 10; }
 void decrease_camera_pan_x() { camera_pan_x -= 10; }
 
 std::string_view get_camera_pan_y_string() {
-  static pw::StringBuffer<16> camera_pan_y_value_string;
-  camera_pan_y_value_string.clear();
-  camera_pan_y_value_string.Format("%.2f", (double)camera_pan_y);
-  return camera_pan_y_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%.2f", (double)camera_pan_y);
+  return menu_item_value.view();
 }
 void increase_camera_pan_y() { camera_pan_y += 10; }
 void decrease_camera_pan_y() { camera_pan_y -= 10; }
 
 std::string_view get_color_padding_start_string() {
-  static pw::StringBuffer<8> color_padding_start_value_string;
-  color_padding_start_value_string.clear();
-  color_padding_start_value_string.Format(
-      "%d", current_planet.terrain.color_padding_start);
-  return color_padding_start_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%d", current_planet.terrain.color_padding_start);
+  return menu_item_value.view();
 }
 
 void increase_color_padding_start() {
@@ -205,11 +195,9 @@ void decrease_color_padding_start() {
 }
 
 std::string_view get_color_padding_end_string() {
-  static pw::StringBuffer<8> color_padding_end_value_string;
-  color_padding_end_value_string.clear();
-  color_padding_end_value_string.Format(
-      "%d", current_planet.terrain.color_padding_end);
-  return color_padding_end_value_string.view();
+  menu_item_value.clear();
+  menu_item_value.Format("%d", current_planet.terrain.color_padding_end);
+  return menu_item_value.view();
 }
 
 void increase_color_padding_end() {
@@ -299,32 +287,27 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .increase_function = &increase_camera_pan_y,
         .decrease_function = &decrease_camera_pan_y,
     },
-#if defined(PICO_BOARD)
-#else
     {
         .name = std::string_view{"AutoRotate"},
         .get_value = &get_auto_rotation_string,
         .increase_function = &toggle_auto_rotation,
         .decrease_function = &toggle_auto_rotation,
     },
-#endif
 };
 
 constexpr std::span<const heliopause::MenuItem>
     planet_menu_items_span(planet_menu_items);
 
-uint32_t last_render_time = 0;
-uint32_t last_render_duration = 0;
-
 } // namespace
 
 pw::StringBuffer<24> last_render_update_message;
+pw::StringBuffer<24> planet_metadata;
 
 heliopause::Menu planet_menu = heliopause::Menu(planet_menu_items_span);
 
 void render_planet() {
   uint32_t start_time = blit::now();
-  // planet_framebuffer.clip = Rect(0, 0, 10, 10);
+  // planet_framebuffer.clip = blit::Rect(0, 0, 10, 10);
 
   // Black outline around planet
   // planet_framebuffer.pen = 0;
@@ -332,16 +315,14 @@ void render_planet() {
 
   if (display_mode_orthographic) {
     current_planet.SetDrawOffset(0, 0);
-    current_planet.render_orthographic(&planet_framebuffer,
-                                       PLANET_WIDTH,
-                                       PLANET_HEIGHT,
-                                       camera_zoom,
-                                       camera_pan_x, camera_pan_y
-                                       );
+    current_planet.render_orthographic(
+        &planet_framebuffer, PLANET_FRAMEBUFFER_WIDTH,
+        PLANET_FRAMEBUFFER_HEIGHT, camera_zoom, camera_pan_x, camera_pan_y);
   } else {
     current_planet.SetDrawOffset(0, 0);
-    current_planet.render_equirectangular(&planet_framebuffer, PLANET_WIDTH,
-                                          PLANET_HEIGHT);
+    current_planet.render_equirectangular(&planet_framebuffer,
+                                          PLANET_FRAMEBUFFER_WIDTH,
+                                          PLANET_FRAMEBUFFER_HEIGHT);
   }
 
   /*
@@ -380,6 +361,143 @@ bool auto_rotate() {
     return true;
   }
   return false;
+}
+
+void init() {
+  planet_framebuffer.palette = PICO8;
+  // TODO: Does this matter?
+  planet_framebuffer.alpha = 0;
+
+  // TODO: Figure out exactly to set transparent color index correctly. This
+  // seems to work with the index != pen when clearing.
+  planet_framebuffer.transparent_index = 48;
+  planet_framebuffer.pen = 49;
+  planet_framebuffer.clear();
+
+  planet_metadata.Format("Rendering...");
+}
+
+void render(uint32_t time) {
+  blit::screen.pen = blit::Pen(64, 64, 64, 255);
+  blit::screen.alpha = 255;
+  blit::screen.clear();
+  blit::screen.mask = nullptr;
+
+  int char_h_offset = -5;
+  int xoffset = 0;
+  // // Debug: Show planet_framebuffer draw bounds
+  // blit::screen.pen = PICO8_INDIGO;
+  // int xoffset = 32;
+  // Draw::rectangle(&blit::screen, xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH,
+  //                 PLANET_FRAMEBUFFER_HEIGHT);
+
+  // if (blit::screen.bounds.w > blit::screen.bounds.h) {
+  //   xoffset += (int)((blit::screen.bounds.w - blit::screen.bounds.h) * 0.5f);
+  // }
+
+  if (!heliopause::PlanetEditor::display_mode_orthographic)
+    xoffset = 0;
+
+  blit::screen.blit(
+      &heliopause::PlanetEditor::planet_framebuffer,
+      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
+      blit::Point(xoffset + 0, 0));
+
+  // // Draw at 2x size
+  // blit::screen.stretch_blit(&heliopause::PlanetEditor::planet_framebuffer,
+  //                           blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH,
+  //                           PLANET_FRAMEBUFFER_HEIGHT), blit::Rect(xoffset +
+  //                           0, 0, PLANET_FRAMEBUFFER_WIDTH*2,
+  //                           PLANET_FRAMEBUFFER_HEIGHT*2));
+
+  if (heliopause::PlanetEditor::planet_menu.active) {
+    // Draw the menu if active
+    heliopause::PlanetEditor::planet_menu.Draw(&blit::screen, 0, 0);
+
+  } else {
+    // Planet Type name in upper left.
+    // Text Shadow
+    int color_index =
+        heliopause::PlanetEditor::current_planet.terrain.map_icon_color + 16;
+    blit::screen.pen = PICO8[color_index];
+    blit::screen.text(
+        heliopause::PlanetEditor::current_planet.terrain.type_string,
+        custom_font,
+        blit::Point(3, blit::screen.bounds.h - 24 + 1 + char_h_offset));
+    // Text
+    color_index =
+        heliopause::PlanetEditor::current_planet.terrain.map_icon_color;
+    blit::screen.pen = PICO8[color_index];
+    blit::screen.text(
+        heliopause::PlanetEditor::current_planet.terrain.type_string,
+        custom_font,
+        blit::Point(2, blit::screen.bounds.h - 24 + char_h_offset));
+
+    // Planet info
+    blit::screen.pen = PICO8_BLACK;
+    blit::screen.text(
+        planet_metadata.view(), custom_font,
+        blit::Point(2 + 1, blit::screen.bounds.h - 16 + 1 + char_h_offset));
+    blit::screen.pen = PICO8_WHITE;
+    blit::screen.text(
+        planet_metadata.view(), custom_font,
+        blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
+  }
+
+  // Render time
+  blit::screen.pen = PICO8_BLACK;
+  blit::screen.text(
+      heliopause::PlanetEditor::last_render_update_message.view(), custom_font,
+      blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
+  blit::screen.pen = PICO8_WHITE;
+  blit::screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
+                    custom_font,
+                    blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset));
+}
+
+void update(uint32_t time) {
+  bool rerender = false;
+  if (not_rendered) {
+    rerender = true;
+    not_rendered = false;
+  }
+
+  if (heliopause::PlanetEditor::planet_menu.active) {
+    rerender = heliopause::PlanetEditor::planet_menu.Update();
+  } else if (buttons.pressed & Button::X) {
+    // Activate menu
+    heliopause::PlanetEditor::planet_menu.ToggleActive();
+  } else if (buttons.pressed & Button::DPAD_UP) {
+    heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
+                                                                     0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_DOWN) {
+    heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
+                                                                     -0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_LEFT) {
+    heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
+                                                                      -0.1f);
+    rerender = true;
+  } else if (buttons.pressed & Button::DPAD_RIGHT) {
+    heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
+                                                                      0.1f);
+    rerender = true;
+  }
+
+  if (not rerender)
+    rerender = heliopause::PlanetEditor::auto_rotate();
+
+  if (rerender) {
+    heliopause::PlanetEditor::current_planet.Regen();
+    heliopause::PlanetEditor::render_planet();
+
+    planet_metadata.clear();
+    planet_metadata.Format(
+        "Noise Range: [%.2f, %.2f]",
+        (double)heliopause::PlanetEditor::current_planet.min_noise,
+        (double)heliopause::PlanetEditor::current_planet.max_noise);
+  }
 }
 
 } // namespace heliopause::PlanetEditor
