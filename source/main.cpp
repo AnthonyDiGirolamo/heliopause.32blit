@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "platform.hpp"
 // 32blit
 #include "32blit.hpp"
 #include "engine/engine.hpp"
@@ -13,18 +14,10 @@
 #include <string_view>
 
 // Heliopause
-#include "SimplexNoise.h"
-#include "colors.hpp"
-#include "draw.hpp"
-#include "font_asset.hpp"
 #include "planet_editor.hpp"
 #include "random.hpp"
 
 using namespace blit;
-
-heliopause::Platform current_platform;
-
-const Font custom_font(m3x6_font);
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -34,11 +27,11 @@ void init() {
 #endif
 
 #if defined(TARGET_32BLIT_HW)
-  current_platform = heliopause::stm32blit;
+  heliopause::kCurrentPlatform = heliopause::stm32blit;
 #elif defined(PICO_BOARD)
-  current_platform = heliopause::picosystem;
+  heliopause::kCurrentPlatform = heliopause::picosystem;
 #else
-  current_platform = heliopause::sdl;
+  heliopause::kCurrentPlatform = heliopause::sdl;
 #endif
 
   Random::RestartSeed();

@@ -12,15 +12,19 @@ set(PROJECT_SOURCE
   source/colors.hpp
   source/draw.cpp
   source/draw.hpp
+  source/heliopause.cpp
+  source/heliopause.hpp
   source/main.cpp
   source/main.hpp
   source/menu.cpp
   source/menu.hpp
-  source/planet_editor.cpp
-  source/planet_editor.hpp
   source/planet.cpp
   source/planet.hpp
+  source/planet_editor.cpp
+  source/planet_editor.hpp
   source/planet_types.hpp
+  source/platform.cpp
+  source/platform.hpp
   source/random.cpp
   source/random.hpp
   ${PIGWEED_ROOT}/pw_string/format.cc

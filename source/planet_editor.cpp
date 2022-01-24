@@ -1,19 +1,12 @@
 #include "planet_editor.hpp"
 #include "colors.hpp"
-#include "main.hpp"
 #include "planet_types.hpp"
+#include "platform.hpp"
 #include "random.hpp"
 
 namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
-
-uint8_t planet_pixel_data[PLANET_FRAMEBUFFER_WIDTH * PLANET_FRAMEBUFFER_HEIGHT];
-
-blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
-                                 blit::PixelFormat::P,
-                                 blit::Size(PLANET_FRAMEBUFFER_WIDTH,
-                                            PLANET_FRAMEBUFFER_HEIGHT));
 
 Planet current_planet = Planet(0x64063701, AllPlanets[0]);
 
@@ -399,7 +392,7 @@ void render(uint32_t time) {
     xoffset = 0;
 
   blit::screen.blit(
-      &heliopause::PlanetEditor::planet_framebuffer,
+      &planet_framebuffer,
       blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
       blit::Point(xoffset + 0, 0));
 
@@ -422,7 +415,7 @@ void render(uint32_t time) {
     blit::screen.pen = PICO8[color_index];
     blit::screen.text(
         heliopause::PlanetEditor::current_planet.terrain.type_string,
-        custom_font,
+        heliopause::kCustomFont,
         blit::Point(3, blit::screen.bounds.h - 24 + 1 + char_h_offset));
     // Text
     color_index =
@@ -430,28 +423,29 @@ void render(uint32_t time) {
     blit::screen.pen = PICO8[color_index];
     blit::screen.text(
         heliopause::PlanetEditor::current_planet.terrain.type_string,
-        custom_font,
+        heliopause::kCustomFont,
         blit::Point(2, blit::screen.bounds.h - 24 + char_h_offset));
 
     // Planet info
     blit::screen.pen = PICO8_BLACK;
     blit::screen.text(
-        planet_metadata.view(), custom_font,
+        planet_metadata.view(), heliopause::kCustomFont,
         blit::Point(2 + 1, blit::screen.bounds.h - 16 + 1 + char_h_offset));
     blit::screen.pen = PICO8_WHITE;
     blit::screen.text(
-        planet_metadata.view(), custom_font,
+        planet_metadata.view(), heliopause::kCustomFont,
         blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
   }
 
   // Render time
   blit::screen.pen = PICO8_BLACK;
   blit::screen.text(
-      heliopause::PlanetEditor::last_render_update_message.view(), custom_font,
+      heliopause::PlanetEditor::last_render_update_message.view(),
+      heliopause::kCustomFont,
       blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
   blit::screen.pen = PICO8_WHITE;
   blit::screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
-                    custom_font,
+                    heliopause::kCustomFont,
                     blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset));
 }
 

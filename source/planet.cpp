@@ -38,7 +38,8 @@ void Planet::RebuildHeightMap() {
     if (i < terrain.color_padding_start) {
       // Use the first color
       height_map[i] = terrain.color_map[0];
-    } else if (i >= terrain.color_padding_start + terrain.color_map.size()) {
+    } else if (i >=
+               terrain.color_padding_start + (int)terrain.color_map.size()) {
       // Use the last color
       height_map[i] = terrain.color_map[terrain.color_map.size() - 1];
     } else {
@@ -66,6 +67,7 @@ void Planet::Regen() {
                                                    terrain.max_noise_stretch);
   } else {
     float unused_result = Random::GetRandomFloat(0, 20);
+    unused_result += 1;
   }
 
   // blit::debugf(
@@ -339,7 +341,7 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
 
         // Set color and draw the pixel
         framebuffer->pen = palette_color_index;
-        framebuffer->pixel(blit::Point(x, y));
+        framebuffer->pixel(blit::Point(draw_offsety + x, draw_offsety + y));
       }
 
       // If out of bounds

@@ -2,7 +2,7 @@
 #include "32blit.hpp"
 #include "colors.hpp"
 #include "graphics/font.hpp"
-#include "main.hpp"
+#include "platform.hpp"
 
 namespace heliopause {
 
@@ -54,8 +54,8 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
     if (row - 1 == selected_item_index) {
       framebuffer->pen = PICO8_BLUE;
     }
-    framebuffer->text(item.name, custom_font, blit::Point(posx, y));
-    framebuffer->text(item.get_value(), custom_font,
+    framebuffer->text(item.name, heliopause::kCustomFont, blit::Point(posx, y));
+    framebuffer->text(item.get_value(), heliopause::kCustomFont,
                       blit::Point(value_posx, y));
     if (row - 1 == selected_item_index) {
       framebuffer->pen = PICO8_WHITE;
