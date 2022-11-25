@@ -6,6 +6,12 @@
 constexpr float kPi = blit::pi;
 constexpr float kHalfPi = blit::pi * 0.5f;
 constexpr float kTwoPi = blit::pi * 2.0f;
+constexpr float kFourPi = blit::pi * 4.0f;
+
+// float fast_atan2f(float x) {
+//   return kFourPi*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
+// }
+
 
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   seed = seed_value;
@@ -317,6 +323,13 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
             asinf(cosf(c) * sinf(phi0) + ((yf * sinf(c) * cosf(phi0)) / p));
 
         // longitude (lambda)
+
+        // DEBUG atan2 print
+        // float atan2y = xf * sinf(c);
+        // float atan2x = ((p * cosf(c) * cosf(phi0)) - (yf * sinf(c) * sinf(phi0)));
+        // float atan2r = atan2f(atan2y, atan2x);
+        // printf("atan2(%f, %f) = %f\n", (float)atan2y, (float)atan2x, (float)atan2r);
+        // float lambda = lambda0 + atan2r;
         float lambda =
             lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
                                             (yf * sinf(c) * sinf(phi0))));

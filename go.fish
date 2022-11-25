@@ -55,19 +55,20 @@ cmake -G Ninja \
    -B ./out/pico \
    $COMMON_ARGS \
    -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/pico.toolchain \
-   -DPICO_BOARD=pimoroni_picosystem \
-   && ninja -C out/pico \
-   && flash_pico
+   -DPICO_BOARD=pimoroni_picosystem
+and ninja -C out/pico
 
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
    -B ./out/stm32 \
    $COMMON_ARGS \
-   -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/32blit.toolchain \
-   && ninja -C out/stm32
+   -DCMAKE_TOOLCHAIN_FILE=$BLIT_SDK_PATH/32blit.toolchain
+and ninja -C out/stm32
+# and flash_32blit
 
 cmake -G Ninja \
    -S $THIRTYTWO_BLIT_PROJECT_ROOT \
    -B ./out/host \
-   $COMMON_ARGS \
-   && ninja -C out/host && ./out/host/heliopause
+   $COMMON_ARGS
+and ninja -C out/host
+and ./out/host/heliopause

@@ -6,6 +6,7 @@ using namespace blit;
 
 extern Pen PICO8[];
 extern Pen ENDESGA32[];
+extern Pen ENDESGA64[];
 
 #define PICO8_BLACK PICO8[0]
 #define PICO8_DARK_BLUE PICO8[1]

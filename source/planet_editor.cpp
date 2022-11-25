@@ -4,6 +4,11 @@
 #include "platform.hpp"
 #include "random.hpp"
 
+// Picosystem manual reboot
+// #if PICO_ON_DEVICE
+// #include "pico/bootrom.h"
+// #endif
+
 namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
@@ -338,6 +343,7 @@ void render_planet() {
   last_render_time = blit::now();
   last_render_duration = last_render_time - start_time;
   // blit::debugf("Render time: %d\n", last_render_duration);
+  printf("Render time: %d\n", last_render_duration);
   // last_render_duration_string = std::to_string(last_render_duration);
   last_render_update_message.clear();
   last_render_update_message.Format("Render Time: %d ms",
@@ -477,6 +483,11 @@ void update(uint32_t time) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
                                                                       0.1f);
     rerender = true;
+// Picosystem manual reboot
+// #if PICO_ON_DEVICE
+//   } else if (buttons.pressed & Button::Y) {
+//     reset_usb_boot(0, 0);
+// #endif
   }
 
   if (not rerender)

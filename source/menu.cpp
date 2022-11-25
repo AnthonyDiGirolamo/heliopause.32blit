@@ -31,7 +31,7 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   total_rows += items.size();
 
   // Shaded Background Rect
-  framebuffer->pen = blit::Pen(0, 0, 0, 128);
+  framebuffer->pen = blit::Pen(0, 0, 0, 32);
   framebuffer->rectangle(Rect(posx, posy, framebuffer->bounds.w,
                               // char_w * (max_name_length + 20),
                               char_h * total_rows + 10));
