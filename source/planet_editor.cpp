@@ -299,7 +299,7 @@ constexpr std::span<const heliopause::MenuItem>
 } // namespace
 
 pw::StringBuffer<24> last_render_update_message;
-pw::StringBuffer<24> planet_metadata;
+pw::StringBuffer<32> planet_metadata;
 
 heliopause::Menu planet_menu = heliopause::Menu(planet_menu_items_span);
 

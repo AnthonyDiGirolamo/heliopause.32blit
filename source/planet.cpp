@@ -83,11 +83,16 @@ void Planet::Regen() {
 
 float Planet::GetNoise(float theta, float phi) {
   // clang-format off
+  float cosf_phi = cosf(phi);
+  float sinf_phi = sinf(phi);
+  float cosf_theta = cosf(theta);
+  float sinf_theta = sinf(theta);
+
   float noise = simplex_noise.fractal(
       terrain.noise_octaves,
-      noise_offset.x + cosf(phi) * cosf(theta),
-      noise_offset.y + cosf(phi) * sinf(theta),
-      noise_offset.z + sinf(phi) * noise_factor_vertical);
+      noise_offset.x + cosf_phi * cosf_theta,
+      noise_offset.y + cosf_phi * sinf_theta,
+      noise_offset.z + sinf_phi * noise_factor_vertical);
   // clang-format on
 
   float altitude_modifier = (phi * phi) * terrain.latitude_bias;
@@ -319,8 +324,12 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
         // c = arcsin(p/R)
         float c = asinf(p / r);
 
+        float cosf_c = cosf(c);
+        float sinf_c = sinf(c);
+        float cosf_phi0 = cosf(phi0);
+        float sinf_phi0 = sinf(phi0);
         float phi =
-            asinf(cosf(c) * sinf(phi0) + ((yf * sinf(c) * cosf(phi0)) / p));
+            asinf(cosf_c * sinf_phi0 + ((yf * sinf_c * cosf_phi0) / p));
 
         // longitude (lambda)
 
@@ -331,8 +340,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
         // printf("atan2(%f, %f) = %f\n", (float)atan2y, (float)atan2x, (float)atan2r);
         // float lambda = lambda0 + atan2r;
         float lambda =
-            lambda0 + atan2f(xf * sinf(c), ((p * cosf(c) * cosf(phi0)) -
-                                            (yf * sinf(c) * sinf(phi0))));
+            lambda0 + atan2f(xf * sinf_c, ((p * cosf_c * cosf_phi0) -
+                                           (yf * sinf_c * sinf_phi0)));
         float noise = GetNoise(lambda, phi);
 
         int heightmap_color_index = GetTerrainColorIndex(noise);
