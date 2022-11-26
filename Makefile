@@ -42,7 +42,7 @@ build-host: $(OUTDIR)/host/$(APP_NAME)  ## build host code
 .PHONY: build-pico
 build-pico: $(OUTDIR)/pico/$(APP_NAME).uf2  ## build pico device code
 
-build: $(OUTDIR)/host/$(APP_NAME) $(OUTDIR)/pico/$(APP_NAME).uf2 $(OUTDIR)/stm32/$(APP_NAME).elf
+build: $(OUTDIR)/host/$(APP_NAME) $(OUTDIR)/stm32/$(APP_NAME).elf $(OUTDIR)/pico/$(APP_NAME).uf2
 
 $(OUTDIR)/stm32/Makefile: $(CMAKE_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
@@ -134,6 +134,10 @@ reboot-picosystem-bootloader:  ## Reboots picosystem
 # cur_serial.setDTR(False);
 # cur_serial.close();
 # time.sleep(3)'
+
+.ONESHELL:
+format:  ## clang-format code
+	clang-format -i $(C_FILES) $(H_FILES) $(CPP_FILES) $(CC_FILES)
 
 .PHONY: mkdirs
 mkdirs: $(OUTDIR)/

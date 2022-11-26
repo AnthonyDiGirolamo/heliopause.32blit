@@ -50,4 +50,21 @@ extern const blit::Font kCustomFont;
 
 extern blit::Surface planet_framebuffer;
 
+#ifdef PICO_ON_DEVICE
+#include "pico/stdlib.h"
+#include "pico/util/queue.h"
+#include "pico/multicore.h"
+
+typedef struct
+{
+  void (*func)();
+  int32_t data;
+} queue_entry_t;
+
+extern queue_t call_queue;
+extern queue_t results_queue;
+
+extern void core1_entry();
+#endif
+
 } // namespace heliopause

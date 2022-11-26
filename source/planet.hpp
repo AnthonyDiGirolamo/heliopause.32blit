@@ -45,6 +45,22 @@ struct PlanetTerrain {
   uint8_t palette_dark_offset;
 };
 
+struct PlanetOrthographicRenderValues {
+  blit::Surface *framebuffer;
+  uint32_t start_time;
+  int pixel_radius;
+  int zoom_offset_x;
+  int zoom_offset_y;
+  int x_size;
+  int y_size;
+  int current_x;
+  int current_y;
+  float r;
+  float phi0;
+  float lambda0;
+  bool done;
+};
+
 class Planet {
 public:
   uint32_t seed;
@@ -75,6 +91,12 @@ public:
                               int map_height);
   void render_orthographic(blit::Surface *framebuffer, int x_size, int y_size,
                            float zoom, int zoom_pan_x, int zoom_pan_y);
+  bool render_orthographic_done();
+  uint32_t render_orthographic_start_time();
+  void setup_render_orthographic(blit::Surface *framebuffer, int x_size, int y_size,
+                                 float zoom, int zoom_pan_x, int zoom_pan_y,
+                                 uint32_t start_time);
+  void render_orthographic_line();
 
 private:
   int draw_offsetx;
@@ -84,6 +106,9 @@ private:
   float min_lambda;
   float max_lambda;
   int terrain_heightmap_color_count;
+
+  PlanetOrthographicRenderValues ortho_render;
+
 };
 
 std::string_view get_octaves_string(Planet *planet);

@@ -4,10 +4,11 @@
 #include "platform.hpp"
 #include "random.hpp"
 
-// Picosystem manual reboot
-// #if PICO_ON_DEVICE
-// #include "pico/bootrom.h"
-// #endif
+#if PICO_ON_DEVICE
+#include "pico/multicore.h"
+#include "pico/stdlib.h"
+#include "pico/util/queue.h"
+#endif
 
 namespace heliopause::PlanetEditor {
 
@@ -374,6 +375,12 @@ void init() {
   planet_framebuffer.clear();
 
   planet_metadata.Format("Rendering...");
+
+#ifdef PICO_ON_DEVICE
+  queue_init(&heliopause::call_queue, sizeof(heliopause::queue_entry_t), 2);
+  queue_init(&heliopause::results_queue, sizeof(int32_t), 2);
+  multicore_launch_core1(heliopause::core1_entry);
+#endif
 }
 
 void render(uint32_t time) {
@@ -455,9 +462,47 @@ void render(uint32_t time) {
                     blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset));
 }
 
+bool planet_render_done = false;
+
+void render_planet_on_core_1() {
+  while (!heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
+    // TODO: Add an abort flag
+    heliopause::PlanetEditor::current_planet.render_orthographic_line();
+  }
+  planet_render_done = true;
+}
+
+#ifdef PICO_ON_DEVICE
+queue_entry_t entry;
+#endif
+
+void render_planet_complete() {
+  last_render_time = blit::now();
+  last_render_duration =
+      last_render_time -
+      heliopause::PlanetEditor::current_planet.render_orthographic_start_time();
+  // blit::debugf("Render time: %d\n", last_render_duration);
+  printf("Render time: %d\n", last_render_duration);
+  // last_render_duration_string = std::to_string(last_render_duration);
+  last_render_update_message.clear();
+  last_render_update_message.Format("Render Time: %d ms",
+                                    (int)last_render_duration);
+
+  planet_metadata.clear();
+  planet_metadata.Format(
+      "Noise Range: [%.2f, %.2f]",
+      (double)heliopause::PlanetEditor::current_planet.min_noise,
+      (double)heliopause::PlanetEditor::current_planet.max_noise);
+}
+
 void update(uint32_t time) {
   bool rerender = false;
-  if (not_rendered) {
+  if (not_rendered
+#ifdef PICO_ON_DEVICE
+      // Pico needs time to startup USB
+      && time > 3000
+#endif
+  ) {
     rerender = true;
     not_rendered = false;
   }
@@ -483,26 +528,50 @@ void update(uint32_t time) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
                                                                       0.1f);
     rerender = true;
-// Picosystem manual reboot
-// #if PICO_ON_DEVICE
-//   } else if (buttons.pressed & Button::Y) {
-//     reset_usb_boot(0, 0);
-// #endif
+    // Picosystem manual reboot
+    // #if PICO_ON_DEVICE
+    //   } else if (buttons.pressed & Button::Y) {
+    //     reset_usb_boot(0, 0);
+    // #endif
   }
 
-  if (not rerender)
-    rerender = heliopause::PlanetEditor::auto_rotate();
+  // if (not rerender)
+  //   rerender = heliopause::PlanetEditor::auto_rotate();
 
   if (rerender) {
     heliopause::PlanetEditor::current_planet.Regen();
-    heliopause::PlanetEditor::render_planet();
-
-    planet_metadata.clear();
-    planet_metadata.Format(
-        "Noise Range: [%.2f, %.2f]",
-        (double)heliopause::PlanetEditor::current_planet.min_noise,
-        (double)heliopause::PlanetEditor::current_planet.max_noise);
+    planet_render_done = false;
+    // heliopause::PlanetEditor::render_planet();
+    if (display_mode_orthographic) {
+      current_planet.SetDrawOffset(0, 0);
+      current_planet.setup_render_orthographic(
+          &planet_framebuffer, PLANET_FRAMEBUFFER_WIDTH,
+          PLANET_FRAMEBUFFER_HEIGHT, camera_zoom, camera_pan_x, camera_pan_y,
+          blit::now());
+#ifdef PICO_ON_DEVICE
+      entry.func = &render_planet_on_core_1;
+      entry.data = 1;
+      queue_add_blocking(&heliopause::call_queue, &entry);
+#endif
+    }
   }
+
+#ifdef PICO_ON_DEVICE
+  if (planet_render_done) {
+    planet_render_done = false;
+    int32_t res;
+    queue_remove_blocking(&heliopause::results_queue, &res);
+    render_planet_complete();
+  }
+#else
+  if (!heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
+    heliopause::PlanetEditor::current_planet.render_orthographic_line();
+
+    if (heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
+      render_planet_complete();
+    }
+  }
+#endif
 }
 
 } // namespace heliopause::PlanetEditor

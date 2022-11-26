@@ -70,3 +70,10 @@ install (FILES ${PROJECT_DISTRIBS} DESTINATION .)
 set (CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set (CPACK_GENERATOR "ZIP" "TGZ")
 include (CPack)
+
+if (PICO_BOARD STREQUAL "pimoroni_picosystem")
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
+  target_link_libraries(${PROJECT_NAME}
+    pico_multicore
+  )
+endif()
