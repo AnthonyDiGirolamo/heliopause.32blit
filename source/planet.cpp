@@ -247,33 +247,32 @@ float Planet::GetNoise(float theta, float phi) {
   //        sin_phi - fsin_phi,
   //        cos_theta - fcos_theta,
   //        sin_theta - fsin_theta);
-  return -.25;
 
-  // float noise = simplex_noise.fractal(
-  //     terrain.noise_octaves,
-  //     noise_offset.x + fcos_phi * fcos_theta,
-  //     noise_offset.y + fcos_phi * fsin_theta,
-  //     noise_offset.z + fsin_phi * noise_factor_vertical);
-  // // clang-format on
+  float noise = simplex_noise.fractal(
+      terrain.noise_octaves,
+      noise_offset.x + fcos_phi * fcos_theta,
+      noise_offset.y + fcos_phi * fsin_theta,
+      noise_offset.z + fsin_phi * noise_factor_vertical);
+  // clang-format on
 
-  // float altitude_modifier = (phi * phi) * terrain.latitude_bias;
-  // noise = noise + altitude_modifier;
+  float altitude_modifier = (phi * phi) * terrain.latitude_bias;
+  noise = noise + altitude_modifier;
 
-  // if (theta > max_lambda)
-  //   max_lambda = theta;
-  // if (theta < min_lambda)
-  //   min_lambda = theta;
-  // if (noise > max_noise)
-  //   max_noise = noise;
-  // if (noise < min_noise)
-  //   min_noise = noise;
+  if (theta > max_lambda)
+    max_lambda = theta;
+  if (theta < min_lambda)
+    min_lambda = theta;
+  if (noise > max_noise)
+    max_noise = noise;
+  if (noise < min_noise)
+    min_noise = noise;
 
-  // if (noise > 1)
-  //   noise = 1;
-  // if (noise < -1)
-  //   noise = -1;
+  if (noise > 1)
+    noise = 1;
+  if (noise < -1)
+    noise = -1;
 
-  // return noise;
+  return noise;
 
   // // Manual Octave Summation
   // float freq = current_planet.noise_zoom;
@@ -302,10 +301,10 @@ int Planet::GetTerrainColorIndex(float noise) {
   else if (index >= terrain_heightmap_color_count)
     index = terrain_heightmap_color_count - 1;
 
-  // if (index > max_color_index)
-  //   max_color_index = index;
-  // if (index < min_color_index)
-  //   min_color_index = index;
+  if (index > max_color_index)
+    max_color_index = index;
+  if (index < min_color_index)
+    min_color_index = index;
 
   return index;
 }
@@ -330,12 +329,12 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
       blit::Rect(draw_offsetx, draw_offsety, map_width, map_height));
 
   // Reset min/max tracking
-  // min_color_index = 255;
-  // max_color_index = 0;
+  min_color_index = 255;
+  max_color_index = 0;
   min_noise = 2;
   max_noise = -2;
-  // min_lambda = 1000;
-  // max_lambda = -1000;
+  min_lambda = 1000;
+  max_lambda = -1000;
 
   // Theta value (longitude)
   // We will map all the way around the sphere [0, 2pi]
@@ -421,12 +420,12 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
     map_size = x_size;
 
   // Reset min/max tracking
-  // min_color_index = 255;
-  // max_color_index = 0;
+  min_color_index = 255;
+  max_color_index = 0;
   min_noise = 2;
   max_noise = -2;
-  // min_lambda = 1000;
-  // max_lambda = -1000;
+  min_lambda = 1000;
+  max_lambda = -1000;
 
   // floor(map_size / 2)
   int pixel_radius = (int)((float)map_size * 0.5f);
@@ -622,8 +621,8 @@ void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
   // blit::debugf("max_noise: %d.%.6d\n", (int)max_noise,
   //              (int)((max_noise - (int)max_noise) * 1000000));
 
-  // blit::debugf("color_index min, max: %d, %d\n", min_color_index,
-  //              max_color_index);
+  // blit::debugf("color_index min, max: %d, %d  range: %d\n", min_color_index,
+  //              max_color_index, max_color_index - min_color_index);
 
   // blit::debugf("viewpoint_lambda0: %d.%.6d\n", (int)viewpoint_lambda0,
   //              (int)((viewpoint_lambda0 - (int)viewpoint_lambda0) *
