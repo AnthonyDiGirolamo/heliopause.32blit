@@ -51,12 +51,11 @@ extern const blit::Font kCustomFont;
 extern blit::Surface planet_framebuffer;
 
 #ifdef PICO_ON_DEVICE
+#include "pico/multicore.h"
 #include "pico/stdlib.h"
 #include "pico/util/queue.h"
-#include "pico/multicore.h"
 
-typedef struct
-{
+typedef struct {
   void (*func)();
   int32_t data;
 } queue_entry_t;

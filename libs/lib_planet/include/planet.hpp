@@ -93,9 +93,9 @@ public:
                            float zoom, int zoom_pan_x, int zoom_pan_y);
   bool render_orthographic_done();
   uint32_t render_orthographic_start_time();
-  void setup_render_orthographic(blit::Surface *framebuffer, int x_size, int y_size,
-                                 float zoom, int zoom_pan_x, int zoom_pan_y,
-                                 uint32_t start_time);
+  void setup_render_orthographic(blit::Surface *framebuffer, int x_size,
+                                 int y_size, float zoom, int zoom_pan_x,
+                                 int zoom_pan_y, uint32_t start_time);
   void render_orthographic_line();
 
 private:
@@ -108,7 +108,6 @@ private:
   int terrain_heightmap_color_count;
 
   PlanetOrthographicRenderValues ortho_render;
-
 };
 
 std::string_view get_octaves_string(Planet *planet);
