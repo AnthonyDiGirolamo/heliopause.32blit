@@ -24,4 +24,5 @@ add_subdirectory(third_party/pigweed pigweed)
 # Include 32Blit
 find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk $ENV{PATH_32BLIT_SDK})
 
-add_subdirectory(source)
+add_subdirectory(libs)
+add_subdirectory(apps/planet_editor)

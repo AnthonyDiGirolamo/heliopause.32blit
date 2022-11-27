@@ -1,0 +1,2 @@
+add_subdirectory(lib_random)
+add_subdirectory(lib_simplexnoise)
