@@ -6,8 +6,6 @@ project(heliopause)
 set(PIGWEED_ROOT "third_party/pigweed")
 
 set(PROJECT_SOURCE
-  source/SimplexNoise.cpp
-  source/SimplexNoise.h
   source/colors.cpp
   source/colors.hpp
   source/draw.cpp
@@ -70,6 +68,12 @@ install (FILES ${PROJECT_DISTRIBS} DESTINATION .)
 set (CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set (CPACK_GENERATOR "ZIP" "TGZ")
 include (CPack)
+
+# Common libraries
+add_subdirectory(source/simplexnoise)
+target_link_libraries(${PROJECT_NAME}
+  simplexnoise
+)
 
 if (PICO_BOARD STREQUAL "pimoroni_picosystem")
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
