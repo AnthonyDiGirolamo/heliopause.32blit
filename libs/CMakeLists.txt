@@ -1,2 +1,4 @@
+add_subdirectory(lib_draw)
+add_subdirectory(lib_planet)
 add_subdirectory(lib_random)
 add_subdirectory(lib_simplexnoise)
