@@ -1,9 +1,25 @@
-# Basic parameters; check that these match your project / environment
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.16)
+
+# Build configuration; approach this with caution!
+if(MSVC)
+  add_compile_options("/W4" "/wd4244" "/wd4324" "/wd4458" "/wd4100")
+else()
+  add_compile_options(
+    # "-g"
+    "-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_CXX_STANDARD 17)
 
 project(heliopause)
 
-set(PIGWEED_ROOT "third_party/pigweed")
+# Include Pigweed
+set(PW_ROOT "third_party/pigweed")
+include(third_party/pigweed/pw_build/pigweed.cmake)
+pw_set_backend(pw_assert pw_assert_basic)
+pw_set_backend(pw_sys_io pw_sys_io_stdio)
+add_subdirectory(third_party/pigweed pigweed)
 
 set(PROJECT_SOURCE
   source/colors.cpp
@@ -23,45 +39,15 @@ set(PROJECT_SOURCE
   source/planet_types.hpp
   source/platform.cpp
   source/platform.hpp
-  source/random.cpp
-  source/random.hpp
-  ${PIGWEED_ROOT}/pw_string/format.cc
-  ${PIGWEED_ROOT}/pw_string/string_builder.cc
-  ${PIGWEED_ROOT}/pw_string/type_to_string.cc
-  )
+)
 
 set(PROJECT_DISTRIBS LICENSE README.md)
 
-# Build configuration; approach this with caution!
-if(MSVC)
-  add_compile_options("/W4" "/wd4244" "/wd4324" "/wd4458" "/wd4100")
-else()
-  add_compile_options(
-    # "-g"
-    "-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
-endif()
-
 find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk $ENV{PATH_32BLIT_SDK})
-
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
 blit_assets_yaml (${PROJECT_NAME} assets.yml)
 blit_metadata (${PROJECT_NAME} metadata.yml)
 add_custom_target (flash DEPENDS ${PROJECT_NAME}.flash)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-  ${PIGWEED_ROOT}/pw_assert/public
-  ${PIGWEED_ROOT}/pw_bytes/public
-  ${PIGWEED_ROOT}/pw_polyfill/public
-  ${PIGWEED_ROOT}/pw_polyfill/public_overrides
-  ${PIGWEED_ROOT}/pw_polyfill/standard_library_public
-  ${PIGWEED_ROOT}/pw_preprocessor/public
-  ${PIGWEED_ROOT}/pw_random/public
-  ${PIGWEED_ROOT}/pw_result/public
-  ${PIGWEED_ROOT}/pw_span/public
-  ${PIGWEED_ROOT}/pw_span/public_overrides
-  ${PIGWEED_ROOT}/pw_status/public
-  ${PIGWEED_ROOT}/pw_string/public
-  )
 
 # setup release packages
 install (FILES ${PROJECT_DISTRIBS} DESTINATION .)
@@ -69,11 +55,7 @@ set (CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
 set (CPACK_GENERATOR "ZIP" "TGZ")
 include (CPack)
 
-# Common libraries
-add_subdirectory(source/simplexnoise)
-target_link_libraries(${PROJECT_NAME}
-  simplexnoise
-)
+add_subdirectory(source)
 
 if (PICO_BOARD STREQUAL "pimoroni_picosystem")
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
