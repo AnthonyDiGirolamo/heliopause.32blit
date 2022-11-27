@@ -1,8 +1,6 @@
 set(PLANET_EDITOR_NAME planet_editor)
 
 set(PLANET_EDITOR_SOURCE
-  colors.cpp
-  colors.hpp
   heliopause.cpp
   heliopause.hpp
   main.cpp
@@ -30,6 +28,7 @@ include (CPack)
 
 # Common libraries
 target_link_libraries(${PLANET_EDITOR_NAME}
+  lib_colors
   lib_planet
   lib_random
   lib_simplexnoise

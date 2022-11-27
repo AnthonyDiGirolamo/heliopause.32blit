@@ -1,3 +1,4 @@
+add_subdirectory(lib_colors)
 add_subdirectory(lib_draw)
 add_subdirectory(lib_planet)
 add_subdirectory(lib_random)
