@@ -10,16 +10,14 @@ ECHO_TAG_MESSAGE=printf "\033[36m[%s]\033[0m %s\n"
 
 UNAME_S := $(shell uname -s)
 
-APP_NAME := heliopause
+APP_NAME := planet_editor
+APP_PATH := apps/$(APP_NAME)/$(APP_NAME)
 
-SOURCE_PATH := ./source
+SOURCE_PATH := ./apps
+LIBS_PATH := ./libs
 
-HEADER_FILES := $(shell find $(SOURCE_PATH) -name '*.h' -o -name '*.hpp')
-C_FILES := $(shell find $(SOURCE_PATH) -name '*.c')
-CPP_FILES := $(shell find $(SOURCE_PATH) -name '*.cc' -o -name '*.cpp')
-CMAKE_FILES := CMakeLists.txt $(shell find $(SOURCE_PATH) -name CMakeLists.txt)
-
-SOURCES := $(C_FILES) $(CPP_FILES) $(HEADER_FILES)
+CMAKE_FILES := CMakeLists.txt $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name CMakeLists.txt)
+SOURCE_FILES := $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name '*.h' -o -name '*.hpp' -o -name '*.c' -o -name '*.cc' -o -name '*.cpp')
 
 BLIT_SDK_PATH := $(abspath third_party/32blit-sdk)
 
@@ -34,15 +32,15 @@ clean:  ## delete out dir
 	rm -rf $(OUTDIR)
 
 .PHONY: build-stm32
-build-stm32: $(OUTDIR)/stm32/$(APP_NAME).elf  ## build pico device code
+build-stm32: $(OUTDIR)/stm32/$(APP_PATH).elf  ## build pico device code
 
 .PHONY: build-host
-build-host: $(OUTDIR)/host/$(APP_NAME)  ## build host code
+build-host: $(OUTDIR)/host/$(APP_PATH)  ## build host code
 
 .PHONY: build-pico
-build-pico: $(OUTDIR)/pico/$(APP_NAME).uf2  ## build pico device code
+build-pico: $(OUTDIR)/pico/$(APP_PATH).uf2  ## build pico device code
 
-build: $(OUTDIR)/host/$(APP_NAME) $(OUTDIR)/stm32/$(APP_NAME).elf $(OUTDIR)/pico/$(APP_NAME).uf2
+build: $(OUTDIR)/host/$(APP_PATH) $(OUTDIR)/stm32/$(APP_PATH).elf $(OUTDIR)/pico/$(APP_PATH).uf2
 
 $(OUTDIR)/stm32/Makefile: $(CMAKE_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
@@ -66,29 +64,33 @@ gen-host: $(OUTDIR)/host/Makefile  ## cmake host Makefiles
 gen-pico: $(OUTDIR)/pico/Makefile  ## cmake pico Makefiles
 
 .ONESHELL:
-$(OUTDIR)/stm32/$(APP_NAME).elf: $(OUTDIR)/stm32/Makefile $(SOURCES)
+$(OUTDIR)/stm32/$(APP_PATH).elf: $(OUTDIR)/stm32/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@
 	$(MAKE) -j 4 -C $(OUTDIR)/stm32
 
 .ONESHELL:
-$(OUTDIR)/host/$(APP_NAME): $(OUTDIR)/host/Makefile $(SOURCES)
+$(OUTDIR)/host/$(APP_PATH): $(OUTDIR)/host/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@
 	$(MAKE) -j 4 -C $(OUTDIR)/host
 
 .ONESHELL:
-$(OUTDIR)/pico/$(APP_NAME).uf2: $(OUTDIR)/pico/Makefile $(SOURCES)
+$(OUTDIR)/pico/$(APP_PATH).uf2: $(OUTDIR)/pico/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@
 	$(MAKE) -j 4 -C $(OUTDIR)/pico
 
 
 .PHONY: run-host
-run-host: $(OUTDIR)/host/$(APP_NAME)  ## host binary
-	$(OUTDIR)/host/$(APP_NAME)
+run-host: $(OUTDIR)/host/$(APP_PATH)  ## host binary
+	$(OUTDIR)/host/$(APP_PATH)
 
 .ONESHELL: flash-pico
 flash-pico: build-pico reboot-picosystem-bootloader ## flash pico using picotool
-	picotool load out/pico/$(APP_NAME).uf2
+	picotool load out/pico/$(APP_PATH).uf2
 	picotool reboot
+
+.ONESHELL: flash-blit
+flash-blit: build-stm32 ## flash 32blit
+	$(MAKE) -C $(OUTDIR)/stm32 flash
 
 serial:  ## start pyserial monitor
 	python -m serial.tools.miniterm - 115200
@@ -137,7 +139,7 @@ reboot-picosystem-bootloader:  ## Reboots picosystem
 
 .ONESHELL:
 format:  ## clang-format code
-	clang-format -i $(C_FILES) $(H_FILES) $(CPP_FILES) $(CC_FILES)
+	clang-format -i $(SOURCE_FILES)
 
 .PHONY: mkdirs
 mkdirs: $(OUTDIR)/
