@@ -384,6 +384,7 @@ void init() {
 }
 
 void render(uint32_t time) {
+  // Clear screen
   blit::screen.pen = blit::Pen(64, 64, 64, 255);
   blit::screen.alpha = 255;
   blit::screen.clear();

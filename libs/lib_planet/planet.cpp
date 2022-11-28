@@ -156,7 +156,7 @@ void Planet::SetDrawOffset(int x, int y) {
 void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
                                     int map_height) {
   // Erase to non-existent color palette index
-  framebuffer->pen = 255;
+  framebuffer->pen = 49;
   // Clear draw area
   framebuffer->rectangle(
       blit::Rect(draw_offsetx, draw_offsety, map_width, map_height));
@@ -229,7 +229,7 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
                                        int y_size, float zoom, int zoom_pan_x,
                                        int zoom_pan_y, uint32_t start_time) {
   // Erase to non-existent color palette index
-  framebuffer->pen = 255;
+  framebuffer->pen = 49;
   // Clear draw area
   framebuffer->rectangle(
       blit::Rect(draw_offsetx, draw_offsety, x_size, y_size));
@@ -264,8 +264,6 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
   float centerx = pixel_radius;
   float centery = pixel_radius;
 
-  // Erase to non-existent color palette index
-  framebuffer->pen = 255;
   // Clear draw area
   // framebuffer->rectangle(
   //     blit::Rect(draw_offsetx, draw_offsety, map_size, map_size));
@@ -291,7 +289,7 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
   zoom_offset_y -= zoom_pan_y;
 
   // Plot a circle we wish to fill with the planet image
-  framebuffer->pen = 254;
+  framebuffer->pen = 0;
   Draw::circle(framebuffer, draw_offsetx + zoom_offset_x + centerx,
                draw_offsety + zoom_offset_y + centery, pixel_radius - 1, true);
 
@@ -329,8 +327,8 @@ void Planet::render_orthographic_line() {
     // Get the current pixel value.
     uint8_t pixel_value = *ortho_render.framebuffer->ptr(x, y_coord);
 
-    // If pixel is 254, we are inside the circle.
-    if (pixel_value == 254) {
+    // If pixel isn't transparent, we are inside the circle.
+    if (pixel_value != 49) {
       // Get x,y coords for map projection.
       // xf, yf = 0, 0 should be at the center of the globe
       float xf = (float)x - ortho_render.r - ortho_render.zoom_offset_x;
@@ -373,6 +371,7 @@ void Planet::render_orthographic_line() {
       float noise = GetNoise(lambda, phi);
 
       int heightmap_color_index = GetTerrainColorIndex(noise);
+
       // TODO: should be transparent color
       int palette_color_index = 0;
       // TODO: Only update this if valid height_map color?
