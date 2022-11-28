@@ -63,32 +63,26 @@ gen-host: $(OUTDIR)/host/Makefile  ## cmake host Makefiles
 .PHONY: gen-pico
 gen-pico: $(OUTDIR)/pico/Makefile  ## cmake pico Makefiles
 
-.ONESHELL:
 $(OUTDIR)/stm32/$(APP_PATH).elf: $(OUTDIR)/stm32/Makefile $(SOURCE_FILES)
-	@$(ECHO_TAG_MESSAGE) "BUILD" $@
+	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/stm32
 
-.ONESHELL:
 $(OUTDIR)/host/$(APP_PATH): $(OUTDIR)/host/Makefile $(SOURCE_FILES)
-	@$(ECHO_TAG_MESSAGE) "BUILD" $@
+	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/host
 
-.ONESHELL:
 $(OUTDIR)/pico/$(APP_PATH).uf2: $(OUTDIR)/pico/Makefile $(SOURCE_FILES)
-	@$(ECHO_TAG_MESSAGE) "BUILD" $@
+	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/pico
-
 
 .PHONY: run-host
 run-host: $(OUTDIR)/host/$(APP_PATH)  ## host binary
 	$(OUTDIR)/host/$(APP_PATH)
 
-.ONESHELL: flash-pico
 flash-pico: build-pico reboot-picosystem-bootloader ## flash pico using picotool
-	picotool load out/pico/$(APP_PATH).uf2
+	picotool load out/pico/$(APP_PATH).uf2 ; \
 	picotool reboot
 
-.ONESHELL: flash-blit
 flash-blit: build-stm32 ## flash 32blit
 	$(MAKE) -C $(OUTDIR)/stm32 flash
 
@@ -137,7 +131,7 @@ reboot-picosystem-bootloader:  ## Reboots picosystem
 # cur_serial.close();
 # time.sleep(3)'
 
-.ONESHELL:
+.PHONY: format
 format:  ## clang-format code
 	clang-format -i $(SOURCE_FILES)
 
