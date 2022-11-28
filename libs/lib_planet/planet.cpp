@@ -299,12 +299,52 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
   ortho_render.lambda0 = lambda0;
   ortho_render.zoom_offset_x = zoom_offset_x;
   ortho_render.zoom_offset_y = zoom_offset_y;
+  ortho_render.center_x = centerx;
+  ortho_render.center_y = centery;
   ortho_render.x_size = x_size;
   ortho_render.y_size = y_size;
   ortho_render.current_y = -1;
   ortho_render.done = false;
   ortho_render.start_time = start_time;
   ortho_render.framebuffer = framebuffer;
+}
+
+int Planet::circle_start_x_coord(int y_coord, int radius) {
+  int x = -radius, y = 0;
+  int error_value = 2 - 2 * radius;
+
+  // printf("radius = %d, y_coord = %d\n", radius, y_coord);
+
+  y_coord -= radius;
+  if (y_coord < 0)
+    y_coord *= -1;
+
+  int start_x = 0;
+
+  while (x < 0) {
+    radius = error_value;
+
+    // printf("y = %d, x = %d\n", y, x);
+    // ortho_render.framebuffer->pen = 7;
+    // ortho_render.framebuffer->pixel(blit::Point(x +
+    // ortho_render.pixel_radius,
+    //                                             y +
+    //                                             ortho_render.pixel_radius));
+    if (y == y_coord) {
+      start_x = x;
+      break;
+    }
+
+    if (radius <= y) {
+      y++;
+      error_value += y * 2 + 1;
+    }
+    if (radius > x || error_value > y) {
+      x++;
+      error_value += x * 2 + 1;
+    }
+  }
+  return start_x;
 }
 
 bool Planet::render_orthographic_done() { return ortho_render.done; }
@@ -322,7 +362,37 @@ void Planet::render_orthographic_line() {
   if (ortho_render.done)
     return;
 
+  // TODO: this should loop until it's in bounds
+  int max_x = ortho_render.framebuffer->bounds.w;
+  int max_y = ortho_render.framebuffer->bounds.h;
+  if (draw_offsety + ortho_render.zoom_offset_y + ortho_render.current_y < 0 ||
+      draw_offsety + ortho_render.zoom_offset_y + ortho_render.current_y >=
+          max_y) {
+    printf("out of bounds\n");
+    return;
+  }
+
+  int radius = ortho_render.pixel_radius - 1;
   int y_coord = ortho_render.current_y;
+
+  int start_x_coord =
+      circle_start_x_coord(y_coord, radius) + ortho_render.center_x;
+  int end_x_coord = (ortho_render.pixel_radius * 2) - start_x_coord;
+
+  // draw_offsetx + zoom_offset_x + centerx,
+  // draw_offsety + zoom_offset_y + centery, pixel_radius - 1
+
+  ortho_render.framebuffer->pen = 12;
+  ortho_render.framebuffer->pixel(
+      blit::Point(draw_offsetx + ortho_render.zoom_offset_x + start_x_coord,
+                  draw_offsety + ortho_render.zoom_offset_y + y_coord + 1));
+  ortho_render.framebuffer->pen = 8;
+  ortho_render.framebuffer->pixel(
+      blit::Point(draw_offsetx + ortho_render.zoom_offset_x + end_x_coord,
+                  draw_offsety + ortho_render.zoom_offset_y + y_coord + 1));
+
+  return;
+
   for (int x = 0; x < ortho_render.x_size; x++) {
     // Get the current pixel value.
     uint8_t pixel_value = *ortho_render.framebuffer->ptr(x, y_coord);

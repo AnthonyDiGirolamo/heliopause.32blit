@@ -55,6 +55,8 @@ struct PlanetOrthographicRenderValues {
   int y_size;
   int current_x;
   int current_y;
+  int center_x;
+  int center_y;
   float r;
   float phi0;
   float lambda0;
@@ -108,6 +110,7 @@ private:
   int terrain_heightmap_color_count;
 
   PlanetOrthographicRenderValues ortho_render;
+  int circle_start_x_coord(int y_coord, int radius);
 };
 
 std::string_view get_octaves_string(Planet *planet);
