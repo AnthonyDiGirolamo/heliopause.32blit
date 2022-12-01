@@ -313,6 +313,12 @@ uint32_t Planet::render_orthographic_start_time() {
   return ortho_render.start_time;
 }
 
+void Planet::render_orthographic_all() {
+  while (!ortho_render.done) {
+    render_orthographic_line();
+  }
+}
+
 void Planet::render_orthographic_line() {
   if (ortho_render.current_y < ortho_render.y_size) {
     ortho_render.current_y++;

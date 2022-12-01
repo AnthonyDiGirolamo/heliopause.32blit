@@ -536,8 +536,11 @@ void update(uint32_t time) {
     // #endif
   }
 
-  // if (not rerender)
-  //   rerender = heliopause::PlanetEditor::auto_rotate();
+#ifdef PICO_ON_DEVICE
+#else
+  if (not rerender)
+    rerender = heliopause::PlanetEditor::auto_rotate();
+#endif
 
   if (rerender) {
     heliopause::PlanetEditor::current_planet.Regen();
@@ -553,6 +556,9 @@ void update(uint32_t time) {
       entry.func = &render_planet_on_core_1;
       entry.data = 1;
       queue_add_blocking(&heliopause::call_queue, &entry);
+#else
+      current_planet.render_orthographic_all();
+      render_planet_complete();
 #endif
     }
   }

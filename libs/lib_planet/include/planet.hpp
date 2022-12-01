@@ -97,6 +97,7 @@ public:
                                  int y_size, float zoom, int zoom_pan_x,
                                  int zoom_pan_y, uint32_t start_time);
   void render_orthographic_line();
+  void render_orthographic_all();
 
 private:
   int draw_offsetx;
