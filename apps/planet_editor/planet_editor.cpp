@@ -313,12 +313,12 @@ void render_planet() {
   // Draw::circle(&planet_framebuffer, 60, 60, 60, true);
 
   if (display_mode_orthographic) {
-    current_planet.SetDrawOffset(0, 0);
+    current_planet.SetDrawPosition(0, 0);
     current_planet.render_orthographic(
         &planet_framebuffer, PLANET_FRAMEBUFFER_WIDTH,
         PLANET_FRAMEBUFFER_HEIGHT, camera_zoom, camera_pan_x, camera_pan_y);
   } else {
-    current_planet.SetDrawOffset(0, 0);
+    current_planet.SetDrawPosition(0, 0);
     current_planet.render_equirectangular(&planet_framebuffer,
                                           PLANET_FRAMEBUFFER_WIDTH,
                                           PLANET_FRAMEBUFFER_HEIGHT);
@@ -326,18 +326,18 @@ void render_planet() {
 
   /*
   // Render the planet in 3d
-  current_planet.SetDrawOffset(0, 0);
+  current_planet.SetDrawPosition(0, 0);
   current_planet.render_orthographic(&planet_framebuffer, 120);
 
   // Render the planet in 3d facing the opposite side
   float original_lambda = current_planet.viewpoint_lambda0;
   current_planet.viewpoint_lambda0 += blit::pi;
-  current_planet.SetDrawOffset(120, 0);
+  current_planet.SetDrawPosition(120, 0);
   current_planet.render_orthographic(&planet_framebuffer, 120);
   current_planet.viewpoint_lambda0 = original_lambda;
 
   // Render full flattened map
-  current_planet.SetDrawOffset(0, 120);
+  current_planet.SetDrawPosition(0, 120);
   current_planet.render_equirectangular(&planet_framebuffer, 240, 120);
   */
 
@@ -544,11 +544,12 @@ void update(uint32_t time) {
     planet_render_done = false;
     // heliopause::PlanetEditor::render_planet();
     if (display_mode_orthographic) {
-      current_planet.SetDrawOffset(0, 0);
+      current_planet.SetDrawPosition(0, 0);
       current_planet.setup_render_orthographic(
-          &planet_framebuffer, PLANET_FRAMEBUFFER_WIDTH,
-          PLANET_FRAMEBUFFER_HEIGHT, camera_zoom, camera_pan_x, camera_pan_y,
-          blit::now());
+          &planet_framebuffer,
+          PLANET_FRAMEBUFFER_WIDTH,  // width
+          PLANET_FRAMEBUFFER_HEIGHT, // height
+          camera_zoom, camera_pan_x, camera_pan_y, blit::now());
 #ifdef PICO_ON_DEVICE
       entry.func = &render_planet_on_core_1;
       entry.data = 1;
