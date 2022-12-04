@@ -276,11 +276,11 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer,
   // int endx = startx + (pixel_radius * 2);
   // int endy = starty + (pixel_radius * 2);
 
-  // Erase to non-existent color palette index
-  framebuffer->pen = 49;
-  // Clear draw area
-  framebuffer->rectangle(
-      blit::Rect(draw_position_x, draw_position_y, pixel_width, pixel_height));
+  // // Erase to non-existent color palette index
+  // framebuffer->pen = 49;
+  // // Clear draw area
+  // framebuffer->rectangle(
+  //     blit::Rect(draw_position_x, draw_position_y, pixel_width, pixel_height));
 
   // // Debug outline of entire draw area
   // framebuffer->pen = 7;
@@ -351,9 +351,8 @@ int Planet::circle_start_x_coord(int y_coord, int radius) {
     // printf("y = %d, x = %d\n", y, x);
     // ortho_render.framebuffer->pen = 7;
     // ortho_render.framebuffer->pixel(blit::Point(x +
-    // ortho_render.pixel_radius,
-    //                                             y +
-    //                                             ortho_render.pixel_radius));
+    //   ortho_render.pixel_radius,
+    //   y + ortho_render.pixel_radius));
     if (y == y_coord) {
       start_x = x;
       break;
@@ -416,8 +415,10 @@ void Planet::render_orthographic_line() {
   // ortho_render.framebuffer->pen = 10;
 
   // Stop if there's no pixels to draw
-  if (start_x_coord == end_x_coord)
+  if (start_x_coord == end_x_coord) {
+    ortho_render.done = true;
     return;
+  }
 
   for (int x = start_x_coord; x <= end_x_coord; x++) {
     if (ortho_render.zoom_offset_x + x < 0)

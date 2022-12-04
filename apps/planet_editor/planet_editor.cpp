@@ -553,6 +553,13 @@ void update(uint32_t time) {
           PLANET_FRAMEBUFFER_WIDTH,  // width
           PLANET_FRAMEBUFFER_HEIGHT, // height
           camera_zoom, camera_pan_x, camera_pan_y, blit::now());
+
+      // Erase to non-existent color palette index
+      planet_framebuffer.pen = 49;
+      // Clear draw area
+      planet_framebuffer.rectangle(
+         blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+
 #ifdef PICO_ON_DEVICE
       entry.func = &render_planet_on_core_1;
       entry.data = 1;
