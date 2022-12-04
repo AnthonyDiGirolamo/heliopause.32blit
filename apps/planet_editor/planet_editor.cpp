@@ -557,8 +557,8 @@ void update(uint32_t time) {
       // Erase to non-existent color palette index
       planet_framebuffer.pen = 49;
       // Clear draw area
-      planet_framebuffer.rectangle(
-         blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+      planet_framebuffer.rectangle(blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH,
+                                              PLANET_FRAMEBUFFER_HEIGHT));
 
 #ifdef PICO_ON_DEVICE
       entry.func = &render_planet_on_core_1;

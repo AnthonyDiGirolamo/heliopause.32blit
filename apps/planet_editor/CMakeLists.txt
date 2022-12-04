@@ -31,7 +31,6 @@ target_link_libraries(${PLANET_EDITOR_NAME}
   lib_colors
   lib_planet
   lib_random
-  lib_simplexnoise
   pw_string
 )
 

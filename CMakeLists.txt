@@ -26,3 +26,4 @@ find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk $ENV{PATH_32BLIT_SDK})
 
 add_subdirectory(libs)
 add_subdirectory(apps/planet_editor)
+add_subdirectory(apps/flight)

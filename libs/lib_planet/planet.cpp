@@ -280,7 +280,8 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer,
   // framebuffer->pen = 49;
   // // Clear draw area
   // framebuffer->rectangle(
-  //     blit::Rect(draw_position_x, draw_position_y, pixel_width, pixel_height));
+  //     blit::Rect(draw_position_x, draw_position_y,
+  //                pixel_width, pixel_height));
 
   // // Debug outline of entire draw area
   // framebuffer->pen = 7;

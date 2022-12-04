@@ -84,7 +84,7 @@ public:
     float len = length();
     if (len == 0)
       return *this;
-    *this *= (1.0 / len);
+    *this *= (1.0f / len);
     return *this;
   }
 
