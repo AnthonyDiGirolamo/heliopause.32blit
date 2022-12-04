@@ -37,7 +37,7 @@ blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
                                  blit::Size(planet_width, planet_width));
 
 uint32_t last_planet_render_time = 0;
-Vec2 screen_center = Vec2(80, 60);
+Vec2 screen_center = Vec2(0, 0);
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -53,6 +53,7 @@ void init() {
 #else
   heliopause::kCurrentPlatform = heliopause::sdl;
 #endif
+  screen_center = Vec2(blit::screen.bounds.w/2, blit::screen.bounds.h/2);
 
   planet_framebuffer.palette = PICO8;
   planet_framebuffer.alpha = 0;
