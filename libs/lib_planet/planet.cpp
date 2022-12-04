@@ -256,8 +256,6 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer,
   float phi0 = viewpoint_phi0;
   // lambda0 = origin longitude
   float lambda0 = viewpoint_lambda0;
-  float centerx = pixel_radius;
-  float centery = pixel_radius;
 
   // Calculate initial zoom offset
   int zoom_offset_x = 0;
@@ -295,21 +293,21 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer,
   // Draw::rectangle(framebuffer, startx, starty, pixel_radius * 2,
   //                 pixel_radius * 2);
 
-  // Debug plot the circle for the planet
-  framebuffer->pen = 0;
-  Draw::circle(framebuffer,
-               draw_position_x + zoom_offset_x + centerx, // center x
-               draw_position_y + zoom_offset_y + centery, // center y
-               pixel_radius - 1,                          // radius
-               true                                       // filled
-  );
-  framebuffer->pen = terrain.map_icon_color;
-  Draw::circle(framebuffer,
-               draw_position_x + zoom_offset_x + centerx, // center x
-               draw_position_y + zoom_offset_y + centery, // center y
-               pixel_radius - 1,                          // radius
-               false                                      // filled
-  );
+  // // Debug draw the circle for the planet
+  // framebuffer->pen = 0;
+  // Draw::circle(framebuffer,
+  //              draw_position_x + zoom_offset_x + pixel_radius, // center x
+  //              draw_position_y + zoom_offset_y + pixel_radius, // center y
+  //              pixel_radius - 1,                          // radius
+  //              true                                       // filled
+  // );
+  // framebuffer->pen = terrain.map_icon_color;
+  // Draw::circle(framebuffer,
+  //              draw_position_x + zoom_offset_x + pixel_radius, // center x
+  //              draw_position_y + zoom_offset_y + pixel_radius, // center y
+  //              pixel_radius - 1,                          // radius
+  //              false                                      // filled
+  // );
 
   // printf("\nWxH: [%d, %d] radius %d\n", pixel_width, pixel_height,
   //        pixel_radius);
@@ -417,13 +415,17 @@ void Planet::render_orthographic_line() {
   // debug draw x points
   // ortho_render.framebuffer->pen = 10;
 
+  // Stop if there's no pixels to draw
+  if (start_x_coord == end_x_coord)
+    return;
+
   for (int x = start_x_coord; x <= end_x_coord; x++) {
     if (ortho_render.zoom_offset_x + x < 0)
       continue;
     if (ortho_render.zoom_offset_x + x > (ortho_render.pixel_width - 1))
       break;
 
-    int palette_color_index = terrain_color_index(x, y_coord);
+    int palette_color_index = terrain_color_index(x, y_coord + 1);
     ortho_render.framebuffer->pen = palette_color_index;
 
     ortho_render.framebuffer->pixel(blit::Point(

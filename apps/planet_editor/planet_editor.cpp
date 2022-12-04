@@ -483,7 +483,7 @@ void render_planet_complete() {
       last_render_time -
       heliopause::PlanetEditor::current_planet.render_orthographic_start_time();
   // blit::debugf("Render time: %d\n", last_render_duration);
-  printf("Render time: %d\n", last_render_duration);
+  // printf("Render time: %d\n", last_render_duration);
   // last_render_duration_string = std::to_string(last_render_duration);
   last_render_update_message.clear();
   last_render_update_message.Format("Render Time: %d ms",
