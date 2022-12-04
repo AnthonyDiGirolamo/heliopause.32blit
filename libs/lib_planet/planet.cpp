@@ -16,8 +16,8 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
   terrain = new_terrain;
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
-  draw_offsetx = 0;
-  draw_offsety = 0;
+  draw_position_x = 0;
+  draw_position_y = 0;
   Regen();
   // ortho_render = PlanetOrthographicRenderValues();
 }
@@ -148,9 +148,9 @@ int Planet::GetTerrainColorIndex(float noise) {
   return index;
 }
 
-void Planet::SetDrawOffset(int x, int y) {
-  draw_offsetx = x;
-  draw_offsety = y;
+void Planet::SetDrawPosition(int x, int y) {
+  draw_position_x = x;
+  draw_position_y = y;
 }
 
 void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
@@ -159,7 +159,7 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
   framebuffer->pen = 49;
   // Clear draw area
   framebuffer->rectangle(
-      blit::Rect(draw_offsetx, draw_offsety, map_width, map_height));
+      blit::Rect(draw_position_x, draw_position_y, map_width, map_height));
 
   // Reset min/max tracking
   min_color_index = 255;
@@ -185,8 +185,8 @@ void Planet::render_equirectangular(blit::Surface *framebuffer, int map_width,
     theta = 0;
 
     for (int x = 0; x < map_width; x++) {
-      int dx = draw_offsetx + x;
-      int dy = draw_offsety + y;
+      int dx = draw_position_x + x;
+      int dy = draw_position_y + y;
 
       float noise = GetNoise(theta, phi);
 
@@ -225,22 +225,10 @@ void Planet::AdjustViewpointLongitude(float amount) {
   }
 }
 
-void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
-                                       int y_size, float zoom, int zoom_pan_x,
+void Planet::setup_render_orthographic(blit::Surface *framebuffer,
+                                       int pixel_width, int pixel_height,
+                                       float zoom, int zoom_pan_x,
                                        int zoom_pan_y, uint32_t start_time) {
-  // Erase to non-existent color palette index
-  framebuffer->pen = 49;
-  // Clear draw area
-  framebuffer->rectangle(
-      blit::Rect(draw_offsetx, draw_offsety, x_size, y_size));
-
-  // https://en.wikipedia.org/wiki/Orthographic_map_projection
-  int map_size = 0;
-  if (y_size <= x_size)
-    map_size = y_size;
-  else
-    map_size = x_size;
-
   // Reset min/max tracking
   min_color_index = 255;
   max_color_index = 0;
@@ -248,6 +236,13 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
   max_noise = -2;
   min_lambda = 1000;
   max_lambda = -1000;
+
+  // Pic the smaller dimension to be the radius
+  int map_size = 0;
+  if (pixel_height <= pixel_width)
+    map_size = pixel_height;
+  else
+    map_size = pixel_width;
 
   // floor(map_size / 2)
   int pixel_radius = (int)((float)map_size * 0.5f);
@@ -264,47 +259,118 @@ void Planet::setup_render_orthographic(blit::Surface *framebuffer, int x_size,
   float centerx = pixel_radius;
   float centery = pixel_radius;
 
-  // Clear draw area
-  // framebuffer->rectangle(
-  //     blit::Rect(draw_offsetx, draw_offsety, map_size, map_size));
-
-  // // Debug box outline
-  // framebuffer->pen = 7;
-  // // Rectangle defined by top-left corner to bottom-right corner
-  // Draw::rectangle(framebuffer, draw_offsetx + 0, draw_offsety + 0, map_size,
-  //                 map_size);
-
   // Calculate initial zoom offset
   int zoom_offset_x = 0;
   int zoom_offset_y = 0;
-  if (2 * pixel_radius > x_size) {
-    zoom_offset_x -= (int)((float)(2 * pixel_radius - x_size) * 0.5f);
+  if (2 * pixel_radius > pixel_width) {
+    zoom_offset_x -= (int)((float)(2 * pixel_radius - pixel_width) * 0.5f);
   }
-  if (2 * pixel_radius > y_size) {
-    zoom_offset_y -= (int)((float)(2 * pixel_radius - y_size) * 0.5f);
+  if (2 * pixel_radius > pixel_height) {
+    zoom_offset_y -= (int)((float)(2 * pixel_radius - pixel_height) * 0.5f);
   }
 
   // Pan the camera
   zoom_offset_x -= zoom_pan_x;
   zoom_offset_y -= zoom_pan_y;
 
-  // Plot a circle we wish to fill with the planet image
+  // int startx = draw_position_x + zoom_offset_x;
+  // int starty = draw_position_y + zoom_offset_y;
+  // int endx = startx + (pixel_radius * 2);
+  // int endy = starty + (pixel_radius * 2);
+
+  // Erase to non-existent color palette index
+  framebuffer->pen = 49;
+  // Clear draw area
+  framebuffer->rectangle(
+      blit::Rect(draw_position_x, draw_position_y, pixel_width, pixel_height));
+
+  // // Debug outline of entire draw area
+  // framebuffer->pen = 7;
+  // Draw::rectangle(framebuffer, draw_position_x, draw_position_y, pixel_width,
+  //                 pixel_height);
+
+  // // Debug box outline of the planet
+  // framebuffer->pen = 9;
+  // // Rectangle defined by top-left corner, width, and height.
+  // Draw::rectangle(framebuffer, startx, starty, pixel_radius * 2,
+  //                 pixel_radius * 2);
+
+  // Debug plot the circle for the planet
   framebuffer->pen = 0;
-  Draw::circle(framebuffer, draw_offsetx + zoom_offset_x + centerx,
-               draw_offsety + zoom_offset_y + centery, pixel_radius - 1, true);
+  Draw::circle(framebuffer,
+               draw_position_x + zoom_offset_x + centerx, // center x
+               draw_position_y + zoom_offset_y + centery, // center y
+               pixel_radius - 1,                          // radius
+               true                                       // filled
+  );
+  framebuffer->pen = terrain.map_icon_color;
+  Draw::circle(framebuffer,
+               draw_position_x + zoom_offset_x + centerx, // center x
+               draw_position_y + zoom_offset_y + centery, // center y
+               pixel_radius - 1,                          // radius
+               false                                      // filled
+  );
+
+  // printf("\nWxH: [%d, %d] radius %d\n", pixel_width, pixel_height,
+  //        pixel_radius);
+  // printf("ZoomOffset: [%d, %d]\n", zoom_offset_x, zoom_offset_y);
 
   ortho_render.pixel_radius = pixel_radius;
+  ortho_render.pixel_width = pixel_width;
+  ortho_render.pixel_height = pixel_height;
+
   ortho_render.r = r;
   ortho_render.phi0 = phi0;
   ortho_render.lambda0 = lambda0;
+
   ortho_render.zoom_offset_x = zoom_offset_x;
   ortho_render.zoom_offset_y = zoom_offset_y;
-  ortho_render.x_size = x_size;
-  ortho_render.y_size = y_size;
-  ortho_render.current_y = -1;
   ortho_render.done = false;
   ortho_render.start_time = start_time;
   ortho_render.framebuffer = framebuffer;
+
+  ortho_render.current_y = -1;
+  // Start from the correct y coord if there is a negative y zoom offset.
+  if (zoom_offset_y < 0)
+    ortho_render.current_y = (zoom_offset_y * -1) - 1;
+}
+
+int Planet::circle_start_x_coord(int y_coord, int radius) {
+  int x = -radius, y = 0;
+  int error_value = 2 - 2 * radius;
+
+  // printf("radius = %d, y_coord = %d\n", radius, y_coord);
+
+  y_coord -= radius;
+  if (y_coord < 0)
+    y_coord *= -1;
+
+  int start_x = 0;
+
+  while (x < 0) {
+    radius = error_value;
+
+    // printf("y = %d, x = %d\n", y, x);
+    // ortho_render.framebuffer->pen = 7;
+    // ortho_render.framebuffer->pixel(blit::Point(x +
+    // ortho_render.pixel_radius,
+    //                                             y +
+    //                                             ortho_render.pixel_radius));
+    if (y == y_coord) {
+      start_x = x;
+      break;
+    }
+
+    if (radius <= y) {
+      y++;
+      error_value += y * 2 + 1;
+    }
+    if (radius > x || error_value > y) {
+      x++;
+      error_value += x * 2 + 1;
+    }
+  }
+  return start_x;
 }
 
 bool Planet::render_orthographic_done() { return ortho_render.done; }
@@ -320,7 +386,8 @@ void Planet::render_orthographic_all() {
 }
 
 void Planet::render_orthographic_line() {
-  if (ortho_render.current_y < ortho_render.y_size) {
+  if (ortho_render.current_y <
+      ortho_render.pixel_height - ortho_render.zoom_offset_y) {
     ortho_render.current_y++;
   } else {
     ortho_render.done = true;
@@ -328,83 +395,126 @@ void Planet::render_orthographic_line() {
   if (ortho_render.done)
     return;
 
-  int y_coord = ortho_render.current_y;
-  for (int x = 0; x < ortho_render.x_size; x++) {
-    // Get the current pixel value.
-    uint8_t pixel_value = *ortho_render.framebuffer->ptr(x, y_coord);
+  // printf("y = %d, modified = %d", ortho_render.current_y, draw_position_y +
+  //        ortho_render.zoom_offset_y + ortho_render.current_y);
 
-    // If pixel isn't transparent, we are inside the circle.
-    if (pixel_value != 49) {
-      // Get x,y coords for map projection.
-      // xf, yf = 0, 0 should be at the center of the globe
-      float xf = (float)x - ortho_render.r - ortho_render.zoom_offset_x;
-      float yf = (float)y_coord - ortho_render.r - ortho_render.zoom_offset_y;
-
-      // Some trig function breaks if xf and xy are both zero. Set a slight
-      // offset.
-      if ((y_coord - ortho_render.pixel_radius - ortho_render.zoom_offset_y ==
-           0) &&
-          (x - ortho_render.pixel_radius - ortho_render.zoom_offset_x == 0)) {
-        xf = 0.0001;
-        yf = 0.0001;
-      }
-
-      // p (rho) = sqrt(x*x + y*y)
-      float p = sqrtf(xf * xf + yf * yf);
-
-      // R = radius
-      // float p = sqrtf(xf*xf + yf*yf);
-      // c = arcsin(p/R)
-      float c = asinf(p / ortho_render.r);
-
-      float cosf_c = cosf(c);
-      float sinf_c = sinf(c);
-      float cosf_phi0 = cosf(ortho_render.phi0);
-      float sinf_phi0 = sinf(ortho_render.phi0);
-      float phi = asinf(cosf_c * sinf_phi0 + ((yf * sinf_c * cosf_phi0) / p));
-
-      // longitude (lambda)
-
-      // DEBUG atan2 print
-      // float atan2y = xf * sinf(c);
-      // float atan2x = ((p * cosf(c) * cosf(phi0)) - (yf * sinf(c) *
-      // sinf(phi0))); float atan2r = atan2f(atan2y, atan2x); printf("atan2(%f,
-      // %f) = %f\n", (float)atan2y, (float)atan2x, (float)atan2r); float lambda
-      // = lambda0 + atan2r;
-      float lambda = ortho_render.lambda0 +
-                     atan2f(xf * sinf_c, ((p * cosf_c * cosf_phi0) -
-                                          (yf * sinf_c * sinf_phi0)));
-      float noise = GetNoise(lambda, phi);
-
-      int heightmap_color_index = GetTerrainColorIndex(noise);
-
-      // TODO: should be transparent color
-      int palette_color_index = 0;
-      // TODO: Only update this if valid height_map color?
-      palette_color_index = height_map[heightmap_color_index];
-
-      // TODO: Calculate phase based on solar system sun position
-      // Darken colors if phase of the planet is facing the sun
-      float phase_offset = kPi * -0.2f;
-      // Negative: left terminator shadow goes away from camera, right
-      // terminator gets closer to camera Positive: left terminator shadow
-      // gets closer to the camera, right terminator goes farther away
-      if ((lambda > (viewpoint_lambda0 + phase_offset + kHalfPi)) ||
-          (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi)))
-        // This color should be darker
-        palette_color_index += terrain.palette_dark_offset;
-
-      // Set color and draw the pixel
-      ortho_render.framebuffer->pen = palette_color_index;
-      ortho_render.framebuffer->pixel(
-          blit::Point(draw_offsety + x, draw_offsety + y_coord));
-    }
-    // If out of bounds
+  // If off screen, skip
+  if (ortho_render.zoom_offset_y + ortho_render.current_y < 0 ||
+      ortho_render.zoom_offset_y + ortho_render.current_y >=
+          (ortho_render.pixel_height - 1)) {
+    // printf(" skip\n");
+    return;
   }
+  // printf("\n");
+
+  int radius = ortho_render.pixel_radius - 1;
+  int y_coord = ortho_render.current_y;
+
+  int start_x_coord =
+      circle_start_x_coord(y_coord, radius) + ortho_render.pixel_radius;
+  int end_x_coord = (ortho_render.pixel_radius * 2) - start_x_coord;
+
+  // debug draw x points
+  // ortho_render.framebuffer->pen = 10;
+
+  for (int x = start_x_coord; x <= end_x_coord; x++) {
+    if (ortho_render.zoom_offset_x + x < 0)
+      continue;
+    if (ortho_render.zoom_offset_x + x > (ortho_render.pixel_width - 1))
+      break;
+
+    int palette_color_index = terrain_color_index(x, y_coord);
+    ortho_render.framebuffer->pen = palette_color_index;
+
+    ortho_render.framebuffer->pixel(blit::Point(
+        draw_position_x + ortho_render.zoom_offset_x + x,
+        draw_position_y + ortho_render.zoom_offset_y + y_coord + 1));
+
+    // ortho_render.framebuffer->pixel(
+    //     blit::Point(draw_position_x + x, draw_position_y + y_coord));
+  }
+
+  // // debug draw start+end points
+  // ortho_render.framebuffer->pen = 12;
+  // ortho_render.framebuffer->pixel(
+  //     blit::Point(draw_position_x + ortho_render.zoom_offset_x +
+  //     start_x_coord,
+  //                 draw_position_y + ortho_render.zoom_offset_y + y_coord +
+  //                 1));
+  // ortho_render.framebuffer->pen = 8;
+  // ortho_render.framebuffer->pixel(
+  //     blit::Point(draw_position_x + ortho_render.zoom_offset_x + end_x_coord,
+  //                 draw_position_y + ortho_render.zoom_offset_y + y_coord +
+  //                 1));
+
+  return;
 }
 
-void Planet::render_orthographic(blit::Surface *framebuffer, int x_size,
-                                 int y_size, float zoom, int zoom_pan_x,
+int Planet::terrain_color_index(int x, int y_coord) {
+  // https://en.wikipedia.org/wiki/Orthographic_map_projection
+  // Get x,y coords for map projection.
+  // xf, yf = 0, 0 should be at the center of the globe
+  float xf = (float)x - ortho_render.r;
+  float yf = (float)y_coord - ortho_render.r;
+
+  // Some trig function breaks if xf and xy are both zero. Set a slight
+  // offset.
+  if ((y_coord - ortho_render.pixel_radius == 0) &&
+      (x - ortho_render.pixel_radius == 0)) {
+    xf = 0.0001;
+    yf = 0.0001;
+  }
+
+  // p (rho) = sqrt(x*x + y*y)
+  float p = sqrtf(xf * xf + yf * yf);
+
+  // R = radius
+  // float p = sqrtf(xf*xf + yf*yf);
+  // c = arcsin(p/R)
+  float c = asinf(p / ortho_render.r);
+
+  float cosf_c = cosf(c);
+  float sinf_c = sinf(c);
+  float cosf_phi0 = cosf(ortho_render.phi0);
+  float sinf_phi0 = sinf(ortho_render.phi0);
+  float phi = asinf(cosf_c * sinf_phi0 + ((yf * sinf_c * cosf_phi0) / p));
+
+  // longitude (lambda)
+
+  // DEBUG atan2 print
+  // float atan2y = xf * sinf(c);
+  // float atan2x = ((p * cosf(c) * cosf(phi0)) - (yf * sinf(c) *
+  // sinf(phi0))); float atan2r = atan2f(atan2y, atan2x); printf("atan2(%f,
+  // %f) = %f\n", (float)atan2y, (float)atan2x, (float)atan2r); float lambda
+  // = lambda0 + atan2r;
+  float lambda = ortho_render.lambda0 +
+                 atan2f(xf * sinf_c,
+                        ((p * cosf_c * cosf_phi0) - (yf * sinf_c * sinf_phi0)));
+  float noise = GetNoise(lambda, phi);
+
+  int heightmap_color_index = GetTerrainColorIndex(noise);
+
+  // TODO: should be transparent color
+  int palette_color_index = 0;
+  // TODO: Only update this if valid height_map color?
+  palette_color_index = height_map[heightmap_color_index];
+
+  // TODO: Calculate phase based on solar system sun position
+  // Darken colors if phase of the planet is facing the sun
+  float phase_offset = kPi * -0.2f;
+  // Negative: left terminator shadow goes away from camera, right
+  // terminator gets closer to camera Positive: left terminator shadow
+  // gets closer to the camera, right terminator goes farther away
+  if ((lambda > (viewpoint_lambda0 + phase_offset + kHalfPi)) ||
+      (lambda < (viewpoint_lambda0 + phase_offset - kHalfPi)))
+    // This color should be darker
+    palette_color_index += terrain.palette_dark_offset;
+
+  return palette_color_index;
+}
+
+void Planet::render_orthographic(blit::Surface *framebuffer, int pixel_width,
+                                 int pixel_height, float zoom, int zoom_pan_x,
                                  int zoom_pan_y) {
 
   // // Loop over every pixel in the draw buffer

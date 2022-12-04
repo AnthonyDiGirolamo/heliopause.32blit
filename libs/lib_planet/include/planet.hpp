@@ -49,11 +49,10 @@ struct PlanetOrthographicRenderValues {
   blit::Surface *framebuffer;
   uint32_t start_time;
   int pixel_radius;
+  int pixel_width;
+  int pixel_height;
   int zoom_offset_x;
   int zoom_offset_y;
-  int x_size;
-  int y_size;
-  int current_x;
   int current_y;
   float r;
   float phi0;
@@ -79,7 +78,7 @@ public:
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
   void SetSeed(uint32_t seed_value);
   void SetTerrain(PlanetTerrain new_terrain);
-  void SetDrawOffset(int x, int y);
+  void SetDrawPosition(int x, int y);
   void Regen();
   void AdjustViewpointLatitude(float amount);
   void AdjustViewpointLongitude(float amount);
@@ -89,19 +88,20 @@ public:
 
   void render_equirectangular(blit::Surface *framebuffer, int map_width,
                               int map_height);
-  void render_orthographic(blit::Surface *framebuffer, int x_size, int y_size,
-                           float zoom, int zoom_pan_x, int zoom_pan_y);
+  void render_orthographic(blit::Surface *framebuffer, int pixel_width,
+                           int pixel_height, float zoom, int zoom_pan_x,
+                           int zoom_pan_y);
   bool render_orthographic_done();
   uint32_t render_orthographic_start_time();
-  void setup_render_orthographic(blit::Surface *framebuffer, int x_size,
-                                 int y_size, float zoom, int zoom_pan_x,
+  void setup_render_orthographic(blit::Surface *framebuffer, int pixel_width,
+                                 int pixel_height, float zoom, int zoom_pan_x,
                                  int zoom_pan_y, uint32_t start_time);
   void render_orthographic_line();
   void render_orthographic_all();
 
 private:
-  int draw_offsetx;
-  int draw_offsety;
+  int draw_position_x;
+  int draw_position_y;
   int min_color_index;
   int max_color_index;
   float min_lambda;
@@ -109,6 +109,8 @@ private:
   int terrain_heightmap_color_count;
 
   PlanetOrthographicRenderValues ortho_render;
+  int circle_start_x_coord(int y_coord, int radius);
+  int terrain_color_index(int x, int y_coord);
 };
 
 std::string_view get_octaves_string(Planet *planet);
