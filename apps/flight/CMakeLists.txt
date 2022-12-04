@@ -2,11 +2,9 @@ set(FLIGHT_NAME flight)
 
 set(FLIGHT_SOURCE
   main.cpp
-  main.hpp
   platform.cpp
-  platform.hpp
   starfield.cpp
-  starfield.hpp
+  ship.cpp
 )
 
 set(FLIGHT_DISTRIBS LICENSE README.md)
@@ -27,7 +25,7 @@ target_link_libraries(${FLIGHT_NAME}
   lib_draw
   lib_planet
   lib_random
-  # lib_vec2
+  pw_string
 )
 
 # Platform specific libs

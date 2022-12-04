@@ -1,11 +1,9 @@
 #pragma once
 
-#include "pw_color/color.h"
-#include "pw_color/colors_pico8.h"
-#include "pw_coordinates/vec2.h"
-#include "pw_display/display.h"
-#include "pw_log/log.h"
-#include "random.h"
+#include "32blit.hpp"
+#include "types/vec2.hpp"
+
+using namespace blit;
 
 class Ship {
 public:
@@ -13,7 +11,6 @@ public:
 
   bool npc;
   bool hostile;
-  Vec2 screen_position;
   Vec2 sector_position;
   float cur_deltav;
   float cur_gees;
@@ -32,9 +29,9 @@ public:
   void TurnLeft(float delta_seconds);
   void TurnRight(float delta_seconds);
   void Rotate(float signed_degrees);
-  void UpdateLocation();
+  void UpdateLocation(float delta_seconds);
   void ResetVelocity();
-  void Draw();
+  void Draw(blit::Surface *frame_buffer, Vec2 screen_position);
   bool ReverseDirection(float delta_seconds);
   bool RotateTowardsHeading(float heading, float delta_seconds);
   void ApplyThrust(float max_deltav, float delta_seconds);

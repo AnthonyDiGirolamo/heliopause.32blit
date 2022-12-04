@@ -1,21 +1,10 @@
-// Copyright 2020 The Pigweed Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// use this file except in compliance with the License. You may obtain a copy of
-// the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// License for the specific language governing permissions and limitations under
-// the License.
-#include "ship.h"
+#include "ship.hpp"
+#include "colors.hpp"
+#include "random.hpp"
+
+using namespace blit;
 
 Ship::Ship(void) {
-  screen_position.set(pw::display::GetWidth() / 2,
-                      pw::display::GetHeight() / 2);
   cur_deltav = 0.0;
   cur_gees = 0.0;
   angle_degrees = 0;
@@ -24,7 +13,7 @@ Ship::Ship(void) {
   velocity_angle_opposite = kPi;
   velocity = 0.0;
   turn_rate = 180.0; // 180 degrees per second
-  deltav = 1.0;
+  deltav = 0.5;
   last_fire_time = -6;
 }
 
@@ -33,14 +22,12 @@ void Ship::Rotate(float signed_degrees) {
   if (angle_degrees < 0) {
     angle_degrees = 360 + angle_degrees;
   }
-  angle_radians = ((float)angle_degrees) / 180.0 * kPi;
+  angle_radians = ((float)angle_degrees) / 180.0f * kPi;
 }
 
-void Ship::TurnLeft(float delta_seconds) { Rotate(turn_rate * delta_seconds); }
+void Ship::TurnLeft(float delta_seconds) { Rotate(-turn_rate * delta_seconds); }
 
-void Ship::TurnRight(float delta_seconds) {
-  Rotate(-turn_rate * delta_seconds);
-}
+void Ship::TurnRight(float delta_seconds) { Rotate(turn_rate * delta_seconds); }
 
 bool Ship::ReverseDirection(float delta_seconds) {
   return velocity > 0
@@ -57,14 +44,14 @@ bool Ship::RotateTowardsHeading(float heading, float delta_seconds) {
     }
     Rotate(delta);
   }
-  return delta < 0.2 && delta > -0.2;
+  return delta < 0.2f && delta > -0.2f;
 }
 
 float rand_float() {
   return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
 
-void Ship::Draw() {
+void Ship::Draw(blit::Surface *frame_buffer, Vec2 screen_position) {
   Vec2 ship_top(8, 0);
   Vec2 ship_left_wing(-6, 4);
   Vec2 ship_right_wing(-6, -4);
@@ -79,14 +66,21 @@ void Ship::Draw() {
   ship_engine += screen_position;
 
   // Draw ship outline.
-  pw::display::DrawLine(ship_top.x, ship_top.y, ship_left_wing.x,
-                        ship_left_wing.y, pw::framebuffer::colors_pico8[12]);
-  pw::display::DrawLine(ship_top.x, ship_top.y, ship_right_wing.x,
-                        ship_right_wing.y, pw::framebuffer::colors_pico8[12]);
-  pw::display::DrawLine(ship_engine.x, ship_engine.y, ship_left_wing.x,
-                        ship_left_wing.y, pw::framebuffer::colors_pico8[12]);
-  pw::display::DrawLine(ship_engine.x, ship_engine.y, ship_right_wing.x,
-                        ship_right_wing.y, pw::framebuffer::colors_pico8[12]);
+  frame_buffer->pen = PICO8[12];
+  frame_buffer->line(ship_top, ship_left_wing);
+  // pw::display::DrawLine(ship_top.x, ship_top.y, ship_left_wing.x,
+  //                       ship_left_wing.y, pw::framebuffer::colors_pico8[12]);
+  frame_buffer->line(ship_top, ship_right_wing);
+  // pw::display::DrawLine(ship_top.x, ship_top.y, ship_right_wing.x,
+  //                       ship_right_wing.y,
+  //                       pw::framebuffer::colors_pico8[12]);
+  frame_buffer->line(ship_engine, ship_left_wing);
+  // pw::display::DrawLine(ship_engine.x, ship_engine.y, ship_left_wing.x,
+  //                       ship_left_wing.y, pw::framebuffer::colors_pico8[12]);
+  frame_buffer->line(ship_engine, ship_right_wing);
+  // pw::display::DrawLine(ship_engine.x, ship_engine.y, ship_right_wing.x,
+  //                       ship_right_wing.y,
+  //                       pw::framebuffer::colors_pico8[12]);
 
   // Draw engine flame.
   if (accelerating) {
@@ -99,15 +93,15 @@ void Ship::Draw() {
     particle_velocity *= -0.4 * 14;
 
     // Orange or yellow flame.
-    int8_t color = 9 + RandomInt(2);
+    int8_t color = 9 + Random::GetRandomInteger(2);
 
     // Randomly shift the flame position slightly.
-    Vec2 deflection = particle_velocity.perpendicular();
+    Vec2 deflection = Vec2(-particle_velocity.y, particle_velocity.x);
     deflection *= 0.7;
     Vec2 flicker = particle_velocity;
-    flicker *= rand_float() + 2.0;
+    flicker *= rand_float() + 2.0f;
     Vec2 temp = deflection;
-    temp *= (rand_float() - 0.5);
+    temp *= (rand_float() - 0.5f);
     flicker += temp;
 
     // Set the flame vertex positions.
@@ -123,14 +117,20 @@ void Ship::Draw() {
     p3 += temp;
 
     // Draw flame outline.
-    pw::display::DrawLine(p2.x, p2.y, p0.x, p0.y,
-                          pw::framebuffer::colors_pico8[color]);
-    pw::display::DrawLine(p2.x, p2.y, engine_location.x, engine_location.y,
-                          pw::framebuffer::colors_pico8[color]);
-    pw::display::DrawLine(p3.x, p3.y, p0.x, p0.y,
-                          pw::framebuffer::colors_pico8[color]);
-    pw::display::DrawLine(p3.x, p3.y, engine_location.x, engine_location.y,
-                          pw::framebuffer::colors_pico8[color]);
+    frame_buffer->pen = PICO8[color];
+    frame_buffer->line(p2, p0);
+    frame_buffer->line(p2, engine_location);
+    frame_buffer->line(p3, p0);
+    frame_buffer->line(p3, engine_location);
+
+    // pw::display::DrawLine(p2.x, p2.y, p0.x, p0.y,
+    //                       pw::framebuffer::colors_pico8[color]);
+    // pw::display::DrawLine(p2.x, p2.y, engine_location.x, engine_location.y,
+    //                       pw::framebuffer::colors_pico8[color]);
+    // pw::display::DrawLine(p3.x, p3.y, p0.x, p0.y,
+    //                       pw::framebuffer::colors_pico8[color]);
+    // pw::display::DrawLine(p3.x, p3.y, engine_location.x, engine_location.y,
+    //                       pw::framebuffer::colors_pico8[color]);
   }
 }
 
@@ -146,15 +146,15 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
     dv = max_deltav;
   }
 
-  cur_gees = dv * (30 / 9.806);
-  Vec2 additional_velocity_vector(cos(angle_radians) * dv,
-                                  sin(angle_radians) * dv);
+  cur_gees = dv * (30.0f / 9.806f);
+  Vec2 additional_velocity_vector(cosf(angle_radians) * dv,
+                                  sinf(angle_radians) * dv);
   // Save the additional_velocity_vector to vary the thrust flame size.
   add_vv = additional_velocity_vector;
 
   velocity_vector += additional_velocity_vector;
   velocity = velocity_vector.length();
-  velocity_angle = velocity_vector.angle();
+  velocity_angle = atan2f(velocity_vector.y, velocity_vector.x);
   if (velocity_angle < 0) {
     velocity_angle = kTwoPi + velocity_angle;
   }
@@ -168,4 +168,10 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
 void Ship::CutThrust() {
   accelerating = false;
   cur_deltav = 0;
+}
+
+void Ship::UpdateLocation(float delta_seconds) {
+  if (velocity > 0) {
+    sector_position += (velocity_vector * delta_seconds);
+  }
 }

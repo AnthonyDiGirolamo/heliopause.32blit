@@ -1,11 +1,9 @@
 #pragma once
 
-#include "pw_color/color.h"
-#include "pw_color/colors_pico8.h"
-#include "pw_coordinates/vec2.h"
-#include "pw_display/display.h"
-#include "pw_log/log.h"
-#include "random.h"
+#include "32blit.hpp"
+#include "types/vec2.hpp"
+
+using namespace blit;
 
 #define SPARK_MARGIN 12
 

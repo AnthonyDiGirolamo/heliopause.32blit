@@ -26,8 +26,8 @@ class Starfield {
 public:
   Starfield(blit::Surface *frame_buffer);
 
-  void Scroll(blit::Vec2);
-  void Draw(blit::Vec2);
+  void Scroll(blit::Vec2, float delta_seconds);
+  void Draw(blit::Vec2, float delta_seconds);
   void ResetAll();
 
 private:
