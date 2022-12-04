@@ -317,7 +317,27 @@ static constexpr uint8_t kTundraColors[] = {
 constexpr std::span<const uint8_t> kTundraColorMap(kTundraColors);
 
 static constexpr uint8_t kBarrenColors[] = {
-    0x5, 0x6, 0x5, 0x0, 0x5, 0x6, 0x7, 0x6, 0x5, 0x0, 0x5, 0x6,
+    // 0x5, 0x6, 0x5, 0x0, 0x5, 0x6, 0x7, 0x6, 0x5, 0x0, 0x5, 0x6,
+
+    123, // #b4b4b4
+    122, // #858585
+    121, // #5d5d5d
+    122, // #858585
+    123, // #b4b4b4
+    125, // #c7cfdd
+    123, // #b4b4b4
+    122, // #858585
+    121, // #5d5d5d
+    120, // #3d3d3d
+    119, // #272727
+
+    // 129, // #2a2f4e
+    // 118, // #1b1b1b
+    // 117, // #131313
+    // 128, // #424c6e
+    // 127, // #657392
+    // 126, // #92a1b9
+
 };
 
 constexpr std::span<const uint8_t> kBarrenColorMap(kBarrenColors);
@@ -554,8 +574,8 @@ PlanetTerrain kBarrenPlanet = {
   .type              = barren,
   .type_string       = std::string_view {"Barren"},
   .noise_octaves     = 5,
-  .noise_zoom        = 0.55,
-  .noise_persistance = 0.35,
+  .noise_zoom        = 0.90,
+  .noise_persistance = 0.65,
   .map_icon_color    = 5,
   .full_shadow       = 1,
   .transparent_color = 14,
@@ -564,9 +584,9 @@ PlanetTerrain kBarrenPlanet = {
   .latitude_bias     = 0,
   .min_size          = 10,
   .color_map         = kBarrenColorMap,
-  .color_padding_start = 7,
-  .color_padding_end = 7,
-  .palette_dark_offset = PICO8_DARK_OFFSET,
+  .color_padding_start = 3,
+  .color_padding_end = 3,
+  .palette_dark_offset = ENDESGA64_DARK_OFFSET,
 };
 
 PlanetTerrain kDesertPlanet = {

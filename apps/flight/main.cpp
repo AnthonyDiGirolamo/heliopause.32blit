@@ -53,7 +53,7 @@ void init() {
 #else
   heliopause::kCurrentPlatform = heliopause::sdl;
 #endif
-  screen_center = Vec2(blit::screen.bounds.w/2, blit::screen.bounds.h/2);
+  screen_center = Vec2(blit::screen.bounds.w / 2, blit::screen.bounds.h / 2);
 
   planet_framebuffer.palette = PICO8;
   planet_framebuffer.alpha = 0;
@@ -118,7 +118,7 @@ void render(uint32_t time) {
 void update(uint32_t time) {
   float delta_seconds = (time - last_update_time) / 1000.0f;
   float gees = 0;
-  if (buttons & Button::DPAD_UP) {
+  if (buttons & Button::DPAD_UP || buttons & Button::Y) {
     pilot.ApplyThrust(4.0, delta_seconds);
     gees = pilot.cur_gees;
   } else if (pilot.accelerating) {
