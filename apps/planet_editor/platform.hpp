@@ -11,6 +11,9 @@
 #define PLATFORM_SDL
 #endif
 
+// Use Hires screen
+#define SCREEN_MODE_HIRES 1
+
 #if defined(PLATFORM_PICOSYSTEM)
 
 #ifdef SCREEN_MODE_HIRES
@@ -22,9 +25,6 @@
 #endif
 
 #else // PLATFORM_32BLIT or PLATFORM_SDL
-
-// Use Hires screen
-// #define SCREEN_MODE_HIRES 1
 
 #ifdef SCREEN_MODE_HIRES
 #define PLANET_FRAMEBUFFER_WIDTH 320

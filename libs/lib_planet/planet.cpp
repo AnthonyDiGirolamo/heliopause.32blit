@@ -1,11 +1,12 @@
 #include "planet.hpp"
+#include "colors.hpp"
 #include <cstdint>
 #include <math.h>
 
-constexpr float kPi = blit::pi;
-constexpr float kHalfPi = blit::pi * 0.5f;
-constexpr float kTwoPi = blit::pi * 2.0f;
-constexpr float kFourPi = blit::pi * 4.0f;
+// constexpr float kPi = blit::pi;
+// constexpr float kHalfPi = blit::pi * 0.5f;
+// constexpr float kTwoPi = blit::pi * 2.0f;
+// constexpr float kFourPi = blit::pi * 4.0f;
 
 // float fast_atan2f(float x) {
 //   return kFourPi*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
@@ -428,8 +429,15 @@ void Planet::render_orthographic_line() {
       break;
 
     int palette_color_index = terrain_color_index(x, y_coord + 1);
-    ortho_render.framebuffer->pen = palette_color_index;
 
+    // ortho_render.framebuffer->pbf(
+    //     &PICO8[palette_color_index],
+    //     ortho_render.framebuffer,
+    //     ortho_render.framebuffer->offset(blit::Point(
+    //     draw_position_x + ortho_render.zoom_offset_x + x,
+    //     draw_position_y + ortho_render.zoom_offset_y + y_coord + 1)), 1);
+
+    ortho_render.framebuffer->pen = palette_color_index;
     ortho_render.framebuffer->pixel(blit::Point(
         draw_position_x + ortho_render.zoom_offset_x + x,
         draw_position_y + ortho_render.zoom_offset_y + y_coord + 1));

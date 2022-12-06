@@ -36,8 +36,11 @@ bool Ship::ReverseDirection(float delta_seconds) {
 }
 
 bool Ship::RotateTowardsHeading(float heading, float delta_seconds) {
-  float delta =
-      fmod((degrees(heading) - angle_degrees + 180.0f), 360.0f) - 180.0f;
+  float delta = degrees(heading) - angle_degrees + 180.0f;
+  if (delta >= 360.0f)
+    delta -= 360.0f;
+  delta -= 180.0f;
+
   if (delta < -1.0f || delta > 1.0f) {
     float abs_delta = delta;
     if (delta < 0) {
@@ -50,6 +53,11 @@ bool Ship::RotateTowardsHeading(float heading, float delta_seconds) {
     }
     if (abs_delta > abs_r) {
       delta = r;
+    }
+    // If between 270 and 360 and we are going to 0-45, pick the reverse
+    // direction since it's shorter.
+    if (degrees(heading) < 45.0f && angle_degrees > 269.0f) {
+      delta *= -1;
     }
     Rotate(delta);
   }

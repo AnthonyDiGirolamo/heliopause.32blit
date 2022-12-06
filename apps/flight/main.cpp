@@ -144,13 +144,13 @@ void update(uint32_t time) {
 
   // Absolute Dpad Steering
   if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_UP) {
-    pilot.RotateTowardsHeading(radians(315.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(315.0f), delta_seconds);
   } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_UP) {
-    pilot.RotateTowardsHeading(radians(225.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(225.0f), delta_seconds);
   } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_DOWN) {
-    pilot.RotateTowardsHeading(radians(135.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(135.0f), delta_seconds);
   } else if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_DOWN) {
-    pilot.RotateTowardsHeading(radians(45.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(45.0f), delta_seconds);
   }
 
   else if (buttons & Button::DPAD_RIGHT) {
