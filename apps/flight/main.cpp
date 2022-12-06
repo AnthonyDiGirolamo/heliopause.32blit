@@ -38,6 +38,7 @@ blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
 
 uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
+float delta_seconds;
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -69,7 +70,6 @@ void init() {
 }
 
 void render(uint32_t time) {
-  float delta_seconds = (time - last_update_time) / 1000.0f;
   // Clear screen
   blit::screen.pen = blit::Pen(0, 0, 0, 255);
   blit::screen.alpha = 255;
@@ -111,6 +111,8 @@ void render(uint32_t time) {
   blit::screen.pen = PICO8_WHITE;
   blit::screen.text(ship_speed.view(), heliopause::kCustomFont,
                     blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset));
+  blit::screen.text(ship_debug.view(), heliopause::kCustomFont,
+                    blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
 
   pilot.Draw(&blit::screen, screen_center);
 }
@@ -118,7 +120,9 @@ void render(uint32_t time) {
 void update(uint32_t time) {
   float delta_seconds = (time - last_update_time) / 1000.0f;
   float gees = 0;
-  if (buttons & Button::DPAD_UP || buttons & Button::Y) {
+
+  // if (buttons & Button::DPAD_UP || buttons & Button::Y) {
+  if (buttons & Button::Y) {
     pilot.ApplyThrust(4.0, delta_seconds);
     gees = pilot.cur_gees;
   } else if (pilot.accelerating) {
@@ -126,14 +130,37 @@ void update(uint32_t time) {
     pilot.CutThrust();
   }
 
+#if 0
+  // Tank steering
   if (buttons & Button::DPAD_DOWN) {
     pilot.ReverseDirection(delta_seconds);
   }
-
   if (buttons & Button::DPAD_LEFT) {
     pilot.TurnLeft(delta_seconds);
   } else if (buttons & Button::DPAD_RIGHT) {
     pilot.TurnRight(delta_seconds);
+  }
+#endif
+
+  // Absolute Dpad Steering
+  if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_UP) {
+    pilot.RotateTowardsHeading(radians(315.0), delta_seconds);
+  } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_UP) {
+    pilot.RotateTowardsHeading(radians(225.0), delta_seconds);
+  } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_DOWN) {
+    pilot.RotateTowardsHeading(radians(135.0), delta_seconds);
+  } else if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_DOWN) {
+    pilot.RotateTowardsHeading(radians(45.0), delta_seconds);
+  }
+
+  else if (buttons & Button::DPAD_RIGHT) {
+    pilot.RotateTowardsHeading(radians(0.0), delta_seconds);
+  } else if (buttons & Button::DPAD_DOWN) {
+    pilot.RotateTowardsHeading(radians(90.0), delta_seconds);
+  } else if (buttons & Button::DPAD_LEFT) {
+    pilot.RotateTowardsHeading(radians(180.0), delta_seconds);
+  } else if (buttons & Button::DPAD_UP) {
+    pilot.RotateTowardsHeading(radians(270.0), delta_seconds);
   }
 
   pilot.UpdateLocation(delta_seconds);
@@ -141,7 +168,15 @@ void update(uint32_t time) {
   stars.Scroll(pilot.velocity_vector, delta_seconds);
 
   ship_speed.clear();
-  ship_speed.Format("v:%.2f g:%.2f p:[%.2f, %.2f]", (float)pilot.velocity, gees,
-                    pilot.sector_position.x, pilot.sector_position.y);
+  ship_speed.Format(
+      "v:%.2f g:%.2f p:[%.2f, %.2f]", static_cast<double>(pilot.velocity),
+      static_cast<double>(gees), static_cast<double>(pilot.sector_position.x),
+      static_cast<double>(pilot.sector_position.y));
+
+  ship_debug.clear();
+  ship_debug.Format("Heading: %.2f %.2f",
+                    static_cast<double>(pilot.angle_degrees),
+                    static_cast<double>(pilot.angle_radians));
+
   last_update_time = time;
 }

@@ -36,10 +36,19 @@ bool Ship::ReverseDirection(float delta_seconds) {
 }
 
 bool Ship::RotateTowardsHeading(float heading, float delta_seconds) {
-  float delta = fmod((degrees(heading) - angle_degrees + 180), 360) - 180;
-  if (delta < -1 || delta > 1) {
-    float r = (turn_rate * delta_seconds) * delta / abs(delta);
-    if (abs(delta) > abs(r)) {
+  float delta =
+      fmod((degrees(heading) - angle_degrees + 180.0f), 360.0f) - 180.0f;
+  if (delta < -1.0f || delta > 1.0f) {
+    float abs_delta = delta;
+    if (delta < 0) {
+      abs_delta *= -1;
+    }
+    float r = (turn_rate * delta_seconds) * delta / abs_delta;
+    float abs_r = r;
+    if (r < 0) {
+      abs_r *= -1;
+    }
+    if (abs_delta > abs_r) {
       delta = r;
     }
     Rotate(delta);

@@ -3,6 +3,9 @@
 #include "graphics/font.hpp"
 #include "graphics/surface.hpp"
 
+// Use Hires screen
+#define SCREEN_MODE_HIRES 1
+
 #if defined(TARGET_32BLIT_HW)
 #define PLATFORM_32BLIT
 #elif defined(PICO_BOARD)
@@ -22,9 +25,6 @@
 #endif
 
 #else // PLATFORM_32BLIT or PLATFORM_SDL
-
-// Use Hires screen
-// #define SCREEN_MODE_HIRES 1
 
 #ifdef SCREEN_MODE_HIRES
 #define PLANET_FRAMEBUFFER_WIDTH 320
