@@ -29,6 +29,7 @@ Vec2 velocity = Vec2(4.0, 0);
 Planet current_planet = Planet(0x64063701, AllPlanets[6]);
 Ship pilot = Ship();
 uint32_t last_update_time = 0;
+uint32_t last_render_time = 0;
 
 const int planet_width = 100;
 uint8_t planet_pixel_data[planet_width * planet_width];
@@ -70,6 +71,7 @@ void init() {
 }
 
 void render(uint32_t time) {
+  float delta_seconds = (time - last_render_time) / 1000.0f;
   // Clear screen
   blit::screen.pen = blit::Pen(0, 0, 0, 255);
   blit::screen.alpha = 255;
@@ -115,6 +117,7 @@ void render(uint32_t time) {
                     blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
 
   pilot.Draw(&blit::screen, screen_center);
+  last_render_time = time;
 }
 
 void update(uint32_t time) {
@@ -128,6 +131,8 @@ void update(uint32_t time) {
   } else if (pilot.accelerating) {
     // Up not being pressed shut the engine down.
     pilot.CutThrust();
+  } else {
+    pilot.DampenSpeed(delta_seconds);
   }
 
 #if 0

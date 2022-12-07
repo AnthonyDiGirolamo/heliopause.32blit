@@ -30,10 +30,11 @@ public:
   void TurnRight(float delta_seconds);
   void Rotate(float signed_degrees);
   void UpdateLocation(float delta_seconds);
-  void ResetVelocity();
   void Draw(blit::Surface *frame_buffer, Vec2 screen_position);
   bool ReverseDirection(float delta_seconds);
   bool RotateTowardsHeading(float heading, float delta_seconds);
   void ApplyThrust(float max_deltav, float delta_seconds);
   void CutThrust();
+  void ResetVelocity();
+  void DampenSpeed(float delta_seconds);
 };

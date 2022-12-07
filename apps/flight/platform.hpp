@@ -4,7 +4,7 @@
 #include "graphics/surface.hpp"
 
 // Use Hires screen
-#define SCREEN_MODE_HIRES 1
+// #define SCREEN_MODE_HIRES 1
 
 #if defined(TARGET_32BLIT_HW)
 #define PLATFORM_32BLIT

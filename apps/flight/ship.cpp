@@ -12,8 +12,8 @@ Ship::Ship(void) {
   velocity_angle = 0.0;
   velocity_angle_opposite = kPi;
   velocity = 0.0;
-  turn_rate = 180.0; // 180 degrees per second
-  deltav = 0.5;
+  turn_rate = 270.0; // 270 degrees per second
+  deltav = 1.0;
   last_fire_time = -6;
 }
 
@@ -171,6 +171,7 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
 
   velocity_vector += additional_velocity_vector;
   velocity = velocity_vector.length();
+
   velocity_angle = atan2f(velocity_vector.y, velocity_vector.x);
   if (velocity_angle < 0) {
     velocity_angle = kTwoPi + velocity_angle;
@@ -180,6 +181,25 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
   if (velocity_angle_opposite > kTwoPi) {
     velocity_angle_opposite -= kTwoPi;
   }
+}
+
+void Ship::DampenSpeed(float delta_seconds) {
+  if (velocity < 1.2f * deltav) {
+    ResetVelocity();
+    return;
+  }
+
+  Vec2 cvn = velocity_vector;
+  cvn.normalize();
+  // 30.0 here should be influenced by the ship mass
+  velocity_vector += (cvn * delta_seconds * -30.0f);
+  velocity = velocity_vector.length();
+}
+
+void Ship::ResetVelocity() {
+  velocity_vector.x = 0.0f;
+  velocity_vector.y = 0.0f;
+  velocity = 0.0f;
 }
 
 void Ship::CutThrust() {
