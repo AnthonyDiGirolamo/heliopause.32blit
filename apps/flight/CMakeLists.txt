@@ -11,7 +11,7 @@ set(FLIGHT_DISTRIBS LICENSE README.md)
 
 blit_executable (${FLIGHT_NAME} ${FLIGHT_SOURCE})
 blit_assets_yaml (${FLIGHT_NAME} ../planet_editor_assets.yml)
-blit_metadata (${FLIGHT_NAME} ../planet_editor_metadata.yml)
+blit_metadata (${FLIGHT_NAME} ../flight_metadata.yml)
 
 # setup release packages
 install (FILES ${FLIGHT_DISTRIBS} DESTINATION .)

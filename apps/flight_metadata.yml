@@ -1,0 +1,10 @@
+title: Heliopause Flight Test
+description: Flight Test
+author: A.DiGirolamo
+splash:
+  file: assets/no-image.png
+icon:
+  file: assets/no-icon.png
+version: v0.0.1
+category: demo
+url: https://github.com/AnthonyDiGirolamo/heliopause.32blit

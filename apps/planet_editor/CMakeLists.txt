@@ -18,7 +18,7 @@ set(PLANET_EDITOR_DISTRIBS LICENSE README.md)
 blit_executable (${PLANET_EDITOR_NAME} ${PLANET_EDITOR_SOURCE})
 blit_assets_yaml (${PLANET_EDITOR_NAME} ../planet_editor_assets.yml)
 blit_metadata (${PLANET_EDITOR_NAME} ../planet_editor_metadata.yml)
-add_custom_target (flash DEPENDS ${PLANET_EDITOR_NAME}.flash)
+# add_custom_target (flash DEPENDS ${PLANET_EDITOR_NAME}.flash)
 
 # setup release packages
 install (FILES ${PLANET_EDITOR_DISTRIBS} DESTINATION .)

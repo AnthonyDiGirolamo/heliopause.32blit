@@ -84,7 +84,7 @@ flash-pico: build-pico reboot-picosystem-bootloader ## flash pico using picotool
 	picotool reboot
 
 flash-blit: build-stm32 ## flash 32blit
-	$(MAKE) -C $(OUTDIR)/stm32 flash
+	$(MAKE) -C $(OUTDIR)/stm32 $(APP_NAME).flash
 
 serial:  ## start pyserial monitor
 	python -m serial.tools.miniterm - 115200
