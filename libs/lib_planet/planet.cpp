@@ -429,21 +429,19 @@ void Planet::render_orthographic_line() {
       break;
 
     int palette_color_index = terrain_color_index(x, y_coord + 1);
+    // if (palette_color_index <= 0)
+    //   continue;
 
-    // ortho_render.framebuffer->pbf(
-    //     &PICO8[palette_color_index],
-    //     ortho_render.framebuffer,
-    //     ortho_render.framebuffer->offset(blit::Point(
-    //     draw_position_x + ortho_render.zoom_offset_x + x,
-    //     draw_position_y + ortho_render.zoom_offset_y + y_coord + 1)), 1);
+    int draw_x = draw_position_x + ortho_render.zoom_offset_x + x;
+    int draw_y = draw_position_y + ortho_render.zoom_offset_y + y_coord + 1;
 
-    ortho_render.framebuffer->pen = palette_color_index;
-    ortho_render.framebuffer->pixel(blit::Point(
-        draw_position_x + ortho_render.zoom_offset_x + x,
-        draw_position_y + ortho_render.zoom_offset_y + y_coord + 1));
+    // Directly set the color in the framebuffer data
+    uint32_t data_offset = ortho_render.framebuffer->offset(draw_x, draw_y);
+    ortho_render.framebuffer->data[data_offset] = palette_color_index;
 
-    // ortho_render.framebuffer->pixel(
-    //     blit::Point(draw_position_x + x, draw_position_y + y_coord));
+    // Set the color using pen and point
+    // ortho_render.framebuffer->pen = palette_color_index;
+    // ortho_render.framebuffer->pixel(blit::Point(draw_x, draw_y));
   }
 
   // // debug draw start+end points
