@@ -417,12 +417,37 @@ void render(uint32_t time) {
   //                           0, 0, PLANET_FRAMEBUFFER_WIDTH*2,
   //                           PLANET_FRAMEBUFFER_HEIGHT*2));
 
+  int text_height = heliopause::kCustomFont.char_h;
+  int text_pos_y = blit::screen.bounds.h - text_height;
+
+  // Render time
+  blit::screen.pen = PICO8_BLACK;
+  blit::screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
+                    heliopause::kCustomFont,
+                    blit::Point(2 + 1, text_pos_y + 1 + char_h_offset));
+  blit::screen.pen = PICO8_WHITE;
+  blit::screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
+                    heliopause::kCustomFont,
+                    blit::Point(2, text_pos_y + char_h_offset));
+
+  text_pos_y -= text_height;
+
   if (heliopause::PlanetEditor::planet_menu.active) {
     // Draw the menu if active
     heliopause::PlanetEditor::planet_menu.Draw(&blit::screen, 0, 0);
 
   } else {
-    // Planet Type name in upper left.
+    // Planet info
+    blit::screen.pen = PICO8_BLACK;
+    blit::screen.text(planet_metadata.view(), heliopause::kCustomFont,
+                      blit::Point(2 + 1, text_pos_y + 1 + char_h_offset));
+    blit::screen.pen = PICO8_WHITE;
+    blit::screen.text(planet_metadata.view(), heliopause::kCustomFont,
+                      blit::Point(2, text_pos_y + char_h_offset));
+
+    text_pos_y -= text_height;
+
+    // Planet Type name
     // Text Shadow
     int color_index =
         heliopause::PlanetEditor::current_planet.terrain.map_icon_color + 16;
@@ -430,37 +455,15 @@ void render(uint32_t time) {
     blit::screen.text(
         heliopause::PlanetEditor::current_planet.terrain.type_string,
         heliopause::kCustomFont,
-        blit::Point(3, blit::screen.bounds.h - 24 + 1 + char_h_offset));
+        blit::Point(3, text_pos_y + 1 + char_h_offset));
     // Text
     color_index =
         heliopause::PlanetEditor::current_planet.terrain.map_icon_color;
     blit::screen.pen = PICO8[color_index];
     blit::screen.text(
         heliopause::PlanetEditor::current_planet.terrain.type_string,
-        heliopause::kCustomFont,
-        blit::Point(2, blit::screen.bounds.h - 24 + char_h_offset));
-
-    // Planet info
-    blit::screen.pen = PICO8_BLACK;
-    blit::screen.text(
-        planet_metadata.view(), heliopause::kCustomFont,
-        blit::Point(2 + 1, blit::screen.bounds.h - 16 + 1 + char_h_offset));
-    blit::screen.pen = PICO8_WHITE;
-    blit::screen.text(
-        planet_metadata.view(), heliopause::kCustomFont,
-        blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
+        heliopause::kCustomFont, blit::Point(2, text_pos_y + char_h_offset));
   }
-
-  // Render time
-  blit::screen.pen = PICO8_BLACK;
-  blit::screen.text(
-      heliopause::PlanetEditor::last_render_update_message.view(),
-      heliopause::kCustomFont,
-      blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
-  blit::screen.pen = PICO8_WHITE;
-  blit::screen.text(heliopause::PlanetEditor::last_render_update_message.view(),
-                    heliopause::kCustomFont,
-                    blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset));
 }
 
 bool planet_render_done = false;

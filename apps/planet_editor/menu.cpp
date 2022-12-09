@@ -24,16 +24,17 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   if (not active)
     return;
 
-  int char_w = 5;
-  int char_h = 8;
+  int char_w = heliopause::kCustomFont.char_w;
+  int char_h = heliopause::kCustomFont.char_h;
 
   int total_rows = 1;
   total_rows += items.size();
 
   // Shaded Background Rect
   framebuffer->pen = blit::Pen(0, 0, 0, 32);
-  framebuffer->rectangle(Rect(posx, posy, framebuffer->bounds.w,
-                              // char_w * (max_name_length + 20),
+  framebuffer->rectangle(Rect(posx, posy,
+                              // framebuffer->bounds.w,
+                              char_w * (max_name_length + 20),
                               char_h * total_rows + 10));
 
   posx += 2;
@@ -52,6 +53,12 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   for (const MenuItem item : items) {
     int y = posy + (row * char_h) - 4;
     if (row - 1 == selected_item_index) {
+
+      framebuffer->pen = blit::Pen(0, 0, 0, 200);
+      framebuffer->rectangle(Rect(posx - 2, y,
+                                  // framebuffer->bounds.w,
+                                  char_w * (max_name_length + 20), char_h));
+
       framebuffer->pen = PICO8_BLUE;
     }
     framebuffer->text(item.name, heliopause::kCustomFont, blit::Point(posx, y));

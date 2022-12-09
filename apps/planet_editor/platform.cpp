@@ -18,7 +18,8 @@ blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
                                  blit::Size(PLANET_FRAMEBUFFER_WIDTH,
                                             PLANET_FRAMEBUFFER_HEIGHT));
 
-const blit::Font kCustomFont(m3x6_font);
+// const blit::Font kCustomFont(m3x6_font);
+const blit::Font kCustomFont(m6x11_font);
 
 #ifdef PICO_ON_DEVICE
 queue_t call_queue;
