@@ -36,3 +36,22 @@ index a58e54d6..611e2187 100644
        } else {
          printf("got: %c%c%c%c%c%c%c%c\n", cur_header[0], cur_header[1], cur_header[2], cur_header[3], cur_header[4], cur_header[5], cur_header[6], cur_header[7]);
          header_pos = 0;
+diff --git a/32blit/math/constants.hpp b/32blit/math/constants.hpp
+index 6207855f..8a200eae 100644
+--- a/32blit/math/constants.hpp
++++ b/32blit/math/constants.hpp
+@@ -2,4 +2,12 @@
+ 
+ namespace blit {
+     constexpr float pi = 3.14159265358979323846f;
+-}
+\ No newline at end of file
++constexpr float kPi = 3.1415926535897932384626433832795;
++constexpr float kHalfPi = 1.5707963267948966192313216916398;
++constexpr float kTwoPi = 6.283185307179586476925286766559;
++constexpr float DegreesToRadians = 0.017453292519943295769236907684886;
++constexpr float RadiansToDegrees = 57.295779513082320876798154814105;
++
++#define radians(deg) ((deg)*DegreesToRadians)
++#define degrees(rad) ((rad)*RadiansToDegrees)
++}
