@@ -1,5 +1,6 @@
 #include "planet.hpp"
 #include "colors.hpp"
+#include "pw_random/xor_shift.h"
 #include <cstdint>
 #include <math.h>
 
@@ -12,20 +13,24 @@
 //   return kFourPi*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
 // }
 
-Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain) {
-  seed = seed_value;
-  terrain = new_terrain;
+Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain)
+    : seed(seed_value), rng(seed_value), terrain(new_terrain) {
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
   draw_position_x = 0;
   draw_position_y = 0;
   Regen();
-  // ortho_render = PlanetOrthographicRenderValues();
 }
 
-void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
+void Planet::SetTerrain(PlanetTerrain new_terrain) {
+  terrain = new_terrain;
+  Regen();
+}
 
-void Planet::SetSeed(uint32_t seed_value) { seed = seed_value; }
+void Planet::SetSeed(uint32_t seed_value) {
+  seed = seed_value;
+  Regen();
+}
 
 void Planet::SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain) {
   seed = seed_value;
@@ -57,28 +62,30 @@ void Planet::RebuildHeightMap() {
 void Planet::Regen() {
   RebuildHeightMap();
 
-  noise_factor_vertical = 1.0;
+  noise_factor_x = 1.0;
+  noise_factor_y = 1.0;
+  noise_factor_z = 1.0;
 
-  Random::SetSeed(seed);
+  rng = pw::random::XorShiftStarRng64(seed);
 
   simplex_noise =
       SimplexNoise(terrain.noise_zoom, 1.0f, 2.0f, terrain.noise_persistance);
 
-  noise_offset.x = Random::GetRandomFloat(1024);
-  noise_offset.y = Random::GetRandomFloat(1024);
-  noise_offset.z = Random::GetRandomFloat(1024);
+  noise_offset.x = Random::GetRandomFloat(&rng, 1024);
+  noise_offset.y = Random::GetRandomFloat(&rng, 1024);
+  noise_offset.z = Random::GetRandomFloat(&rng, 1024);
 
   if (terrain.max_noise_stretch - terrain.min_noise_stretch > 0) {
-    noise_factor_vertical = Random::GetRandomFloat(terrain.min_noise_stretch,
-                                                   terrain.max_noise_stretch);
+    noise_factor_z = Random::GetRandomFloat(&rng, terrain.min_noise_stretch,
+                                            terrain.max_noise_stretch);
   } else {
-    float unused_result = Random::GetRandomFloat(0, 20);
+    float unused_result = Random::GetRandomFloat(&rng, 0, 20);
     unused_result += 1;
   }
 
   // blit::debugf(
-  //     "noise_factor_vertical: %d.%.6d\n", (int)noise_factor_vertical,
-  //     (int)((noise_factor_vertical - (int)noise_factor_vertical) * 1000000));
+  //     "noise_factor_z: %d.%.6d\n", (int)noise_factor_z,
+  //     (int)((noise_factor_z - (int)noise_factor_z) * 1000000));
 }
 
 float Planet::GetNoise(float theta, float phi) {
@@ -90,9 +97,9 @@ float Planet::GetNoise(float theta, float phi) {
 
   float noise = simplex_noise.fractal(
       terrain.noise_octaves,
-      noise_offset.x + cosf_phi * cosf_theta,
-      noise_offset.y + cosf_phi * sinf_theta,
-      noise_offset.z + sinf_phi * noise_factor_vertical);
+      noise_offset.x + cosf_phi * cosf_theta * noise_factor_x,
+      noise_offset.y + cosf_phi * sinf_theta * noise_factor_y,
+      noise_offset.z + sinf_phi * noise_factor_z);
   // clang-format on
 
   float altitude_modifier = (phi * phi) * terrain.latitude_bias;

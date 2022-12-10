@@ -437,10 +437,16 @@ constexpr std::span<const uint8_t>
 static constexpr uint8_t kAtmosphereTerranColors[] = {
     // endesga64
     48,
+    123, // #b4b4b4
+    124, // #ffffff
+    124, // #ffffff
     124, // #ffffff
     125, // #c7cfdd
     126, // #92a1b9
     48,  48, 48, 48,
+    123, // #b4b4b4
+    124, // #ffffff
+    124, // #ffffff
     124, // #ffffff
     125, // #c7cfdd
     126, // #92a1b9
@@ -653,7 +659,7 @@ PlanetTerrain kAtmosphereTerranPlanet = {
   .map_icon_color    = 15,
   .full_shadow       = 1,
   .transparent_color = 4,
-  .min_noise_stretch = 4,
+  .min_noise_stretch = 7,
   .max_noise_stretch = 10,
   .latitude_bias     = 0,
   .min_size          = 20,

@@ -15,7 +15,7 @@ namespace Random {
 namespace {
 
 constexpr uint64_t kRandomSeed = 314159265358979;
-static pw::random::XorShiftStarRng64 rng(kRandomSeed);
+static pw::random::XorShiftStarRng64 rng_source(kRandomSeed);
 
 uint32_t random_seed_offset = 0;
 uint8_t current_random_source = RANDOM_TYPE_PW_PRNG;
@@ -29,7 +29,7 @@ uint32_t GetCurrentSeed() { return current_random_seed; }
 
 void RestartSeed() {
   prng_lfsr = current_random_seed;
-  rng = pw::random::XorShiftStarRng64(kRandomSeed + random_seed_offset);
+  rng_source = pw::random::XorShiftStarRng64(kRandomSeed + random_seed_offset);
 }
 
 void IncrementSeed(int diff) {
@@ -56,7 +56,7 @@ uint32_t GetRandomNumber() {
     return prng_lfsr;
   } else if (current_random_source == RANDOM_TYPE_PW_PRNG) {
     int random_value = 0;
-    rng.GetInt(random_value);
+    rng_source.GetInt(random_value);
     return (uint32_t)random_value;
   }
   return 0;
@@ -88,6 +88,44 @@ float GetRandomFloat(float max_value) {
 float GetRandomFloat(float min_value, float max_value) {
   float diff = max_value - min_value;
   float r = GetRandomFloat(diff);
+  r += min_value;
+  return r;
+}
+
+inline uint32_t GetRandomNumber(pw::random::XorShiftStarRng64 *rng) {
+  uint32_t random_value = 0;
+  rng->GetInt(random_value);
+  return random_value;
+}
+
+int GetRandomInteger(pw::random::XorShiftStarRng64 *rng, uint32_t max_value) {
+  return (int)(GetRandomNumber(rng) % max_value);
+}
+
+int GetRandomInteger(pw::random::XorShiftStarRng64 *rng, uint32_t min_value,
+                     uint32_t max_value) {
+  int diff = max_value - min_value;
+  if (diff < 0)
+    diff *= -1;
+
+  int r = GetRandomNumber(rng) % (uint32_t)(diff);
+  r += min_value;
+
+  return r;
+}
+
+float GetRandomFloat(pw::random::XorShiftStarRng64 *rng, float max_value) {
+  uint32_t r = GetRandomNumber(rng) % (uint32_t)(max_value);
+  uint32_t d = GetRandomNumber(rng) % 1000000;
+  float decimal_part = (float)d / 1000000.0f;
+  float x = (float)r + decimal_part;
+  return x;
+}
+
+float GetRandomFloat(pw::random::XorShiftStarRng64 *rng, float min_value,
+                     float max_value) {
+  float diff = max_value - min_value;
+  float r = GetRandomFloat(rng, diff);
   r += min_value;
   return r;
 }

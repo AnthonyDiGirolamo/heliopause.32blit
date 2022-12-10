@@ -6,6 +6,8 @@
 
 #include "SimplexNoise.h"
 #include "draw.hpp"
+#include "pw_random/random.h"
+#include "pw_random/xor_shift.h"
 #include "random.hpp"
 
 #include "math.h"
@@ -64,8 +66,11 @@ struct PlanetOrthographicRenderValues {
 class Planet {
 public:
   uint32_t seed;
+  pw::random::XorShiftStarRng64 rng;
   blit::Vec3 noise_offset;
-  float noise_factor_vertical;
+  float noise_factor_x;
+  float noise_factor_y;
+  float noise_factor_z;
   float viewpoint_phi0;
   float viewpoint_lambda0;
   PlanetTerrain terrain;

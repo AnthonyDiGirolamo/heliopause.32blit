@@ -14,9 +14,10 @@
 namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
-
+#define ATMO_SEED_OFFSET 1
 Planet current_planet = Planet(0x64063701, AllPlanets[0]);
-Planet atmosphere_terran = Planet(0x64063701, AllPlanets[10]);
+Planet atmosphere_terran =
+    Planet(0x64063701 - ATMO_SEED_OFFSET, AllPlanets[10]);
 
 namespace {
 
@@ -110,13 +111,13 @@ std::string_view get_seed_string() {
 void increase_seed() {
   Random::IncrementSeed(1);
   current_planet.SetSeed(Random::GetCurrentSeed());
-  atmosphere_terran.SetSeed(Random::GetCurrentSeed());
+  atmosphere_terran.SetSeed(Random::GetCurrentSeed() - ATMO_SEED_OFFSET);
 }
 
 void decrease_seed() {
   Random::IncrementSeed(-1);
   current_planet.SetSeed(Random::GetCurrentSeed());
-  atmosphere_terran.SetSeed(Random::GetCurrentSeed());
+  atmosphere_terran.SetSeed(Random::GetCurrentSeed() - ATMO_SEED_OFFSET);
 }
 
 std::string_view get_auto_rotation_string() {
@@ -415,28 +416,41 @@ void render(uint32_t time) {
   if (!heliopause::PlanetEditor::display_mode_orthographic)
     xoffset = 0;
 
+  blit::screen.alpha = 255;
 #ifdef PICO_ON_DEVICE
+  // #if 1
   // Draw at 2x size
   blit::screen.stretch_blit(
       &planet_framebuffer,
       blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
       blit::Rect(xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH * 2,
                  PLANET_FRAMEBUFFER_HEIGHT * 2));
+
+  if (selected_planet_index == 0 || selected_planet_index == 3) {
+    blit::screen.alpha = 180;
+    blit::screen.stretch_blit(
+        &atmosphere_framebuffer,
+        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
+        blit::Rect(xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH * 2,
+                   PLANET_FRAMEBUFFER_HEIGHT * 2));
+  }
 #else
   // Draw at 1x size
-  blit::screen.alpha = 255;
   blit::screen.blit(
       &planet_framebuffer,
       blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-      blit::Point(xoffset + 0, 0));
+      // TODO: This atmo to planet -3 should be relative to the total size
+      blit::Point(xoffset + 0 + 3, 0 + 3));
 
-  blit::screen.alpha = 200;
-  blit::screen.blit(
-      &atmosphere_framebuffer,
-      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-      blit::Point(xoffset + 0, 0));
-  blit::screen.alpha = 255;
+  if (selected_planet_index == 0 || selected_planet_index == 3) {
+    blit::screen.alpha = 180;
+    blit::screen.blit(
+        &atmosphere_framebuffer,
+        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
+        blit::Point(xoffset + 0, 0));
+  }
 #endif
+  blit::screen.alpha = 255;
 
   int text_height = heliopause::kCustomFont.char_h;
   int text_pos_y = blit::screen.bounds.h - text_height;
@@ -575,44 +589,50 @@ void update(uint32_t time) {
 #endif
 
   if (rerender) {
-    heliopause::PlanetEditor::current_planet.Regen();
-    heliopause::PlanetEditor::atmosphere_terran.Regen();
     planet_render_done = false;
-    // heliopause::PlanetEditor::render_planet();
-    if (display_mode_orthographic) {
-      current_planet.SetDrawPosition(0, 0);
 
+    // Clear draw area
+    planet_framebuffer.pen = 49; // Erase to non-existent color palette index
+    planet_framebuffer.rectangle(
+        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+    atmosphere_framebuffer.pen = 49;
+    atmosphere_framebuffer.rectangle(
+        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+
+    if (selected_planet_index == 0 || selected_planet_index == 3) {
       atmosphere_terran.SetDrawPosition(0, 0);
       atmosphere_terran.setup_render_orthographic(
           &atmosphere_framebuffer,
           PLANET_FRAMEBUFFER_WIDTH,  // width
           PLANET_FRAMEBUFFER_HEIGHT, // height
           camera_zoom, camera_pan_x, camera_pan_y, blit::now());
-      current_planet.setup_render_orthographic(
-          &planet_framebuffer,
-          PLANET_FRAMEBUFFER_WIDTH - 6,  // width
-          PLANET_FRAMEBUFFER_HEIGHT - 6, // height
-          camera_zoom, camera_pan_x - 3, camera_pan_y - 3, blit::now());
+      atmosphere_terran.Regen();
+      // TODO make these part of the planet_type
+      atmosphere_terran.noise_factor_x = 3.0;
+      atmosphere_terran.noise_factor_y = 3.0;
+      atmosphere_terran.noise_factor_z = 10.0;
+    }
 
-      // Erase to non-existent color palette index
-      planet_framebuffer.pen = 49;
-      // Clear draw area
-      planet_framebuffer.rectangle(blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH,
-                                              PLANET_FRAMEBUFFER_HEIGHT));
-      atmosphere_framebuffer.pen = 49;
-      atmosphere_framebuffer.rectangle(blit::Rect(
-          0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+    current_planet.SetDrawPosition(0, 0);
+    current_planet.setup_render_orthographic(
+        &planet_framebuffer,
+        // TODO: This atmo to planet -6 should be relative to the total size
+        PLANET_FRAMEBUFFER_WIDTH - 6,  // width
+        PLANET_FRAMEBUFFER_HEIGHT - 6, // height
+        camera_zoom, camera_pan_x, camera_pan_y, blit::now());
+    current_planet.Regen();
 
 #ifdef PICO_ON_DEVICE
-      entry.func = &render_planet_on_core_1;
-      entry.data = 1;
-      queue_add_blocking(&heliopause::call_queue, &entry);
+    entry.func = &render_planet_on_core_1;
+    entry.data = 1;
+    queue_add_blocking(&heliopause::call_queue, &entry);
 #else
-      current_planet.render_orthographic_all();
+    current_planet.render_orthographic_all();
+    if (selected_planet_index == 0 || selected_planet_index == 3) {
       atmosphere_terran.render_orthographic_all();
-      render_planet_complete();
-#endif
     }
+    render_planet_complete();
+#endif
   }
 
 #ifdef PICO_ON_DEVICE
@@ -623,13 +643,13 @@ void update(uint32_t time) {
     render_planet_complete();
   }
 #else
-  if (!heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
-    heliopause::PlanetEditor::current_planet.render_orthographic_line();
+  // if (!current_planet.render_orthographic_done()) {
+  //   current_planet.render_orthographic_line();
 
-    if (heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
-      render_planet_complete();
-    }
-  }
+  //   if (current_planet.render_orthographic_done()) {
+  //     render_planet_complete();
+  //   }
+  // }
 #endif
 }
 
