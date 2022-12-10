@@ -301,8 +301,9 @@ static constexpr uint8_t kTundraColors[] = {
     // 4,  // #ab5236 BROWN
     // 3,  // #008751 DARK_GREEN
 
-    154, // #134c4c
     153, // #1e6f50
+    152, // #33984b
+    137, // #e69c69
     136, // #bf6f4a
     135, // #8a4836
     134, // #5d2c28
@@ -433,6 +434,22 @@ static constexpr uint8_t kGasGiantRainbowColors[] = {
 constexpr std::span<const uint8_t>
     kGasGiantRainbowColorMap(kGasGiantRainbowColors);
 
+static constexpr uint8_t kAtmosphereTerranColors[] = {
+    // endesga64
+    48,
+    124, // #ffffff
+    125, // #c7cfdd
+    126, // #92a1b9
+    48,  48, 48, 48,
+    124, // #ffffff
+    125, // #c7cfdd
+    126, // #92a1b9
+    48,
+};
+
+constexpr std::span<const uint8_t>
+    kAtmosphereTerranColorMap(kAtmosphereTerranColors);
+
 // clang-format off
 PlanetTerrain kTerranPlanet = {
   .type              = terran,
@@ -457,19 +474,19 @@ PlanetTerrain kTerranPlanet = {
 PlanetTerrain kTundraPlanet = {
   .type              = tundra,
   .type_string       = std::string_view {"Tundra"},
-  .noise_octaves     = 5,
-  .noise_zoom        = 0.5,
-  .noise_persistance = 0.6,
+  .noise_octaves     = 6,
+  .noise_zoom        = 1.0,
+  .noise_persistance = 0.7,
   .map_icon_color    = 6,
   .full_shadow       = 1,
   .transparent_color = 14,
   .min_noise_stretch = 1,
   .max_noise_stretch = 1,
-  .latitude_bias     = 0.22f,
+  .latitude_bias     = 0.7,
   .min_size          = 10,
   .color_map         = kTundraColorMap,
-  .color_padding_start = 7,
-  .color_padding_end = 7,
+  .color_padding_start = 5,
+  .color_padding_end = 2,
   .palette_dark_offset = ENDESGA64_DARK_OFFSET,
 };
 
@@ -627,6 +644,25 @@ PlanetTerrain kLavaPlanet = {
   .palette_dark_offset = ENDESGA64_DARK_OFFSET,
 };
 
+PlanetTerrain kAtmosphereTerranPlanet = {
+  .type              = atmosphere_terran,
+  .type_string       = std::string_view {"Atmosphere Terran"},
+  .noise_octaves     = 5,
+  .noise_zoom        = 0.25,
+  .noise_persistance = 0.70,
+  .map_icon_color    = 15,
+  .full_shadow       = 1,
+  .transparent_color = 4,
+  .min_noise_stretch = 4,
+  .max_noise_stretch = 10,
+  .latitude_bias     = 0,
+  .min_size          = 20,
+  .color_map         = kAtmosphereTerranColorMap,
+  .color_padding_start = 1,
+  .color_padding_end = 1,
+  .palette_dark_offset = ENDESGA64_DARK_OFFSET,
+};
+
 PlanetTerrain AllPlanets[] = {
     kTerranPlanet,
     kTundraPlanet,
@@ -638,6 +674,7 @@ PlanetTerrain AllPlanets[] = {
     kGasGiantBluePlanet,
     kGasGiantYellowPlanet,
     kGasGiantRainbowPlanet,
+    kAtmosphereTerranPlanet,
 };
 
 std::span<PlanetTerrain> PlanetSpan(AllPlanets);

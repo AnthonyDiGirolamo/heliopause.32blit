@@ -17,11 +17,11 @@
 #if defined(PLATFORM_PICOSYSTEM)
 
 #ifdef SCREEN_MODE_HIRES
-#define PLANET_FRAMEBUFFER_WIDTH 240
-#define PLANET_FRAMEBUFFER_HEIGHT 240
+#define PLANET_FRAMEBUFFER_WIDTH 240 / 2
+#define PLANET_FRAMEBUFFER_HEIGHT 240 / 2
 #else
-#define PLANET_FRAMEBUFFER_WIDTH 120
-#define PLANET_FRAMEBUFFER_HEIGHT 120
+#define PLANET_FRAMEBUFFER_WIDTH 120 / 2
+#define PLANET_FRAMEBUFFER_HEIGHT 120 / 2
 #endif
 
 #else // PLATFORM_32BLIT or PLATFORM_SDL
@@ -49,6 +49,7 @@ extern PlatformType kCurrentPlatform;
 extern const blit::Font kCustomFont;
 
 extern blit::Surface planet_framebuffer;
+extern blit::Surface atmosphere_framebuffer;
 
 #ifdef PICO_ON_DEVICE
 #include "pico/multicore.h"

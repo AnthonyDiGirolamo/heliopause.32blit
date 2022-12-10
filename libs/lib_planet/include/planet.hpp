@@ -24,6 +24,7 @@ enum PlanetTerrainType {
   gas_giant_blue,
   gas_giant_yellow,
   gas_giant_rainbow,
+  atmosphere_terran,
 };
 
 struct PlanetTerrain {

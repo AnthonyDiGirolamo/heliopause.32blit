@@ -429,8 +429,8 @@ void Planet::render_orthographic_line() {
       break;
 
     int palette_color_index = terrain_color_index(x, y_coord + 1);
-    // if (palette_color_index <= 0)
-    //   continue;
+    if (palette_color_index == 48 || palette_color_index == 49)
+      continue;
 
     int draw_x = draw_position_x + ortho_render.zoom_offset_x + x;
     int draw_y = draw_position_y + ortho_render.zoom_offset_y + y_coord + 1;
@@ -508,6 +508,8 @@ int Planet::terrain_color_index(int x, int y_coord) {
   int palette_color_index = 0;
   // TODO: Only update this if valid height_map color?
   palette_color_index = height_map[heightmap_color_index];
+  if (palette_color_index == 48 || palette_color_index == 49)
+    return palette_color_index;
 
   // TODO: Calculate phase based on solar system sun position
   // Darken colors if phase of the planet is facing the sun

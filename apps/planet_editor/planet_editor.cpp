@@ -1,5 +1,6 @@
 #include "planet_editor.hpp"
 #include "colors.hpp"
+#include "planet.hpp"
 #include "planet_types.hpp"
 #include "platform.hpp"
 #include "random.hpp"
@@ -15,6 +16,7 @@ namespace heliopause::PlanetEditor {
 bool display_mode_orthographic = true;
 
 Planet current_planet = Planet(0x64063701, AllPlanets[0]);
+Planet atmosphere_terran = Planet(0x64063701, AllPlanets[10]);
 
 namespace {
 
@@ -108,11 +110,13 @@ std::string_view get_seed_string() {
 void increase_seed() {
   Random::IncrementSeed(1);
   current_planet.SetSeed(Random::GetCurrentSeed());
+  atmosphere_terran.SetSeed(Random::GetCurrentSeed());
 }
 
 void decrease_seed() {
   Random::IncrementSeed(-1);
   current_planet.SetSeed(Random::GetCurrentSeed());
+  atmosphere_terran.SetSeed(Random::GetCurrentSeed());
 }
 
 std::string_view get_auto_rotation_string() {
@@ -358,6 +362,7 @@ bool auto_rotate() {
   uint32_t time_now = blit::now();
   if (time_now > last_render_time + 50) {
     current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+    atmosphere_terran.AdjustViewpointLongitude(blit::pi * 0.01f);
     return true;
   }
   return false;
@@ -367,12 +372,17 @@ void init() {
   planet_framebuffer.palette = PICO8;
   // TODO: Does this matter?
   planet_framebuffer.alpha = 0;
-
   // TODO: Figure out exactly to set transparent color index correctly. This
   // seems to work with the index != pen when clearing.
   planet_framebuffer.transparent_index = 48;
   planet_framebuffer.pen = 49;
   planet_framebuffer.clear();
+
+  atmosphere_framebuffer.palette = PICO8;
+  atmosphere_framebuffer.alpha = 0;
+  atmosphere_framebuffer.transparent_index = 48;
+  atmosphere_framebuffer.pen = 49;
+  atmosphere_framebuffer.clear();
 
   planet_metadata.Format("Rendering...");
 
@@ -405,17 +415,28 @@ void render(uint32_t time) {
   if (!heliopause::PlanetEditor::display_mode_orthographic)
     xoffset = 0;
 
+#ifdef PICO_ON_DEVICE
+  // Draw at 2x size
+  blit::screen.stretch_blit(
+      &planet_framebuffer,
+      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
+      blit::Rect(xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH * 2,
+                 PLANET_FRAMEBUFFER_HEIGHT * 2));
+#else
+  // Draw at 1x size
+  blit::screen.alpha = 255;
   blit::screen.blit(
       &planet_framebuffer,
       blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
       blit::Point(xoffset + 0, 0));
 
-  // // Draw at 2x size
-  // blit::screen.stretch_blit(&heliopause::PlanetEditor::planet_framebuffer,
-  //                           blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH,
-  //                           PLANET_FRAMEBUFFER_HEIGHT), blit::Rect(xoffset +
-  //                           0, 0, PLANET_FRAMEBUFFER_WIDTH*2,
-  //                           PLANET_FRAMEBUFFER_HEIGHT*2));
+  blit::screen.alpha = 200;
+  blit::screen.blit(
+      &atmosphere_framebuffer,
+      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
+      blit::Point(xoffset + 0, 0));
+  blit::screen.alpha = 255;
+#endif
 
   int text_height = heliopause::kCustomFont.char_h;
   int text_pos_y = blit::screen.bounds.h - text_height;
@@ -519,18 +540,26 @@ void update(uint32_t time) {
   } else if (buttons.pressed & Button::DPAD_UP) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
                                                                      0.1f);
+    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLatitude(
+        blit::pi * 0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_DOWN) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
                                                                      -0.1f);
+    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLatitude(
+        blit::pi * -0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_LEFT) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
                                                                       -0.1f);
+    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLongitude(
+        blit::pi * -0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_RIGHT) {
     heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
                                                                       0.1f);
+    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLongitude(
+        blit::pi * 0.1f);
     rerender = true;
     // Picosystem manual reboot
     // #if PICO_ON_DEVICE
@@ -547,21 +576,32 @@ void update(uint32_t time) {
 
   if (rerender) {
     heliopause::PlanetEditor::current_planet.Regen();
+    heliopause::PlanetEditor::atmosphere_terran.Regen();
     planet_render_done = false;
     // heliopause::PlanetEditor::render_planet();
     if (display_mode_orthographic) {
       current_planet.SetDrawPosition(0, 0);
-      current_planet.setup_render_orthographic(
-          &planet_framebuffer,
+
+      atmosphere_terran.SetDrawPosition(0, 0);
+      atmosphere_terran.setup_render_orthographic(
+          &atmosphere_framebuffer,
           PLANET_FRAMEBUFFER_WIDTH,  // width
           PLANET_FRAMEBUFFER_HEIGHT, // height
           camera_zoom, camera_pan_x, camera_pan_y, blit::now());
+      current_planet.setup_render_orthographic(
+          &planet_framebuffer,
+          PLANET_FRAMEBUFFER_WIDTH - 6,  // width
+          PLANET_FRAMEBUFFER_HEIGHT - 6, // height
+          camera_zoom, camera_pan_x - 3, camera_pan_y - 3, blit::now());
 
       // Erase to non-existent color palette index
       planet_framebuffer.pen = 49;
       // Clear draw area
       planet_framebuffer.rectangle(blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH,
                                               PLANET_FRAMEBUFFER_HEIGHT));
+      atmosphere_framebuffer.pen = 49;
+      atmosphere_framebuffer.rectangle(blit::Rect(
+          0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
 
 #ifdef PICO_ON_DEVICE
       entry.func = &render_planet_on_core_1;
@@ -569,6 +609,7 @@ void update(uint32_t time) {
       queue_add_blocking(&heliopause::call_queue, &entry);
 #else
       current_planet.render_orthographic_all();
+      atmosphere_terran.render_orthographic_all();
       render_planet_complete();
 #endif
     }
