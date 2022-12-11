@@ -159,13 +159,13 @@ void update(uint32_t time) {
   }
 
   else if (buttons & Button::DPAD_RIGHT) {
-    pilot.RotateTowardsHeading(radians(0.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(0.0f), delta_seconds);
   } else if (buttons & Button::DPAD_DOWN) {
-    pilot.RotateTowardsHeading(radians(90.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(90.0f), delta_seconds);
   } else if (buttons & Button::DPAD_LEFT) {
-    pilot.RotateTowardsHeading(radians(180.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(180.0f), delta_seconds);
   } else if (buttons & Button::DPAD_UP) {
-    pilot.RotateTowardsHeading(radians(270.0), delta_seconds);
+    pilot.RotateTowardsHeading(radians(270.0f), delta_seconds);
   }
 
   pilot.UpdateLocation(delta_seconds);
