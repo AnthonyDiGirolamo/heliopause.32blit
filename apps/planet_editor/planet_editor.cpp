@@ -129,18 +129,18 @@ std::string_view get_auto_rotation_string() {
 }
 void toggle_auto_rotation() { auto_rotation = not auto_rotation; }
 
-std::string_view get_display_mode_string() {
-  if (display_mode_orthographic)
-    return orthographic_string;
-  return equirectangular_string;
-}
+// std::string_view get_display_mode_string() {
+//   if (display_mode_orthographic)
+//     return orthographic_string;
+//   return equirectangular_string;
+// }
 
-void toggle_display_mode() {
-  display_mode_orthographic = not display_mode_orthographic;
+// void toggle_display_mode() {
+//   display_mode_orthographic = not display_mode_orthographic;
 
-  planet_framebuffer.pen = 49;
-  planet_framebuffer.clear();
-}
+//   planet_framebuffer.pen = 49;
+//   planet_framebuffer.clear();
+// }
 
 std::string_view get_latitude_bias_string() {
   menu_item_value.clear();
@@ -269,12 +269,12 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .increase_function = &increase_color_padding_end,
         .decrease_function = &decrease_color_padding_end,
     },
-    {
-        .name = std::string_view{"DisplayMode"},
-        .get_value = &get_display_mode_string,
-        .increase_function = &toggle_display_mode,
-        .decrease_function = &toggle_display_mode,
-    },
+    // {
+    //     .name = std::string_view{"DisplayMode"},
+    //     .get_value = &get_display_mode_string,
+    //     .increase_function = &toggle_display_mode,
+    //     .decrease_function = &toggle_display_mode,
+    // },
     {
         .name = std::string_view{"Camera Zoom"},
         .get_value = &get_camera_zoom_string,
@@ -351,7 +351,7 @@ void render_planet() {
   last_render_time = blit::now();
   last_render_duration = last_render_time - start_time;
   // blit::debugf("Render time: %d\n", last_render_duration);
-  printf("Render time: %d\n", last_render_duration);
+  // printf("Render time: %u\n", (int)last_render_duration);
   // last_render_duration_string = std::to_string(last_render_duration);
   last_render_update_message.clear();
   last_render_update_message.Format("Render Time: %d ms",
@@ -389,6 +389,7 @@ void init() {
   atmosphere_framebuffer.clear();
 
   planet_metadata.Format("Rendering...");
+  current_planet.AdjustViewpointLatitude(blit::pi * -0.2f);
 
 #ifdef PICO_ON_DEVICE
   queue_init(&heliopause::call_queue, sizeof(heliopause::queue_entry_t), 2);
@@ -487,29 +488,26 @@ void render(uint32_t time) {
 
     // Planet Type name
     // Text Shadow
-    int color_index =
-        heliopause::PlanetEditor::current_planet.terrain.map_icon_color + 16;
+    int color_index = current_planet.terrain.map_icon_color + 16;
     blit::screen.pen = PICO8[color_index];
-    blit::screen.text(
-        heliopause::PlanetEditor::current_planet.terrain.type_string,
-        heliopause::kCustomFont,
-        blit::Point(3, text_pos_y + 1 + char_h_offset));
+    blit::screen.text(current_planet.terrain.type_string,
+                      heliopause::kCustomFont,
+                      blit::Point(3, text_pos_y + 1 + char_h_offset));
     // Text
-    color_index =
-        heliopause::PlanetEditor::current_planet.terrain.map_icon_color;
+    color_index = current_planet.terrain.map_icon_color;
     blit::screen.pen = PICO8[color_index];
-    blit::screen.text(
-        heliopause::PlanetEditor::current_planet.terrain.type_string,
-        heliopause::kCustomFont, blit::Point(2, text_pos_y + char_h_offset));
+    blit::screen.text(current_planet.terrain.type_string,
+                      heliopause::kCustomFont,
+                      blit::Point(2, text_pos_y + char_h_offset));
   }
 }
 
 bool planet_render_done = false;
 
 void render_planet_on_core_1() {
-  while (!heliopause::PlanetEditor::current_planet.render_orthographic_done()) {
+  while (!current_planet.render_orthographic_done()) {
     // TODO: Add an abort flag
-    heliopause::PlanetEditor::current_planet.render_orthographic_line();
+    current_planet.render_orthographic_line();
   }
   planet_render_done = true;
 }
@@ -521,8 +519,7 @@ queue_entry_t entry;
 void render_planet_complete() {
   last_render_time = blit::now();
   last_render_duration =
-      last_render_time -
-      heliopause::PlanetEditor::current_planet.render_orthographic_start_time();
+      last_render_time - current_planet.render_orthographic_start_time();
   // blit::debugf("Render time: %d\n", last_render_duration);
   // printf("Render time: %d\n", last_render_duration);
   // last_render_duration_string = std::to_string(last_render_duration);
@@ -531,10 +528,9 @@ void render_planet_complete() {
                                     (int)last_render_duration);
 
   planet_metadata.clear();
-  planet_metadata.Format(
-      "Noise Range: [%.2f, %.2f]",
-      (double)heliopause::PlanetEditor::current_planet.min_noise,
-      (double)heliopause::PlanetEditor::current_planet.max_noise);
+  planet_metadata.Format("Noise Range: [%.2f, %.2f]",
+                         (double)current_planet.min_noise,
+                         (double)current_planet.max_noise);
 }
 
 void update(uint32_t time) {
@@ -550,33 +546,25 @@ void update(uint32_t time) {
   }
 
   if (heliopause::PlanetEditor::planet_menu.active) {
-    rerender = heliopause::PlanetEditor::planet_menu.Update();
+    rerender = planet_menu.Update();
   } else if (buttons.pressed & Button::X) {
     // Activate menu
-    heliopause::PlanetEditor::planet_menu.ToggleActive();
+    planet_menu.ToggleActive();
   } else if (buttons.pressed & Button::DPAD_UP) {
-    heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
-                                                                     0.1f);
-    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLatitude(
-        blit::pi * 0.1f);
+    current_planet.AdjustViewpointLatitude(blit::pi * 0.1f);
+    atmosphere_terran.AdjustViewpointLatitude(blit::pi * 0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_DOWN) {
-    heliopause::PlanetEditor::current_planet.AdjustViewpointLatitude(blit::pi *
-                                                                     -0.1f);
-    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLatitude(
-        blit::pi * -0.1f);
+    current_planet.AdjustViewpointLatitude(blit::pi * -0.1f);
+    atmosphere_terran.AdjustViewpointLatitude(blit::pi * -0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_LEFT) {
-    heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
-                                                                      -0.1f);
-    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLongitude(
-        blit::pi * -0.1f);
+    current_planet.AdjustViewpointLongitude(blit::pi * -0.1f);
+    atmosphere_terran.AdjustViewpointLongitude(blit::pi * -0.1f);
     rerender = true;
   } else if (buttons.pressed & Button::DPAD_RIGHT) {
-    heliopause::PlanetEditor::current_planet.AdjustViewpointLongitude(blit::pi *
-                                                                      0.1f);
-    heliopause::PlanetEditor::atmosphere_terran.AdjustViewpointLongitude(
-        blit::pi * 0.1f);
+    current_planet.AdjustViewpointLongitude(blit::pi * 0.1f);
+    atmosphere_terran.AdjustViewpointLongitude(blit::pi * 0.1f);
     rerender = true;
     // Picosystem manual reboot
     // #if PICO_ON_DEVICE

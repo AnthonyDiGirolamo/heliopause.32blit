@@ -19,6 +19,8 @@ public:
   int selected_item_index;
   int max_name_length;
   bool active;
+  int item_height;
+  int item_text_y_offset;
   std::span<const MenuItem> items;
 
   Menu(std::span<const MenuItem> menu_items);

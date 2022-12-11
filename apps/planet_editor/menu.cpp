@@ -18,6 +18,15 @@ Menu::Menu(std::span<const MenuItem> menu_items) {
       max_name_length = item.name.length();
   }
   max_name_length -= 3;
+
+  item_height = heliopause::kCustomFont.char_h;
+
+  // m3x6_font
+  item_height = 10;
+  item_text_y_offset = -3;
+  // m6x11_font
+  item_height = 17;
+  item_text_y_offset = 3;
 }
 
 void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
@@ -25,7 +34,7 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
     return;
 
   int char_w = heliopause::kCustomFont.char_w;
-  int char_h = heliopause::kCustomFont.char_h;
+  int char_h = item_height;
 
   int total_rows = 1;
   total_rows += items.size();
@@ -51,7 +60,7 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   int value_posx = max_name_length * char_w;
 
   for (const MenuItem item : items) {
-    int y = posy + (row * char_h) - 4;
+    int y = posy + (row * char_h);
     if (row - 1 == selected_item_index) {
 
       framebuffer->pen = blit::Pen(0, 0, 0, 200);
@@ -61,9 +70,10 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
 
       framebuffer->pen = PICO8_BLUE;
     }
-    framebuffer->text(item.name, heliopause::kCustomFont, blit::Point(posx, y));
+    framebuffer->text(item.name, heliopause::kCustomFont,
+                      blit::Point(posx, y + item_text_y_offset));
     framebuffer->text(item.get_value(), heliopause::kCustomFont,
-                      blit::Point(value_posx, y));
+                      blit::Point(value_posx, y + item_text_y_offset));
     if (row - 1 == selected_item_index) {
       framebuffer->pen = PICO8_WHITE;
     }
