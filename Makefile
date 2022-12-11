@@ -37,6 +37,9 @@ build-stm32: $(OUTDIR)/stm32/$(APP_PATH).elf  ## build pico device code
 .PHONY: build-host
 build-host: $(OUTDIR)/host/$(APP_PATH)  ## build host code
 
+.PHONY: build-wasm
+build-wasm: $(OUTDIR)/wasm/$(APP_PATH).html  ## build wasm code
+
 .PHONY: build-pico
 build-pico: $(OUTDIR)/pico/$(APP_PATH).uf2  ## build pico device code
 
@@ -50,6 +53,10 @@ $(OUTDIR)/host/Makefile: $(CMAKE_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	cmake -S . -B $(OUTDIR)/host $(COMMON_CMAKE_ARGS)
 
+$(OUTDIR)/wasm/Makefile: $(CMAKE_FILES)
+	@$(ECHO_TAG_MESSAGE) "GEN" $@
+	emcmake cmake -S . -B $(OUTDIR)/wasm $(COMMON_CMAKE_ARGS)
+
 $(OUTDIR)/pico/Makefile: $(CMAKE_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	cmake -S . -B $(OUTDIR)/pico $(COMMON_CMAKE_ARGS) -DCMAKE_TOOLCHAIN_FILE=$(BLIT_SDK_PATH)/pico.toolchain -DPICO_BOARD=pimoroni_picosystem
@@ -59,6 +66,9 @@ gen-stm32: $(OUTDIR)/stm32/Makefile  ## cmake stm32 Makefiles
 
 .PHONY: gen-host
 gen-host: $(OUTDIR)/host/Makefile  ## cmake host Makefiles
+
+.PHONY: gen-wasm
+gen-wasm: $(OUTDIR)/wasm/Makefile  ## cmake wasm Makefiles
 
 .PHONY: gen-pico
 gen-pico: $(OUTDIR)/pico/Makefile  ## cmake pico Makefiles
@@ -70,6 +80,10 @@ $(OUTDIR)/stm32/$(APP_PATH).elf: $(OUTDIR)/stm32/Makefile $(SOURCE_FILES)
 $(OUTDIR)/host/$(APP_PATH): $(OUTDIR)/host/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/host
+
+$(OUTDIR)/wasm/$(APP_PATH).html: $(OUTDIR)/wasm/Makefile $(SOURCE_FILES)
+	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
+	$(MAKE) -j 4 -C $(OUTDIR)/wasm
 
 $(OUTDIR)/pico/$(APP_PATH).uf2: $(OUTDIR)/pico/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
