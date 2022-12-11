@@ -68,9 +68,8 @@ public:
   uint32_t seed;
   pw::random::XorShiftStarRng64 rng;
   blit::Vec3 noise_offset;
-  float noise_factor_x;
-  float noise_factor_y;
-  float noise_factor_z;
+  blit::Vec3 noise_offset_shift;
+  blit::Vec3 noise_scale_factor;
   float viewpoint_phi0;
   float viewpoint_lambda0;
   PlanetTerrain terrain;

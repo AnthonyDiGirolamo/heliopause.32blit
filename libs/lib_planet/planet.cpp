@@ -14,7 +14,9 @@
 // }
 
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain)
-    : seed(seed_value), rng(seed_value), terrain(new_terrain) {
+    : seed(seed_value), rng(seed_value), noise_offset(0.0f, 0.0f, 0.0f),
+      noise_offset_shift(0.0f, 0.0f, 0.0f),
+      noise_scale_factor(1.0f, 1.0f, 1.0f), terrain(new_terrain) {
   viewpoint_phi0 = 0;
   viewpoint_lambda0 = kPi;
   draw_position_x = 0;
@@ -62,9 +64,9 @@ void Planet::RebuildHeightMap() {
 void Planet::Regen() {
   RebuildHeightMap();
 
-  noise_factor_x = 1.0;
-  noise_factor_y = 1.0;
-  noise_factor_z = 1.0;
+  noise_scale_factor.x = 1.0f;
+  noise_scale_factor.y = 1.0f;
+  noise_scale_factor.z = 1.0f;
 
   rng = pw::random::XorShiftStarRng64(seed);
 
@@ -76,16 +78,16 @@ void Planet::Regen() {
   noise_offset.z = Random::GetRandomFloat(&rng, 1024);
 
   if (terrain.max_noise_stretch - terrain.min_noise_stretch > 0) {
-    noise_factor_z = Random::GetRandomFloat(&rng, terrain.min_noise_stretch,
-                                            terrain.max_noise_stretch);
+    noise_scale_factor.z = Random::GetRandomFloat(
+        &rng, terrain.min_noise_stretch, terrain.max_noise_stretch);
   } else {
+    // Get a random value for rng consistency
     float unused_result = Random::GetRandomFloat(&rng, 0, 20);
     unused_result += 1;
   }
 
-  // blit::debugf(
-  //     "noise_factor_z: %d.%.6d\n", (int)noise_factor_z,
-  //     (int)((noise_factor_z - (int)noise_factor_z) * 1000000));
+  // Move the noise bubble (for atmosphere animations)
+  noise_offset += noise_offset_shift;
 }
 
 float Planet::GetNoise(float theta, float phi) {
@@ -97,9 +99,9 @@ float Planet::GetNoise(float theta, float phi) {
 
   float noise = simplex_noise.fractal(
       terrain.noise_octaves,
-      noise_offset.x + cosf_phi * cosf_theta * noise_factor_x,
-      noise_offset.y + cosf_phi * sinf_theta * noise_factor_y,
-      noise_offset.z + sinf_phi * noise_factor_z);
+      noise_offset.x + cosf_phi * cosf_theta * noise_scale_factor.x,
+      noise_offset.y + cosf_phi * sinf_theta * noise_scale_factor.y,
+      noise_offset.z + sinf_phi * noise_scale_factor.z);
   // clang-format on
 
   float altitude_modifier = (phi * phi) * terrain.latitude_bias;

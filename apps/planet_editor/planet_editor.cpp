@@ -4,6 +4,7 @@
 #include "planet_types.hpp"
 #include "platform.hpp"
 #include "random.hpp"
+#include "types/vec3.hpp"
 
 #if PICO_ON_DEVICE
 #include "pico/multicore.h"
@@ -24,7 +25,7 @@ namespace {
 uint32_t last_render_time = 0;
 uint32_t last_render_duration = 0;
 
-float atmo_offset_x = 0.0f;
+blit::Vec3 atmo_shift = Vec3(0.04f, 0.0f, 0.0f);
 bool not_rendered = true;
 
 std::string_view enabled_string = {"true"};
@@ -365,7 +366,7 @@ bool auto_rotate() {
   if (time_now > last_render_time + 50) {
     current_planet.AdjustViewpointLongitude(blit::pi * 0.004f);
     atmosphere_terran.AdjustViewpointLongitude(blit::pi * 0.004f);
-    atmo_offset_x += 0.04f;
+    atmosphere_terran.noise_offset_shift += atmo_shift;
     return true;
   }
   return false;
@@ -445,7 +446,7 @@ void render(uint32_t time) {
       blit::Point(xoffset + 0 + 3, 0 + 3));
 
   if (selected_planet_index == 0 || selected_planet_index == 3) {
-    blit::screen.alpha = 255;
+    blit::screen.alpha = 200;
     blit::screen.blit(
         &atmosphere_framebuffer,
         blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
@@ -610,10 +611,9 @@ void update(uint32_t time) {
           camera_zoom, camera_pan_x, camera_pan_y, blit::now());
       atmosphere_terran.Regen();
       // TODO make these part of the planet_type
-      atmosphere_terran.noise_factor_x = 3.0;
-      atmosphere_terran.noise_factor_y = 3.0;
-      atmosphere_terran.noise_factor_z = 10.0;
-      atmosphere_terran.noise_offset.x += atmo_offset_x;
+      atmosphere_terran.noise_scale_factor.x = 3.0;
+      atmosphere_terran.noise_scale_factor.y = 3.0;
+      atmosphere_terran.noise_scale_factor.z = 10.0;
     }
 
     current_planet.SetDrawPosition(0, 0);
