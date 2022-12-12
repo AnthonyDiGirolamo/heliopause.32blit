@@ -38,8 +38,9 @@ struct PlanetTerrain {
   uint8_t map_icon_color;
   uint8_t full_shadow;
   uint8_t transparent_color;
-  float min_noise_stretch;
-  float max_noise_stretch;
+  float min_noise_stretch_z;
+  float max_noise_stretch_z;
+  blit::Vec3 noise_scale_factor;
   float latitude_bias;
   int min_size;
   std::span<const uint8_t> color_map;

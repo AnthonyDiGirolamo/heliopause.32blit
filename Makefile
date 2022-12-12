@@ -38,7 +38,7 @@ build-stm32: $(OUTDIR)/stm32/$(APP_PATH).elf  ## build pico device code
 build-host: $(OUTDIR)/host/$(APP_PATH)  ## build host code
 
 .PHONY: build-wasm
-build-wasm: $(OUTDIR)/wasm/$(APP_PATH).html  ## build wasm code
+build-wasm: $(OUTDIR)/wasm/$(APP_PATH).wasm  ## build wasm code
 
 .PHONY: build-pico
 build-pico: $(OUTDIR)/pico/$(APP_PATH).uf2  ## build pico device code
@@ -81,7 +81,7 @@ $(OUTDIR)/host/$(APP_PATH): $(OUTDIR)/host/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/host
 
-$(OUTDIR)/wasm/$(APP_PATH).html: $(OUTDIR)/wasm/Makefile $(SOURCE_FILES)
+$(OUTDIR)/wasm/$(APP_PATH).wasm: $(OUTDIR)/wasm/Makefile $(SOURCE_FILES)
 	@$(ECHO_TAG_MESSAGE) "BUILD" $@ ; \
 	$(MAKE) -j 4 -C $(OUTDIR)/wasm
 

@@ -35,7 +35,7 @@ std::string_view equirectangular_string = {"Flat"};
 
 pw::StringBuffer<20> menu_item_value;
 
-bool auto_rotation = false;
+bool auto_rotation = true;
 
 float camera_zoom = 1.0;
 int camera_pan_x = 0;
@@ -390,6 +390,7 @@ void init() {
 
   planet_metadata.Format("Rendering...");
   current_planet.AdjustViewpointLatitude(blit::pi * -0.2f);
+  atmosphere_terran.AdjustViewpointLatitude(blit::pi * -0.2f);
 
 #ifdef PICO_ON_DEVICE
   queue_init(&heliopause::call_queue, sizeof(heliopause::queue_entry_t), 2);
@@ -598,10 +599,6 @@ void update(uint32_t time) {
           PLANET_FRAMEBUFFER_HEIGHT, // height
           camera_zoom, camera_pan_x, camera_pan_y, blit::now());
       atmosphere_terran.Regen();
-      // TODO make these part of the planet_type
-      atmosphere_terran.noise_scale_factor.x = 3.0;
-      atmosphere_terran.noise_scale_factor.y = 3.0;
-      atmosphere_terran.noise_scale_factor.z = 10.0;
     }
 
     current_planet.SetDrawPosition(0, 0);

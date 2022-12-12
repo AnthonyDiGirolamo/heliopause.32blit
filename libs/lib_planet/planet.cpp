@@ -16,11 +16,11 @@
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain)
     : seed(seed_value), rng(seed_value), noise_offset(0.0f, 0.0f, 0.0f),
       noise_offset_shift(0.0f, 0.0f, 0.0f),
-      noise_scale_factor(1.0f, 1.0f, 1.0f), terrain(new_terrain) {
-  viewpoint_phi0 = 0;
-  viewpoint_lambda0 = kPi;
-  draw_position_x = 0;
-  draw_position_y = 0;
+      noise_scale_factor(new_terrain.noise_scale_factor.x,
+                         new_terrain.noise_scale_factor.y,
+                         new_terrain.noise_scale_factor.z),
+      viewpoint_phi0(0), viewpoint_lambda0(kPi), terrain(new_terrain),
+      draw_position_x(0), draw_position_y(0) {
   Regen();
 }
 
@@ -64,10 +64,6 @@ void Planet::RebuildHeightMap() {
 void Planet::Regen() {
   RebuildHeightMap();
 
-  noise_scale_factor.x = 1.0f;
-  noise_scale_factor.y = 1.0f;
-  noise_scale_factor.z = 1.0f;
-
   rng = pw::random::XorShiftStarRng64(seed);
 
   simplex_noise =
@@ -77,9 +73,9 @@ void Planet::Regen() {
   noise_offset.y = Random::GetRandomFloat(&rng, 1024);
   noise_offset.z = Random::GetRandomFloat(&rng, 1024);
 
-  if (terrain.max_noise_stretch - terrain.min_noise_stretch > 0) {
+  if (terrain.max_noise_stretch_z - terrain.min_noise_stretch_z > 0) {
     noise_scale_factor.z = Random::GetRandomFloat(
-        &rng, terrain.min_noise_stretch, terrain.max_noise_stretch);
+        &rng, terrain.min_noise_stretch_z, terrain.max_noise_stretch_z);
   } else {
     // Get a random value for rng consistency
     float unused_result = Random::GetRandomFloat(&rng, 0, 20);
