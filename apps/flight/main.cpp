@@ -36,6 +36,8 @@ uint8_t planet_pixel_data[planet_width * planet_width];
 blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
                                  blit::PixelFormat::P,
                                  blit::Size(planet_width, planet_width));
+Vec2 planet_sector_pos = Vec2(32.0, 32.0);
+Vec2 planet_screen_pos = Vec2(0, 0);
 
 uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
@@ -68,6 +70,18 @@ void init() {
 
   // Tilt the planet down a bit
   current_planet.AdjustViewpointLatitude(blit::pi * -0.1f);
+
+  current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+  // Render the planet into the dedicated framebuffer
+  current_planet.SetDrawPosition(0, 0);
+  current_planet.setup_render_orthographic(&planet_framebuffer,
+                                           planet_width, // width
+                                           planet_width, // height
+                                           0,            // camera_zoom,
+                                           0,            // camera_pan_x,
+                                           0,            // camera_pan_y,
+                                           blit::now());
+  current_planet.render_orthographic_all();
 }
 
 void render(uint32_t time) {
@@ -98,10 +112,9 @@ void render(uint32_t time) {
   // }
 
   // Copy the planet_framebuffer onto the screen
-  // blit::screen.blit(&planet_framebuffer,
-  //                   blit::Rect(0, 0, planet_width, planet_width),
-  //                   blit::Point((blit::screen.bounds.w - planet_width) / 2,
-  //                               (blit::screen.bounds.h - planet_width) / 2));
+  blit::screen.blit(&planet_framebuffer,
+                    blit::Rect(0, 0, planet_width, planet_width),
+                    planet_screen_pos);
 
   int char_h_offset = -5;
 
@@ -170,13 +183,18 @@ void update(uint32_t time) {
 
   pilot.UpdateLocation(delta_seconds);
 
+  planet_screen_pos =
+      screen_center - (pilot.sector_position - planet_sector_pos);
+
   stars.Scroll(pilot.velocity_vector, delta_seconds);
 
   ship_speed.clear();
-  ship_speed.Format(
-      "v:%.2f g:%.2f p:[%.2f, %.2f]", static_cast<double>(pilot.velocity),
-      static_cast<double>(gees), static_cast<double>(pilot.sector_position.x),
-      static_cast<double>(pilot.sector_position.y));
+  ship_speed.Format("v:%.2f s:[%.2f, %.2f] s-p[%.2f, %.2f]",
+                    static_cast<double>(pilot.velocity),
+                    static_cast<double>(pilot.sector_position.x),
+                    static_cast<double>(pilot.sector_position.y),
+                    static_cast<double>(planet_screen_pos.x),
+                    static_cast<double>(planet_screen_pos.y));
 
   ship_debug.clear();
   ship_debug.Format("Heading: %.2f %.2f",
