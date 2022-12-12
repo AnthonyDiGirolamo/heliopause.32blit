@@ -21,8 +21,8 @@
 
 using namespace blit;
 
-pw::StringBuffer<50> ship_speed;
-pw::StringBuffer<50> ship_debug;
+pw::StringBuffer<64> ship_speed;
+pw::StringBuffer<64> ship_debug;
 
 Starfield stars = Starfield(&blit::screen);
 Vec2 velocity = Vec2(4.0, 0);
@@ -84,6 +84,9 @@ void init() {
   current_planet.render_orthographic_all();
 }
 
+Vec2 dpad_direction = Vec2(0.0f, 0.0f);
+bool direction_input = false;
+
 void render(uint32_t time) {
   float delta_seconds = (time - last_render_time) / 1000.0f;
   // Clear screen
@@ -129,18 +132,25 @@ void render(uint32_t time) {
   blit::screen.text(ship_debug.view(), heliopause::kCustomFont,
                     blit::Point(2, blit::screen.bounds.h - 16 + char_h_offset));
 
+  if (direction_input) {
+    blit::screen.pen = PICO8_WHITE;
+    Vec2 arrow_start = screen_center + (dpad_direction * 20.0f);
+    Vec2 arrow_end = screen_center + (dpad_direction * 30.0f);
+    blit::screen.line(arrow_start, arrow_end);
+  }
+
   pilot.Draw(&blit::screen, screen_center);
   last_render_time = time;
 }
 
 void update(uint32_t time) {
   float delta_seconds = (time - last_update_time) / 1000.0f;
-  float gees = 0;
+  // float gees = 0;
 
   // if (buttons & Button::DPAD_UP || buttons & Button::Y) {
   if (buttons & Button::Y) {
     pilot.ApplyThrust(4.0, delta_seconds);
-    gees = pilot.cur_gees;
+    // gees = pilot.cur_gees;
   } else if (pilot.accelerating) {
     // Up not being pressed shut the engine down.
     pilot.CutThrust();
@@ -160,25 +170,46 @@ void update(uint32_t time) {
   }
 #endif
 
+  direction_input = true;
+  dpad_direction = joystick;
+  float dpad_angle = 0.0f;
   // Absolute Dpad Steering
   if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_UP) {
     pilot.RotateTowardsHeading(radians(315.0f), delta_seconds);
+    dpad_direction = Vec2(1, -1);
   } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_UP) {
     pilot.RotateTowardsHeading(radians(225.0f), delta_seconds);
+    dpad_direction = Vec2(-1, -1);
   } else if (buttons & Button::DPAD_LEFT && buttons & Button::DPAD_DOWN) {
     pilot.RotateTowardsHeading(radians(135.0f), delta_seconds);
+    dpad_direction = Vec2(-1, 1);
   } else if (buttons & Button::DPAD_RIGHT && buttons & Button::DPAD_DOWN) {
     pilot.RotateTowardsHeading(radians(45.0f), delta_seconds);
-  }
-
-  else if (buttons & Button::DPAD_RIGHT) {
+    dpad_direction = Vec2(1, 1);
+  } else if (buttons & Button::DPAD_RIGHT) {
     pilot.RotateTowardsHeading(radians(0.0f), delta_seconds);
+    dpad_direction = Vec2(1, 0);
   } else if (buttons & Button::DPAD_DOWN) {
     pilot.RotateTowardsHeading(radians(90.0f), delta_seconds);
+    dpad_direction = Vec2(0, 1);
   } else if (buttons & Button::DPAD_LEFT) {
     pilot.RotateTowardsHeading(radians(180.0f), delta_seconds);
+    dpad_direction = Vec2(-1, 0);
   } else if (buttons & Button::DPAD_UP) {
     pilot.RotateTowardsHeading(radians(270.0f), delta_seconds);
+    dpad_direction = Vec2(0, -1);
+  } else {
+    if (joystick.x >= 0.1f || joystick.x <= -0.1f || joystick.y >= 0.1f ||
+        joystick.y <= -0.1f) {
+      dpad_direction = joystick;
+      dpad_angle = atan2f(dpad_direction.y, dpad_direction.x);
+      if (dpad_angle < 0) {
+        dpad_angle = kTwoPi + dpad_angle;
+      }
+      pilot.RotateTowardsHeading(dpad_angle, delta_seconds);
+    } else {
+      direction_input = false;
+    }
   }
 
   pilot.UpdateLocation(delta_seconds);
@@ -197,9 +228,12 @@ void update(uint32_t time) {
                     static_cast<double>(planet_screen_pos.y));
 
   ship_debug.clear();
-  ship_debug.Format("Heading: %.2f %.2f",
+  ship_debug.Format("Heading: %.2f %.2f [%.2f, %.2f] a:%.2f",
                     static_cast<double>(pilot.angle_degrees),
-                    static_cast<double>(pilot.angle_radians));
+                    static_cast<double>(pilot.angle_radians),
+                    static_cast<double>(dpad_direction.x),
+                    static_cast<double>(dpad_direction.y),
+                    static_cast<double>(degrees(dpad_angle)));
 
   last_update_time = time;
 }
