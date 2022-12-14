@@ -6,7 +6,7 @@
 	url = https://github.com/raspberrypi/pico-sdk
 [submodule "third_party/32blit-sdk"]
 	path = third_party/32blit-sdk
-	url = https://github.com/32blit/32blit-sdk
+	url = https://github.com/AnthonyDiGirolamo/32blit-sdk
 [submodule "third_party/pico-extras"]
 	path = third_party/pico-extras
 	url = https://github.com/raspberrypi/pico-extras
