@@ -43,9 +43,14 @@ uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
 float delta_seconds;
 
-std::string_view text_test = {" !\"#$%@'()*+,-.012345679:;<=>?\n"
-                              "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]\n"
-                              "^_`abcdefghijklmnopqrstuvwxyz{|}~"};
+std::string_view text_test = {
+    " !\"#$%@'()*+,-./\n"
+    "0123456789:;<=>?\n"
+    "@ABCDEFGHIJKLMNO\n"
+    "PQRSTUVWXYZ[\\]^_\n"
+    "`abcdefghijklmno\n"
+    "pqrstuvwxyz{|}~\n"
+};
 
 void init() {
 #ifdef SCREEN_MODE_HIRES

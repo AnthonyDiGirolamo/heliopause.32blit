@@ -17,7 +17,7 @@ font_asset.cpp:
     type: font/image
     height: 8
     space_width: 6
-    num_chars: 224
+    num_chars: 96
 
   # assets/m3x6.ttf:
   #   name: m3x6_font
