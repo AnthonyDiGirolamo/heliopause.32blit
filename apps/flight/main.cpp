@@ -13,6 +13,7 @@
 #include "pw_string/string_builder.h"
 
 #include "colors.hpp"
+#include "menu.hpp"
 #include "planet.hpp"
 #include "planet_types.hpp"
 #include "random.hpp"
@@ -43,12 +44,61 @@ uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
 float delta_seconds;
 
+Vec2 dpad_direction = Vec2(0.0f, 0.0f);
+bool direction_input = false;
+bool absolute_steering = true;
+bool flight_assist = true;
+
 std::string_view text_test = {" !\"#$%@'()*+,-./\n"
                               "0123456789:;<=>?\n"
                               "@ABCDEFGHIJKLMNO\n"
                               "PQRSTUVWXYZ[\\]^_\n"
                               "`abcdefghijklmno\n"
                               "pqrstuvwxyz{|}~\n"};
+
+std::string_view absolute_steering_enabled_string = {"Absolute"};
+std::string_view absolute_steering_disabled_string = {"Relative"};
+
+std::string_view on_string = {"On"};
+std::string_view off_string = {"Off"};
+
+std::string_view get_absolute_steering_string() {
+  if (absolute_steering)
+    return absolute_steering_enabled_string;
+  return absolute_steering_disabled_string;
+}
+
+void toggle_absolute_steering() { absolute_steering = not absolute_steering; }
+
+std::string_view get_flight_assist_string() {
+  if (flight_assist)
+    return on_string;
+  return off_string;
+}
+
+void toggle_flight_assist() { flight_assist = not flight_assist; }
+
+static constexpr heliopause::MenuItem main_menu_items[] = {
+    {
+        .name = std::string_view{"Control Mode "},
+        .get_value = &get_absolute_steering_string,
+        .increase_function = &toggle_absolute_steering,
+        .decrease_function = &toggle_absolute_steering,
+    },
+    {
+        .name = std::string_view{"Flight Assist "},
+        .get_value = &get_flight_assist_string,
+        .increase_function = &toggle_flight_assist,
+        .decrease_function = &toggle_flight_assist,
+    },
+};
+
+constexpr std::span<const heliopause::MenuItem>
+    main_menu_items_span(main_menu_items);
+
+heliopause::Menu main_menu =
+    heliopause::Menu(std::string_view{"Options"}, main_menu_items_span,
+                     &heliopause::kCustomFont, 8, 3, 2, 0, 0);
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -91,9 +141,6 @@ void init() {
   current_planet.render_orthographic_all();
 }
 
-Vec2 dpad_direction = Vec2(0.0f, 0.0f);
-bool direction_input = false;
-
 void render(uint32_t time) {
   float delta_seconds = (time - last_render_time) / 1000.0f;
   // Clear screen
@@ -134,11 +181,11 @@ void render(uint32_t time) {
   //     heliopause::kCustomFont,
   //     blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
   blit::screen.pen = PICO8_WHITE;
-  blit::screen.text(text_test,
-                    // minimal_font,
-                    heliopause::kCustomFont, blit::Point(0, 0),
-                    false // variable width?
-  );
+  // blit::screen.text(text_test,
+  //                   // minimal_font,
+  //                   heliopause::kCustomFont, blit::Point(0, 0),
+  //                   false // variable width?
+  // );
 
   blit::screen.text(ship_speed.view(), heliopause::kCustomFont,
                     blit::Point(2, blit::screen.bounds.h - 8 + char_h_offset),
@@ -157,25 +204,15 @@ void render(uint32_t time) {
   }
 
   pilot.Draw(&blit::screen, screen_center);
+
+  if (main_menu.active) {
+    main_menu.Draw(&blit::screen, 0, 0);
+  }
+
   last_render_time = time;
 }
 
-void update(uint32_t time) {
-  float delta_seconds = (time - last_update_time) / 1000.0f;
-  // float gees = 0;
-
-  // if (buttons & Button::DPAD_UP || buttons & Button::Y) {
-  if (buttons & Button::Y) {
-    pilot.ApplyThrust(4.0, delta_seconds);
-    // gees = pilot.cur_gees;
-  } else if (pilot.accelerating) {
-    // Up not being pressed shut the engine down.
-    pilot.CutThrust();
-  } else {
-    pilot.DampenSpeed(delta_seconds);
-  }
-
-#if 0
+void update_input_steering(float delta_seconds) {
   // Tank steering
   if (buttons & Button::DPAD_DOWN) {
     pilot.ReverseDirection(delta_seconds);
@@ -185,8 +222,9 @@ void update(uint32_t time) {
   } else if (buttons & Button::DPAD_RIGHT) {
     pilot.TurnRight(delta_seconds);
   }
-#endif
+}
 
+void update_input_absolute(float delta_seconds) {
   direction_input = true;
   dpad_direction = joystick;
   float dpad_angle = 0.0f;
@@ -228,6 +266,40 @@ void update(uint32_t time) {
       direction_input = false;
     }
   }
+}
+
+void update(uint32_t time) {
+  float delta_seconds = (time - last_update_time) / 1000.0f;
+  // float gees = 0;
+
+  if (main_menu.active) {
+    main_menu.Update(time);
+    last_update_time = time;
+    return;
+  }
+
+  if (buttons.pressed & Button::X) {
+    main_menu.ToggleActive();
+    last_update_time = time;
+    return;
+  }
+
+  if (buttons & Button::Y ||
+      (not absolute_steering && buttons & Button::DPAD_UP)) {
+    pilot.ApplyThrust(4.0, delta_seconds);
+    // gees = pilot.cur_gees;
+  } else if (pilot.accelerating) {
+    // Up not being pressed shut the engine down.
+    pilot.CutThrust();
+  } else {
+    if (flight_assist)
+      pilot.DampenSpeed(delta_seconds);
+  }
+
+  if (absolute_steering)
+    update_input_absolute(delta_seconds);
+  else
+    update_input_steering(delta_seconds);
 
   pilot.UpdateLocation(delta_seconds);
 
@@ -245,12 +317,13 @@ void update(uint32_t time) {
                     static_cast<double>(planet_screen_pos.y));
 
   ship_debug.clear();
-  ship_debug.Format("Heading: %.2f %.2f [%.2f, %.2f] a:%.2f",
+  ship_debug.Format("Heading: %.2f %.2f [%.2f, %.2f]",
                     static_cast<double>(pilot.angle_degrees),
                     static_cast<double>(pilot.angle_radians),
                     static_cast<double>(dpad_direction.x),
-                    static_cast<double>(dpad_direction.y),
-                    static_cast<double>(degrees(dpad_angle)));
+                    static_cast<double>(dpad_direction.y)
+                    // static_cast<double>(degrees(dpad_angle))
+  );
 
   last_update_time = time;
 }

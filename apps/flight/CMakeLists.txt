@@ -23,6 +23,7 @@ include (CPack)
 target_link_libraries(${FLIGHT_NAME}
   lib_colors
   lib_draw
+  lib_menu
   lib_planet
   lib_random
   pw_string
