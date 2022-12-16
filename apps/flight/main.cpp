@@ -149,6 +149,8 @@ void render(uint32_t time) {
   blit::screen.clear();
   blit::screen.mask = nullptr;
 
+  // TODO: The star trails can wobble if game is paused due to variability in
+  // delta_seconds.
   stars.Draw(pilot.velocity_vector, delta_seconds);
 
   // uint32_t time_now = blit::now();
