@@ -16,7 +16,7 @@ APP_PATH := apps/$(APP_NAME)/$(APP_NAME)
 SOURCE_PATH := ./apps
 LIBS_PATH := ./libs
 
-CMAKE_FILES := CMakeLists.txt $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name CMakeLists.txt)
+CMAKE_FILES := CMakeLists.txt $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name CMakeLists.txt) $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name '*.yml')
 SOURCE_FILES := $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name '*.h' -o -name '*.hpp' -o -name '*.c' -o -name '*.cc' -o -name '*.cpp')
 
 BLIT_SDK_PATH := $(abspath third_party/32blit-sdk)

@@ -26,7 +26,9 @@ blit::Surface atmosphere_framebuffer((uint8_t *)atmosphere_pixel_data,
                                                 PLANET_FRAMEBUFFER_HEIGHT));
 
 // const blit::Font kCustomFont(m3x6_font);
-const blit::Font kCustomFont(m6x11_font);
+// const blit::Font kCustomFont(m6x11_font);
+// const blit::Font kCustomFont(mrmotext);
+const blit::Font kCustomFont(kitchensink);
 
 #ifdef PICO_ON_DEVICE
 queue_t call_queue;

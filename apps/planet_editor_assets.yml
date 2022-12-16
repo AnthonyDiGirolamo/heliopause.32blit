@@ -6,12 +6,25 @@ assets.cpp:
   assets/no-image.png:
     name: asset_no_image
 font_asset.cpp:
-  assets/m3x6.ttf:
-    name: m3x6_font
-    height: 16
-    space_width: 2
-  assets/m6x11.ttf:
-    name: m6x11_font
-    height: 16
-    space_width: 2
+  # assets/MRMOTEXT-EX-text-oneline.png:
+  #   name: mrmotext
+  #   type: font/image
+  #   height: 8
+  #   space_width: 8
+
+  assets/kitchen-sink.png:
+    name: kitchensink
+    type: font/image
+    height: 8
+    space_width: 6
+    num_chars: 224
+
+  # assets/m3x6.ttf:
+  #   name: m3x6_font
+  #   height: 16
+  #   space_width: 2
+  # assets/m6x11.ttf:
+  #   name: m6x11_font
+  #   height: 16
+  #   space_width: 2
 

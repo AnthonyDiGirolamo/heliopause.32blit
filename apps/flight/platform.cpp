@@ -11,7 +11,9 @@ namespace heliopause {
 
 PlatformType kCurrentPlatform;
 
-const blit::Font kCustomFont(m3x6_font);
+// const blit::Font kCustomFont(m3x6_font);
 // const blit::Font kCustomFont(m6x11_font);
+// const blit::Font kCustomFont(mrmotext);
+const blit::Font kCustomFont(kitchensink);
 
 } // namespace heliopause
