@@ -43,14 +43,12 @@ uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
 float delta_seconds;
 
-std::string_view text_test = {
-    " !\"#$%@'()*+,-./\n"
-    "0123456789:;<=>?\n"
-    "@ABCDEFGHIJKLMNO\n"
-    "PQRSTUVWXYZ[\\]^_\n"
-    "`abcdefghijklmno\n"
-    "pqrstuvwxyz{|}~\n"
-};
+std::string_view text_test = {" !\"#$%@'()*+,-./\n"
+                              "0123456789:;<=>?\n"
+                              "@ABCDEFGHIJKLMNO\n"
+                              "PQRSTUVWXYZ[\\]^_\n"
+                              "`abcdefghijklmno\n"
+                              "pqrstuvwxyz{|}~\n"};
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -136,7 +134,9 @@ void render(uint32_t time) {
   //     heliopause::kCustomFont,
   //     blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
   blit::screen.pen = PICO8_WHITE;
-  blit::screen.text(text_test, heliopause::kCustomFont, blit::Point(0, 0),
+  blit::screen.text(text_test,
+                    // minimal_font,
+                    heliopause::kCustomFont, blit::Point(0, 0),
                     false // variable width?
   );
 

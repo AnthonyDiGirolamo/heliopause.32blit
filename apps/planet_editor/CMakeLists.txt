@@ -5,8 +5,6 @@ set(PLANET_EDITOR_SOURCE
   heliopause.hpp
   main.cpp
   main.hpp
-  menu.cpp
-  menu.hpp
   planet_editor.cpp
   planet_editor.hpp
   platform.cpp
@@ -29,6 +27,7 @@ include (CPack)
 # Common libraries
 target_link_libraries(${PLANET_EDITOR_NAME}
   lib_colors
+  lib_menu
   lib_planet
   lib_random
   pw_string

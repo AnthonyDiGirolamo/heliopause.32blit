@@ -309,7 +309,9 @@ constexpr std::span<const heliopause::MenuItem>
 pw::StringBuffer<24> last_render_update_message;
 pw::StringBuffer<32> planet_metadata;
 
-heliopause::Menu planet_menu = heliopause::Menu(planet_menu_items_span);
+heliopause::Menu planet_menu =
+    heliopause::Menu(std::string_view{"Planet Parameters"},
+                     planet_menu_items_span, &kCustomFont, 8, 3, 2, 0, 0);
 
 void render_planet() {
   uint32_t start_time = blit::now();
@@ -547,7 +549,7 @@ void update(uint32_t time) {
   }
 
   if (heliopause::PlanetEditor::planet_menu.active) {
-    rerender = planet_menu.Update();
+    rerender = planet_menu.Update(time);
   } else if (buttons.pressed & Button::X) {
     // Activate menu
     planet_menu.ToggleActive();

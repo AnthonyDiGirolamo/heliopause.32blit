@@ -19,6 +19,13 @@ font_asset.cpp:
     space_width: 6
     num_chars: 96
 
+  # assets/custom-font.png:
+  #   name: kitchensink
+  #   type: font/image
+  #   height: 8
+  #   space_width: 6
+  #   num_chars: 96
+
   # assets/m3x6.ttf:
   #   name: m3x6_font
   #   height: 16

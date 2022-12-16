@@ -1,6 +1,7 @@
 #pragma once
 
-#include "graphics/surface.hpp"
+#include "32blit.hpp"
+#include "graphics/font.hpp"
 #include <span>
 #include <string>
 
@@ -19,13 +20,21 @@ public:
   int selected_item_index;
   int max_name_length;
   bool active;
+  const blit::Font *font;
   int item_height;
-  int item_text_y_offset;
+  int item_top_padding;
+  int item_bottom_padding;
+  int left_margin;
+  int right_margin;
   std::span<const MenuItem> items;
+  uint32_t repeat_rate;
+  uint32_t last_update_time;
 
-  Menu(std::span<const MenuItem> menu_items);
+  Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
+       const blit::Font *menu_font, int row_height, int item_top_padding,
+       int item_bottom_padding, int left_margin, int right_margin);
   void Draw(blit::Surface *framebuffer, int posx, int posy);
-  bool Update();
+  bool Update(uint32_t time);
   void ToggleActive();
   void NextItem();
   void PrevItem();
