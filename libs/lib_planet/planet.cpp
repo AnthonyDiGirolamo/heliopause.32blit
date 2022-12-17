@@ -20,24 +20,15 @@ Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain)
                          new_terrain.noise_scale_factor.y,
                          new_terrain.noise_scale_factor.z),
       viewpoint_phi0(0), viewpoint_lambda0(kPi), terrain(new_terrain),
-      draw_position_x(0), draw_position_y(0) {
-  Regen();
-}
+      draw_position_x(0), draw_position_y(0) {}
 
-void Planet::SetTerrain(PlanetTerrain new_terrain) {
-  terrain = new_terrain;
-  Regen();
-}
+void Planet::SetTerrain(PlanetTerrain new_terrain) { terrain = new_terrain; }
 
-void Planet::SetSeed(uint32_t seed_value) {
-  seed = seed_value;
-  Regen();
-}
+void Planet::SetSeed(uint32_t seed_value) { seed = seed_value; }
 
 void Planet::SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain) {
   seed = seed_value;
   terrain = new_terrain;
-  Regen();
 }
 
 void Planet::RebuildHeightMap() {
@@ -66,6 +57,15 @@ void Planet::Regen() {
 
   rng = pw::random::XorShiftStarRng64(seed);
 
+  // Reset noise_scale_factor values
+  noise_scale_factor.x = terrain.noise_scale_factor.x;
+  noise_scale_factor.y = terrain.noise_scale_factor.y;
+  noise_scale_factor.z = terrain.noise_scale_factor.z;
+
+  // printf("\nRegen: %s\n", terrain.type_string.data());
+  // printf("noise_scale_factor: %f, %f, %f\n", noise_scale_factor.x,
+  //        noise_scale_factor.y, noise_scale_factor.z);
+
   simplex_noise =
       SimplexNoise(terrain.noise_zoom, 1.0f, 2.0f, terrain.noise_persistance);
 
@@ -73,6 +73,7 @@ void Planet::Regen() {
   noise_offset.y = Random::GetRandomFloat(&rng, 1024);
   noise_offset.z = Random::GetRandomFloat(&rng, 1024);
 
+  // If z stretch != 1, randomize noise_scale_factor.z
   if (terrain.max_noise_stretch_z - terrain.min_noise_stretch_z > 0) {
     noise_scale_factor.z = Random::GetRandomFloat(
         &rng, terrain.min_noise_stretch_z, terrain.max_noise_stretch_z);
@@ -81,6 +82,7 @@ void Planet::Regen() {
     float unused_result = Random::GetRandomFloat(&rng, 0, 20);
     unused_result += 1;
   }
+  // printf("Final noise_scale_factor.z: %f\n", noise_scale_factor.z);
 
   // Move the noise bubble (for atmosphere animations)
   noise_offset += noise_offset_shift;

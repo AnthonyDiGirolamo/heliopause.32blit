@@ -35,7 +35,7 @@ std::string_view equirectangular_string = {"Flat"};
 
 pw::StringBuffer<20> menu_item_value;
 
-bool auto_rotation = true;
+bool auto_rotation = false;
 
 float camera_zoom = 1.0;
 int camera_pan_x = 0;
