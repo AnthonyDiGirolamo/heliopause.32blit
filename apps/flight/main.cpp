@@ -151,7 +151,10 @@ void render(uint32_t time) {
 
   // TODO: The star trails can wobble if game is paused due to variability in
   // delta_seconds.
-  stars.Draw(pilot.velocity_vector, delta_seconds);
+  if (main_menu.active)
+    stars.Draw(pilot.velocity_vector, 0.0f);
+  else
+    stars.Draw(pilot.velocity_vector, delta_seconds);
 
   // uint32_t time_now = blit::now();
   // if (time_now > last_planet_render_time + 50) {

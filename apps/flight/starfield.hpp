@@ -32,5 +32,6 @@ public:
 
 private:
   blit::Surface *frame_buffer;
+  float last_delta_seconds;
   Star _stars[STARFIELD_COUNT];
 };

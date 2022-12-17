@@ -6,7 +6,10 @@
 
 using namespace Random;
 
-Starfield::Starfield(blit::Surface *fb) { frame_buffer = fb; }
+Starfield::Starfield(blit::Surface *fb) {
+  frame_buffer = fb;
+  last_delta_seconds = 0.0166; // assuming 60fps
+}
 
 void Starfield::ResetAll() {
   // Set initial random star locations.
@@ -59,10 +62,13 @@ void Starfield::Draw(blit::Vec2 ship_velocity, float delta_seconds) {
   blit::Vec2 star_velocity;
   blit::Vec2 position;
 
+  if (delta_seconds > 0)
+    last_delta_seconds = delta_seconds;
+
   for (uint8_t i = 0; i < STARFIELD_COUNT; i++) {
     position = _stars[i].position;
     star_velocity = ship_velocity * _stars[i].speed;
-    star_velocity *= delta_seconds;
+    star_velocity *= last_delta_seconds;
     lstart = (star_velocity * -2.5) + position;
     lend = (star_velocity * 2.5) + position;
 
