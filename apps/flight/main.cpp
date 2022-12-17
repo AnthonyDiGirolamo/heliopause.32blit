@@ -29,8 +29,7 @@ pw::StringBuffer<64> ship_speed;
 pw::StringBuffer<64> ship_debug;
 
 Starfield stars = Starfield(&blit::screen);
-Vec2 velocity = Vec2(4.0, 0);
-Planet current_planet = Planet(0x64063701, AllPlanetTypes[6]);
+Planet current_planet = Planet(0xFF, AllPlanetTypes[6]);
 Ship pilot = Ship();
 uint32_t last_update_time = 0;
 uint32_t last_render_time = 0;
@@ -53,12 +52,12 @@ bool direction_input = false;
 bool absolute_steering = true;
 bool flight_assist = true;
 
-std::string_view text_test = {" !\"#$%@'()*+,-./\n"
-                              "0123456789:;<=>?\n"
-                              "@ABCDEFGHIJKLMNO\n"
-                              "PQRSTUVWXYZ[\\]^_\n"
-                              "`abcdefghijklmno\n"
-                              "pqrstuvwxyz{|}~\n"};
+// std::string_view text_test = {" !\"#$%@'()*+,-./\n"
+//                               "0123456789:;<=>?\n"
+//                               "@ABCDEFGHIJKLMNO\n"
+//                               "PQRSTUVWXYZ[\\]^_\n"
+//                               "`abcdefghijklmno\n"
+//                               "pqrstuvwxyz{|}~\n"};
 
 std::string_view absolute_steering_enabled_string = {"Absolute"};
 std::string_view absolute_steering_disabled_string = {"Relative"};
@@ -120,7 +119,9 @@ void init() {
 #else
   heliopause::kCurrentPlatform = heliopause::sdl;
 #endif
-  screen_center = Vec2(blit::screen.bounds.w / 2, blit::screen.bounds.h / 2);
+
+  screen_center =
+      Vec2(float(blit::screen.bounds.w) / 2, float(blit::screen.bounds.h) / 2);
 
   planet_framebuffer.palette = PICO8;
   planet_framebuffer.alpha = 0;
@@ -143,6 +144,7 @@ void init() {
                                            0,            // camera_pan_x,
                                            0,            // camera_pan_y,
                                            blit::now());
+  current_planet.Regen();
   current_planet.render_orthographic_all();
 
   planet_screen_pos =

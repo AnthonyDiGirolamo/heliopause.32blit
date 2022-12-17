@@ -15,8 +15,9 @@
 namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
-#define ATMO_SEED_OFFSET 1
-Planet current_planet = Planet(0x64063701, AllPlanetTypes[0]);
+#define ATMO_SEED_OFFSET 10
+Planet current_planet = Planet();
+// Planet(0x64063701, AllPlanetTypes[0]);
 Planet atmosphere_terran =
     Planet(0x64063701 - ATMO_SEED_OFFSET, AllPlanetTypes[10]);
 
@@ -106,20 +107,18 @@ void decrease_noise_persistance() {
 
 std::string_view get_seed_string() {
   menu_item_value.clear();
-  menu_item_value.Format("%d", (int)Random::GetCurrentSeed());
+  menu_item_value.Format("%d", (int)current_planet.seed);
   return menu_item_value.view();
 }
 
 void increase_seed() {
-  Random::IncrementSeed(1);
-  current_planet.SetSeed(Random::GetCurrentSeed());
-  atmosphere_terran.SetSeed(Random::GetCurrentSeed() - ATMO_SEED_OFFSET);
+  current_planet.SetSeed(current_planet.seed + 1);
+  atmosphere_terran.SetSeed((atmosphere_terran.seed - ATMO_SEED_OFFSET) + 1);
 }
 
 void decrease_seed() {
-  Random::IncrementSeed(-1);
-  current_planet.SetSeed(Random::GetCurrentSeed());
-  atmosphere_terran.SetSeed(Random::GetCurrentSeed() - ATMO_SEED_OFFSET);
+  current_planet.SetSeed(current_planet.seed - 1);
+  atmosphere_terran.SetSeed((atmosphere_terran.seed - ATMO_SEED_OFFSET) - 1);
 }
 
 std::string_view get_auto_rotation_string() {

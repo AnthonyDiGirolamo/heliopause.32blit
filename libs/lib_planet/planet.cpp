@@ -1,5 +1,6 @@
 #include "planet.hpp"
 #include "colors.hpp"
+#include "planet_types.hpp"
 #include "pw_random/xor_shift.h"
 #include <cstdint>
 #include <math.h>
@@ -12,6 +13,15 @@
 // float fast_atan2f(float x) {
 //   return kFourPi*x - x*(fabsf(x) - 1)*(0.2447 + 0.0663*fabsf(x));
 // }
+
+Planet::Planet()
+    : seed(0xFF), rng(0xFF), noise_offset(0.0f, 0.0f, 0.0f),
+      noise_offset_shift(0.0f, 0.0f, 0.0f),
+      noise_scale_factor(AllPlanetTypes[0].noise_scale_factor.x,
+                         AllPlanetTypes[0].noise_scale_factor.y,
+                         AllPlanetTypes[0].noise_scale_factor.z),
+      viewpoint_phi0(0), viewpoint_lambda0(kPi), terrain(AllPlanetTypes[0]),
+      draw_position_x(0), draw_position_y(0) {}
 
 Planet::Planet(uint32_t seed_value, PlanetTerrain new_terrain)
     : seed(seed_value), rng(seed_value), noise_offset(0.0f, 0.0f, 0.0f),

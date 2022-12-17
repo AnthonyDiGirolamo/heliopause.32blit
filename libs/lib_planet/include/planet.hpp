@@ -79,7 +79,9 @@ public:
   float max_noise;
   float min_noise;
 
+  Planet();
   Planet(uint32_t seed_value, PlanetTerrain terrain);
+
   void RebuildHeightMap();
   void SetTerrainAndSeed(uint32_t seed_value, PlanetTerrain new_terrain);
   void SetSeed(uint32_t seed_value);
