@@ -17,17 +17,20 @@
 #include "planet.hpp"
 #include "planet_types.hpp"
 #include "random.hpp"
+#include "sector.hpp"
 #include "ship.hpp"
 #include "starfield.hpp"
 
 using namespace blit;
+
+namespace {
 
 pw::StringBuffer<64> ship_speed;
 pw::StringBuffer<64> ship_debug;
 
 Starfield stars = Starfield(&blit::screen);
 Vec2 velocity = Vec2(4.0, 0);
-Planet current_planet = Planet(0x64063701, AllPlanets[6]);
+Planet current_planet = Planet(0x64063701, AllPlanetTypes[6]);
 Ship pilot = Ship();
 uint32_t last_update_time = 0;
 uint32_t last_render_time = 0;
@@ -40,9 +43,10 @@ blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
 Vec2 planet_sector_pos = Vec2(32.0, 32.0);
 Vec2 planet_screen_pos = Vec2(0, 0);
 
-uint32_t last_planet_render_time = 0;
+Sector sector = Sector(0x987654);
+
+// uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
-float delta_seconds;
 
 Vec2 dpad_direction = Vec2(0.0f, 0.0f);
 bool direction_input = false;
@@ -61,6 +65,8 @@ std::string_view absolute_steering_disabled_string = {"Relative"};
 
 std::string_view on_string = {"On"};
 std::string_view off_string = {"Off"};
+
+} // namespace
 
 std::string_view get_absolute_steering_string() {
   if (absolute_steering)
@@ -127,8 +133,7 @@ void init() {
 
   // Tilt the planet down a bit
   current_planet.AdjustViewpointLatitude(blit::pi * -0.1f);
-
-  current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+  // current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
   // Render the planet into the dedicated framebuffer
   current_planet.SetDrawPosition(0, 0);
   current_planet.setup_render_orthographic(&planet_framebuffer,
@@ -139,6 +144,9 @@ void init() {
                                            0,            // camera_pan_y,
                                            blit::now());
   current_planet.render_orthographic_all();
+
+  planet_screen_pos =
+      screen_center - (pilot.sector_position - planet_sector_pos);
 }
 
 void render(uint32_t time) {
@@ -186,6 +194,7 @@ void render(uint32_t time) {
   //     heliopause::kCustomFont,
   //     blit::Point(2 + 1, blit::screen.bounds.h - 8 + 1 + char_h_offset));
   blit::screen.pen = PICO8_WHITE;
+
   // blit::screen.text(text_test,
   //                   // minimal_font,
   //                   heliopause::kCustomFont, blit::Point(0, 0),

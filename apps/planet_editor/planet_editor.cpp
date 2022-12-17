@@ -16,9 +16,9 @@ namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
 #define ATMO_SEED_OFFSET 1
-Planet current_planet = Planet(0x64063701, AllPlanets[0]);
+Planet current_planet = Planet(0x64063701, AllPlanetTypes[0]);
 Planet atmosphere_terran =
-    Planet(0x64063701 - ATMO_SEED_OFFSET, AllPlanets[10]);
+    Planet(0x64063701 - ATMO_SEED_OFFSET, AllPlanetTypes[10]);
 
 namespace {
 
@@ -48,15 +48,15 @@ std::string_view get_planet_type_string() {
 }
 
 void next_planet() {
-  selected_planet_index = (selected_planet_index + 1) % PlanetSpan.size();
-  current_planet.SetTerrain(AllPlanets[selected_planet_index]);
+  selected_planet_index = (selected_planet_index + 1) % AllPlanetTypes.size();
+  current_planet.SetTerrain(AllPlanetTypes[selected_planet_index]);
 }
 
 void previous_planet() {
   selected_planet_index -= 1;
   if (selected_planet_index < 0)
-    selected_planet_index = PlanetSpan.size() - 1;
-  current_planet.SetTerrain(AllPlanets[selected_planet_index]);
+    selected_planet_index = AllPlanetTypes.size() - 1;
+  current_planet.SetTerrain(AllPlanetTypes[selected_planet_index]);
 }
 
 std::string_view get_noise_octaves_string() {

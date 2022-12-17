@@ -118,7 +118,3 @@ private:
   int circle_start_x_coord(int y_coord, int radius);
   int terrain_color_index(int x, int y_coord);
 };
-
-std::string_view get_octaves_string(Planet *planet);
-void increase_octaves(Planet *planet);
-void decrease_octaves(Planet *planet);

@@ -7,6 +7,7 @@ if (NOT TARGET lib_planet)
 
   target_sources(lib_planet INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/planet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/planet_types.cpp
   )
 
   target_link_libraries(lib_planet INTERFACE

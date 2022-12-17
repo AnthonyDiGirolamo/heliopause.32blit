@@ -3,6 +3,7 @@ set(FLIGHT_NAME flight)
 set(FLIGHT_SOURCE
   main.cpp
   platform.cpp
+  sector.cpp
   starfield.cpp
   ship.cpp
 )
