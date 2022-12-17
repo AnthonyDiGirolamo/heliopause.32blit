@@ -15,7 +15,12 @@ int GetRandomInteger(uint32_t min_value, uint32_t max_value);
 float GetRandomFloat(float max_value);
 float GetRandomFloat(float min_value, float max_value);
 
-inline uint32_t GetRandomNumber(pw::random::XorShiftStarRng64 *rng);
+inline uint32_t GetRandomNumber(pw::random::XorShiftStarRng64 *rng) {
+  uint32_t random_value = 0;
+  rng->GetInt(random_value);
+  return random_value;
+}
+
 int GetRandomInteger(pw::random::XorShiftStarRng64 *rng, uint32_t max_value);
 int GetRandomInteger(pw::random::XorShiftStarRng64 *rng, uint32_t min_value,
                      uint32_t max_value);

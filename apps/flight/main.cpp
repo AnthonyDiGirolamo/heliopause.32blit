@@ -42,7 +42,7 @@ blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
 Vec2 planet_sector_pos = Vec2(32.0, 32.0);
 Vec2 planet_screen_pos = Vec2(0, 0);
 
-Sector sector = Sector(0x987654);
+Sector sector = Sector(0xEE);
 
 // uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);

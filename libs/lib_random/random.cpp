@@ -92,12 +92,6 @@ float GetRandomFloat(float min_value, float max_value) {
   return r;
 }
 
-inline uint32_t GetRandomNumber(pw::random::XorShiftStarRng64 *rng) {
-  uint32_t random_value = 0;
-  rng->GetInt(random_value);
-  return random_value;
-}
-
 int GetRandomInteger(pw::random::XorShiftStarRng64 *rng, uint32_t max_value) {
   return (int)(GetRandomNumber(rng) % max_value);
 }
