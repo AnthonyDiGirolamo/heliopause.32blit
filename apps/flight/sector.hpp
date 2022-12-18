@@ -8,14 +8,28 @@
 #include "pw_random/random.h"
 #include "pw_random/xor_shift.h"
 
+class SectorPlanet {
+public:
+  SectorPlanet();
+  SectorPlanet(uint32_t seed, PlanetTerrain terrain, blit::Vec2 position);
+
+  Planet planet;
+  blit::Vec2 sector_position;
+  blit::Vec2 screen_position;
+
+  void UpdatePosition(blit::Vec2 pilot_position, blit::Vec2 screen_center);
+};
+
 class Sector {
 public:
   Sector(uint32_t initial_seed);
 
   uint32_t seed;
   pw::random::XorShiftStarRng64 rng;
-  std::forward_list<Planet> planets;
+  std::forward_list<SectorPlanet> planets;
+  blit::Vec2 screen_center;
 
-  void Draw(blit::Surface *fb, blit::Vec2 pilot_position, float delta_seconds);
-  void Update(blit::Vec2 pilot_position, float delta_seconds);
+  void SetScreenCenter(blit::Vec2 center);
+  void Draw(blit::Surface *fb);
+  void Update(blit::Vec2 pilot_position);
 };

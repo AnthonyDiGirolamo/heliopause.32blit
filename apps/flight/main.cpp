@@ -122,6 +122,7 @@ void init() {
 
   screen_center =
       Vec2(float(blit::screen.bounds.w) / 2, float(blit::screen.bounds.h) / 2);
+  sector.SetScreenCenter(screen_center);
 
   planet_framebuffer.palette = PICO8;
   planet_framebuffer.alpha = 0;
@@ -146,6 +147,8 @@ void init() {
                                            blit::now());
   current_planet.Regen();
   current_planet.render_orthographic_all();
+
+  sector.Update(pilot.sector_position);
 
   planet_screen_pos =
       screen_center - (pilot.sector_position - planet_sector_pos);
@@ -187,6 +190,8 @@ void render(uint32_t time) {
   blit::screen.blit(&planet_framebuffer,
                     blit::Rect(0, 0, planet_width, planet_width),
                     planet_screen_pos);
+
+  sector.Draw(&blit::screen);
 
   int char_h_offset = -5;
 
@@ -318,6 +323,8 @@ void update(uint32_t time) {
     update_input_steering(delta_seconds);
 
   pilot.UpdateLocation(delta_seconds);
+
+  sector.Update(pilot.sector_position);
 
   planet_screen_pos =
       screen_center - (pilot.sector_position - planet_sector_pos);
