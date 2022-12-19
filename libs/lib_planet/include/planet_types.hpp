@@ -12,4 +12,6 @@
 #define ENDESGA32_DARK_OFFSET 33
 #define ENDESGA64_DARK_OFFSET 64
 
+#define MAX_PLANET_RADIUS 64
+
 extern const std::span<const PlanetTerrain> AllPlanetTypes;

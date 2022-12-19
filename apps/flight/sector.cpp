@@ -60,11 +60,14 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
 
     // TODO: Fix the -1 here for kAtmosphereTerranPlanet
     int planet_type = Random::GetRandomInteger(&rng, AllPlanetTypes.size() - 1);
+    int min_radius = AllPlanetTypes[planet_type].min_size;
+    int planet_radius =
+        Random::GetRandomInteger(&rng, min_radius, MAX_PLANET_RADIUS);
 
     int npc_count = Random::GetRandomInteger(&rng, 4);
     total_npcs += npc_count;
-    printf("Planet %d: seed=%u  type=%d  npcs=%d  ", i, planet_seed,
-           planet_type, npc_count);
+    printf("Planet %d: seed=%u  type=%d  radius=%d  npcs=%d  ", i, planet_seed,
+           planet_type, planet_radius, npc_count);
 
     float distance_from_star = Random::GetRandomFloat(&rng, 2048);
     float angle_around_star = Random::GetRandomFloat(&rng, blit::kTwoPi);
