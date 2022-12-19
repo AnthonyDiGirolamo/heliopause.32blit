@@ -29,7 +29,7 @@ pw::StringBuffer<64> ship_speed;
 pw::StringBuffer<64> ship_debug;
 
 Starfield stars = Starfield(&blit::screen);
-Planet current_planet = Planet(0xFF, AllPlanetTypes[6]);
+Planet current_planet = Planet(0xFE, AllPlanetTypes[6]);
 Ship pilot = Ship();
 uint32_t last_update_time = 0;
 uint32_t last_render_time = 0;

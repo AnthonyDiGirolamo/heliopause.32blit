@@ -9,21 +9,24 @@
 #include "planet_types.hpp"
 #include "random.hpp"
 #include "starfield.hpp"
+#include "types/rect.hpp"
+#include "types/vec2.hpp"
 
 namespace {
 
 constexpr int kMinPlanetCount = 1;
 constexpr int kMaxPlanetCount = 14;
+constexpr int kMaxPlanetRadius = 64;
 
 } // namespace
 
 SectorPlanet::SectorPlanet()
     : planet(), sector_position(0.0f, 0.0f), screen_position(0.0f, 0.0f) {}
 
-SectorPlanet::SectorPlanet(uint32_t seed, PlanetTerrain terrain,
+SectorPlanet::SectorPlanet(uint32_t seed, PlanetTerrain terrain, int radius,
                            blit::Vec2 position)
-    : planet(seed, terrain), sector_position(position.x, position.y),
-      screen_position(0.0f, 0.0f) {}
+    : planet(seed, terrain), planet_radius(radius),
+      sector_position(position.x, position.y), screen_position(0.0f, 0.0f) {}
 
 void SectorPlanet::UpdatePosition(blit::Vec2 pilot_position,
                                   blit::Vec2 screen_center) {
@@ -62,7 +65,7 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
     int planet_type = Random::GetRandomInteger(&rng, AllPlanetTypes.size() - 1);
     int min_radius = AllPlanetTypes[planet_type].min_size;
     int planet_radius =
-        Random::GetRandomInteger(&rng, min_radius, MAX_PLANET_RADIUS);
+        Random::GetRandomInteger(&rng, min_radius, kMaxPlanetRadius);
 
     int npc_count = Random::GetRandomInteger(&rng, 4);
     total_npcs += npc_count;
@@ -86,7 +89,7 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
            static_cast<double>(planet_position.y));
 
     planets.push_front(SectorPlanet(planet_seed, AllPlanetTypes[planet_type],
-                                    planet_position));
+                                    planet_radius, planet_position));
   }
 
   int pirate_count = Random::GetRandomInteger(&rng, 1, 3);
@@ -99,8 +102,24 @@ void Sector::SetScreenCenter(blit::Vec2 center) { screen_center = center; }
 void Sector::Draw(blit::Surface *fb) {
   for (auto &&sector_planet : planets) {
     fb->pen = PICO8_WHITE;
-    fb->rectangle(
-        blit::Rect(sector_planet.screen_position, blit::Size(20, 20)));
+    blit::Rect planet_rect =
+        blit::Rect(sector_planet.screen_position,
+                   blit::Size(sector_planet.planet_radius * 2,
+                              sector_planet.planet_radius * 2));
+
+    Rect cr = fb->clip.intersection(planet_rect);
+    if (cr.empty())
+      continue;
+
+    Vec2 center =
+        sector_planet.screen_position +
+        Vec2(sector_planet.planet_radius, sector_planet.planet_radius);
+
+    fb->circle(center, sector_planet.planet_radius);
+    fb->pen = PICO8_BLUE;
+    fb->rectangle(blit::Rect(center - blit::Vec2(1, 1), blit::Size(3, 3)));
+    fb->pen = PICO8_WHITE;
+    fb->pixel(center);
   }
 }
 

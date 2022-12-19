@@ -30,6 +30,7 @@ font_asset.cpp:
   #   name: m3x6_font
   #   height: 16
   #   space_width: 2
+
   # assets/m6x11.ttf:
   #   name: m6x11_font
   #   height: 16

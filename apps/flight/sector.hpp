@@ -11,9 +11,11 @@
 class SectorPlanet {
 public:
   SectorPlanet();
-  SectorPlanet(uint32_t seed, PlanetTerrain terrain, blit::Vec2 position);
+  SectorPlanet(uint32_t seed, PlanetTerrain terrain, int radius,
+               blit::Vec2 position);
 
   Planet planet;
+  int planet_radius;
   blit::Vec2 sector_position;
   blit::Vec2 screen_position;
 
