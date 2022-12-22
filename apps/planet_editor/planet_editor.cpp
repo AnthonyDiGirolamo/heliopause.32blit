@@ -16,8 +16,8 @@ namespace heliopause::PlanetEditor {
 
 bool display_mode_orthographic = true;
 #define ATMO_SEED_OFFSET 10
-Planet current_planet = Planet();
-// Planet(0x64063701, AllPlanetTypes[0]);
+// Planet current_planet = Planet();
+Planet current_planet = Planet(0x64063701, AllPlanetTypes[0]);
 Planet atmosphere_terran =
     Planet(0x64063701 - ATMO_SEED_OFFSET, AllPlanetTypes[10]);
 

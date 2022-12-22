@@ -51,6 +51,7 @@ Vec2 dpad_direction = Vec2(0.0f, 0.0f);
 bool direction_input = false;
 bool absolute_steering = true;
 bool flight_assist = true;
+bool auto_thrust = false;
 
 // std::string_view text_test = {" !\"#$%@'()*+,-./\n"
 //                               "0123456789:;<=>?\n"
@@ -67,34 +68,41 @@ std::string_view off_string = {"Off"};
 
 } // namespace
 
-std::string_view get_absolute_steering_string() {
-  if (absolute_steering)
-    return absolute_steering_enabled_string;
-  return absolute_steering_disabled_string;
-}
-
-void toggle_absolute_steering() { absolute_steering = not absolute_steering; }
-
-std::string_view get_flight_assist_string() {
-  if (flight_assist)
-    return on_string;
-  return off_string;
-}
-
-void toggle_flight_assist() { flight_assist = not flight_assist; }
-
 static constexpr heliopause::MenuItem main_menu_items[] = {
     {
         .name = std::string_view{"Control Mode "},
-        .get_value = &get_absolute_steering_string,
-        .increase_function = &toggle_absolute_steering,
-        .decrease_function = &toggle_absolute_steering,
+        .get_value =
+            []() {
+              if (absolute_steering)
+                return absolute_steering_enabled_string;
+              return absolute_steering_disabled_string;
+            },
+        .increase_function =
+            []() { absolute_steering = not absolute_steering; },
+        .decrease_function = nullptr,
     },
     {
         .name = std::string_view{"Flight Assist "},
-        .get_value = &get_flight_assist_string,
-        .increase_function = &toggle_flight_assist,
-        .decrease_function = &toggle_flight_assist,
+        .get_value =
+            []() {
+              if (flight_assist)
+                return on_string;
+              return off_string;
+            },
+        .increase_function = []() { flight_assist = not flight_assist; },
+        .decrease_function = nullptr,
+    },
+    {
+        .name = std::string_view{"Thrust on Direction Input"},
+        // .get_value = &get_auto_thrust_string,
+        .get_value =
+            []() {
+              if (auto_thrust)
+                return on_string;
+              return off_string;
+            },
+        .increase_function = []() { auto_thrust = not auto_thrust; },
+        .decrease_function = nullptr,
     },
 };
 
@@ -305,7 +313,12 @@ void update(uint32_t time) {
     return;
   }
 
-  if (buttons & Button::Y ||
+  if (absolute_steering)
+    update_input_absolute(delta_seconds);
+  else
+    update_input_steering(delta_seconds);
+
+  if (buttons & Button::Y || (auto_thrust && direction_input) ||
       (not absolute_steering && buttons & Button::DPAD_UP)) {
     pilot.ApplyThrust(4.0, delta_seconds);
     // gees = pilot.cur_gees;
@@ -316,11 +329,6 @@ void update(uint32_t time) {
     if (flight_assist)
       pilot.DampenSpeed(delta_seconds);
   }
-
-  if (absolute_steering)
-    update_input_absolute(delta_seconds);
-  else
-    update_input_steering(delta_seconds);
 
   pilot.UpdateLocation(delta_seconds);
 

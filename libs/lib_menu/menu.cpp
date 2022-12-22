@@ -50,7 +50,7 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   int total_cols = max_name_length * 2;
   int total_width = char_w * total_cols + left_margin + right_margin;
   // Shaded Background Rect
-  framebuffer->pen = blit::Pen(0, 0, 0, 32);
+  framebuffer->pen = blit::Pen(0, 0, 0, 128);
   framebuffer->rectangle(Rect(posx, posy, total_width, total_height));
 
   posx += left_margin;
@@ -124,7 +124,9 @@ bool Menu::Update(uint32_t time) {
       menu_action_was_run = true;
     } else if (blit::buttons & blit::Button::DPAD_LEFT) {
       input_occured = true;
-      items[selected_item_index].decrease_function();
+      if (items[selected_item_index].decrease_function != nullptr) {
+        items[selected_item_index].decrease_function();
+      }
       menu_action_was_run = true;
     }
 
