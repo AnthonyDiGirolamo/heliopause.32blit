@@ -68,6 +68,136 @@ std::string_view off_string = {"Off"};
 
 } // namespace
 
+static const Pen menu_colours[]{
+    {0},
+    {30, 30, 50, 200}, // background
+    {255, 255, 255},   // foreground
+    {40, 40, 60},      // bar background
+    {50, 50, 70},      // selected item background
+    {255, 128, 0},     // battery unknown
+    {0, 255, 0},       // battery usb host/adapter port
+    {255, 0, 0},       // battery otg
+    {100, 100, 255},   // battery charging
+    {235, 245, 255},   // header/footer bg
+    {3, 5, 7},         // header/footer fg
+    {245, 235, 0},     // header/footer fg warning
+};
+
+class GameMenu final : public blit::Menu {
+public:
+  using blit::Menu::Menu;
+
+  void prepare();
+
+protected:
+  void item_activated(const Item &item) override;
+  void render_item(const Item &item, int y, int index) const override;
+  Pen bar_background_color;
+};
+
+enum MenuItem {
+  M_CONTROL_MODE,
+  M_FLIGHT_ASSIST_MODE,
+  M_AUTO_THRUST,
+};
+
+static Menu::Item game_menu_items[]{
+    {M_CONTROL_MODE, "Control Mode"},
+    {Menu::Separator, nullptr},
+    {M_FLIGHT_ASSIST_MODE, "Flight Assist"},
+    {M_AUTO_THRUST, "Thrust on Direction Input"},
+};
+
+void GameMenu::prepare() {
+  background_colour = menu_colours[1];
+  foreground_colour = menu_colours[2];
+  bar_background_color = menu_colours[3];
+  selected_item_background = menu_colours[4];
+  header_background = menu_colours[9];
+  header_foreground = menu_colours[10];
+
+  display_rect.w = blit::screen.bounds.w;
+  display_rect.h = blit::screen.bounds.h;
+}
+
+void GameMenu::item_activated(const Item &item) {
+  switch (item.id) {
+  case M_CONTROL_MODE:
+    absolute_steering = not absolute_steering;
+    break;
+  case M_FLIGHT_ASSIST_MODE:
+    flight_assist = not flight_assist;
+    break;
+  case M_AUTO_THRUST:
+    auto_thrust = not auto_thrust;
+    break;
+  }
+}
+
+void GameMenu::render_item(const Item &item, int y, int index) const {
+  Menu::render_item(item, y, index);
+
+  const auto screen_width = screen.bounds.w;
+
+  const int bar_margin = 2;
+  const int bar_width = 75;
+  int bar_x = screen_width - bar_width - item_padding_x;
+
+  switch (item.id) {
+  case M_CONTROL_MODE:
+    if (absolute_steering) {
+      screen.pen = menu_colours[11];
+      screen.text(absolute_steering_enabled_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    } else {
+      screen.pen = menu_colours[11];
+      screen.text(absolute_steering_disabled_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    }
+    break;
+
+  case M_FLIGHT_ASSIST_MODE:
+    if (flight_assist) {
+      screen.pen = menu_colours[11];
+      screen.text(on_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    } else {
+      screen.pen = menu_colours[11];
+      screen.text(off_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    }
+    break;
+
+  case M_AUTO_THRUST:
+    if (auto_thrust) {
+      screen.pen = menu_colours[11];
+      screen.text(on_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    } else {
+      screen.pen = menu_colours[11];
+      screen.text(off_string, heliopause::kCustomFont,
+                  Point(screen_width - item_padding_x, y + 1), true,
+                  TextAlign::right);
+    }
+    break;
+
+  default:
+    screen.pen = foreground_colour;
+    screen.text("Press A", heliopause::kCustomFont,
+                Point(screen_width - item_padding_x, y + 1), true,
+                TextAlign::right);
+    break;
+  }
+}
+
+GameMenu game_menu("Flight Options", game_menu_items,
+                   std::size(game_menu_items), heliopause::kCustomFont);
+
 static constexpr heliopause::MenuItem main_menu_items[] = {
     {
         .name = std::string_view{"Control Mode "},
@@ -160,6 +290,8 @@ void init() {
 
   planet_screen_pos =
       screen_center - (pilot.sector_position - planet_sector_pos);
+
+  game_menu.prepare();
 }
 
 void render(uint32_t time) {
@@ -235,7 +367,8 @@ void render(uint32_t time) {
   pilot.Draw(&blit::screen, screen_center);
 
   if (main_menu.active) {
-    main_menu.Draw(&blit::screen, 0, 0);
+    // main_menu.Draw(&blit::screen, 0, 0);
+    game_menu.render();
   }
 
   last_render_time = time;
@@ -303,6 +436,7 @@ void update(uint32_t time) {
 
   if (main_menu.active) {
     main_menu.Update(time);
+    game_menu.update(time);
     last_update_time = time;
     return;
   }
