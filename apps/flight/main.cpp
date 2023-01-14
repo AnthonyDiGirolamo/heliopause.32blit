@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "engine/input.hpp"
 #include "platform.hpp"
 // 32blit
 #include "32blit.hpp"
@@ -109,9 +110,7 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
 constexpr std::span<const heliopause::MenuItem>
     main_menu_items_span(main_menu_items);
 
-heliopause::Menu main_menu =
-    heliopause::Menu(std::string_view{"Options"}, main_menu_items_span,
-                     &heliopause::kCustomFont, 8, 3, 2, 0, 0);
+heliopause::Menu main_menu;
 
 void init() {
 #ifdef SCREEN_MODE_HIRES
@@ -137,6 +136,18 @@ void init() {
   planet_framebuffer.transparent_index = 48;
   planet_framebuffer.pen = 49;
   planet_framebuffer.clear();
+
+  main_menu = heliopause::Menu( // Pause menu
+      std::string_view{"Options"},
+      main_menu_items_span,     // items
+      &heliopause::kCustomFont, // font
+      0,                        // text row height
+      3,                        // item top padding
+      2,                        // item bottom padding
+      0,                        // left margin
+      0                         // right margin
+  );
+  main_menu.SetButtons(blit::Button::B, blit::Button::A);
 
   Random::RestartSeed();
   stars.ResetAll();
@@ -307,7 +318,7 @@ void update(uint32_t time) {
     return;
   }
 
-  if (buttons.pressed & Button::X) {
+  if (buttons.pressed & Button::Y) {
     main_menu.ToggleActive();
     last_update_time = time;
     return;

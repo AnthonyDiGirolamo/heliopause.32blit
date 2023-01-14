@@ -1,7 +1,6 @@
 #pragma once
 
 #include "32blit.hpp"
-#include "graphics/font.hpp"
 #include <span>
 #include <string>
 
@@ -16,6 +15,8 @@ struct MenuItem {
 
 class Menu {
 public:
+  blit::Button close_button;
+  blit::Button toggle_button;
   std::string_view title;
   int selected_item_index;
   int max_name_length;
@@ -26,13 +27,17 @@ public:
   int item_bottom_padding;
   int left_margin;
   int right_margin;
+  blit::Size size;
+
   std::span<const MenuItem> items;
   uint32_t repeat_rate;
   uint32_t last_update_time;
 
+  Menu();
   Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
        const blit::Font *menu_font, int row_height, int item_top_padding,
        int item_bottom_padding, int left_margin, int right_margin);
+  void SetButtons(blit::Button closeb, blit::Button toggleb);
   void Draw(blit::Surface *framebuffer, int posx, int posy);
   bool Update(uint32_t time);
   void ToggleActive();

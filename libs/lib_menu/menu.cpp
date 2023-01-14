@@ -5,10 +5,16 @@
 
 namespace heliopause {
 
+Menu::Menu() {}
+
 Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
            const blit::Font *menu_font, int text_height,
            int rhs_item_top_padding, int rhs_item_bottom_padding,
            int rhs_left_margin, int rhs_right_margin) {
+  close_button = blit::Button::X;
+  toggle_button = blit::Button::A;
+  size = blit::screen.bounds;
+
   items = menu_items;
   title = menu_title;
   active = false;
@@ -24,7 +30,13 @@ Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
   }
 
   font = menu_font;
+
   item_height = text_height;
+  if (item_height == 0) {
+    item_height = font->char_h + font->spacing_y;
+  }
+  printf("MenuFont w:%u, h:%u\n", menu_font->char_w, menu_font->char_h);
+
   item_top_padding = rhs_item_top_padding;
   item_bottom_padding = rhs_item_bottom_padding;
 
@@ -37,6 +49,11 @@ Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
   // top_padding = 3;
 }
 
+void Menu::SetButtons(blit::Button closeb, blit::Button toggleb) {
+  close_button = closeb;
+  toggle_button = toggleb;
+}
+
 void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   if (not active)
     return;
@@ -44,14 +61,15 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   int char_w = font->char_w;
   int char_h = item_height + item_top_padding + item_bottom_padding;
 
-  int total_rows = 1 + items.size(); // 1 for the title
-  int total_height = char_h * total_rows;
+  // int total_rows = 1 + items.size(); // 1 for the title
+  // int total_height = char_h * total_rows;
 
+  // TODO: Right justify options text
   int total_cols = max_name_length * 2;
   int total_width = char_w * total_cols + left_margin + right_margin;
   // Shaded Background Rect
   framebuffer->pen = blit::Pen(0, 0, 0, 128);
-  framebuffer->rectangle(Rect(posx, posy, total_width, total_height));
+  framebuffer->rectangle(Rect(Point(posx, posy), size));
 
   posx += left_margin;
 
@@ -101,10 +119,11 @@ void Menu::PrevItem() {
 
 bool Menu::Update(uint32_t time) {
   bool menu_action_was_run = false;
-  if (not active)
+  if (not active) {
     return menu_action_was_run;
+  }
 
-  if (blit::buttons.pressed & blit::Button::X) {
+  if (blit::buttons.pressed & close_button) {
     // Deactivate menu
     ToggleActive();
   }
@@ -115,17 +134,23 @@ bool Menu::Update(uint32_t time) {
     if (blit::buttons & blit::Button::DPAD_DOWN) {
       input_occured = true;
       NextItem();
+
     } else if (blit::buttons & blit::Button::DPAD_UP) {
       input_occured = true;
       PrevItem();
-    } else if (blit::buttons & blit::Button::DPAD_RIGHT) {
+
+    } else if ((blit::buttons & blit::Button::DPAD_RIGHT) |
+               (blit::buttons.pressed & toggle_button)) {
       input_occured = true;
       items[selected_item_index].increase_function();
       menu_action_was_run = true;
+
     } else if (blit::buttons & blit::Button::DPAD_LEFT) {
       input_occured = true;
       if (items[selected_item_index].decrease_function != nullptr) {
         items[selected_item_index].decrease_function();
+      } else {
+        items[selected_item_index].increase_function();
       }
       menu_action_was_run = true;
     }

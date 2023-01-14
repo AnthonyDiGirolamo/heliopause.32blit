@@ -26,10 +26,10 @@ font_asset.cpp:
   #   space_width: 6
   #   num_chars: 96
 
-  # assets/m3x6.ttf:
-  #   name: m3x6_font
-  #   height: 16
-  #   space_width: 2
+  assets/m3x6.ttf:
+    name: m3x6_font
+    height: 16
+    space_width: 2
 
   # assets/m6x11.ttf:
   #   name: m6x11_font
