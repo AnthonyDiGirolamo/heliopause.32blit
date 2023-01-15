@@ -18,7 +18,7 @@ Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
   items = menu_items;
   title = menu_title;
   active = false;
-  repeat_rate = 160;
+  repeat_rate = 200;
   left_margin = rhs_left_margin;
   right_margin = rhs_right_margin;
 
@@ -131,11 +131,12 @@ bool Menu::Update(uint32_t time) {
   if (time - last_update_time > repeat_rate) {
     bool input_occured = false;
 
-    if (blit::buttons & blit::Button::DPAD_DOWN) {
+    if (blit::buttons & blit::Button::DPAD_DOWN || blit::joystick.y >= 0.1f) {
       input_occured = true;
       NextItem();
 
-    } else if (blit::buttons & blit::Button::DPAD_UP) {
+    } else if (blit::buttons & blit::Button::DPAD_UP ||
+               blit::joystick.y <= -0.1f) {
       input_occured = true;
       PrevItem();
 

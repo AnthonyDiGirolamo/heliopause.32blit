@@ -329,7 +329,7 @@ void update(uint32_t time) {
   else
     update_input_steering(delta_seconds);
 
-  if (buttons & Button::Y || (auto_thrust && direction_input) ||
+  if (buttons & Button::X || (auto_thrust && direction_input) ||
       (not absolute_steering && buttons & Button::DPAD_UP)) {
     pilot.ApplyThrust(4.0, delta_seconds);
     // gees = pilot.cur_gees;
