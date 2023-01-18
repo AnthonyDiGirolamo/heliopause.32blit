@@ -1,0 +1,10 @@
+title: ZSolitaire
+description: ZSolitaire
+author: A.DiGirolamo
+splash:
+  file: assets/no-image.png
+icon:
+  file: assets/no-icon.png
+version: v0.0.1
+category: puzzle
+url: https://github.com/AnthonyDiGirolamo/heliopause.32blit

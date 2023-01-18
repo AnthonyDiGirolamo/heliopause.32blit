@@ -17,6 +17,7 @@ SOURCE_PATH := ./apps
 LIBS_PATH := ./libs
 
 CMAKE_FILES := CMakeLists.txt $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name CMakeLists.txt) $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name '*.yml')
+ASSET_FILES := $(shell find $(SOURCE_PATH) -name '*.yml' -o -name '*.tmx' -o -name '*.png')
 SOURCE_FILES := $(shell find $(SOURCE_PATH) $(LIBS_PATH) -name '*.h' -o -name '*.hpp' -o -name '*.c' -o -name '*.cc' -o -name '*.cpp')
 
 BLIT_SDK_PATH := $(abspath third_party/32blit-sdk)
@@ -45,19 +46,19 @@ build-pico: $(OUTDIR)/pico/$(APP_PATH).uf2  ## build pico device code
 
 build: $(OUTDIR)/host/$(APP_PATH) $(OUTDIR)/stm32/$(APP_PATH).elf $(OUTDIR)/pico/$(APP_PATH).uf2
 
-$(OUTDIR)/stm32/Makefile: $(CMAKE_FILES)
+$(OUTDIR)/stm32/Makefile: $(CMAKE_FILES) $(ASSET_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	cmake -S . -B $(OUTDIR)/stm32 $(COMMON_CMAKE_ARGS) -DCMAKE_TOOLCHAIN_FILE=$(BLIT_SDK_PATH)/32blit.toolchain
 
-$(OUTDIR)/host/Makefile: $(CMAKE_FILES)
+$(OUTDIR)/host/Makefile: $(CMAKE_FILES) $(ASSET_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	cmake -S . -B $(OUTDIR)/host $(COMMON_CMAKE_ARGS)
 
-$(OUTDIR)/wasm/Makefile: $(CMAKE_FILES)
+$(OUTDIR)/wasm/Makefile: $(CMAKE_FILES) $(ASSET_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	emcmake cmake -S . -B $(OUTDIR)/wasm $(COMMON_CMAKE_ARGS)
 
-$(OUTDIR)/pico/Makefile: $(CMAKE_FILES)
+$(OUTDIR)/pico/Makefile: $(CMAKE_FILES) $(ASSET_FILES)
 	@$(ECHO_TAG_MESSAGE) "GEN" $@
 	cmake -S . -B $(OUTDIR)/pico $(COMMON_CMAKE_ARGS) -DCMAKE_TOOLCHAIN_FILE=$(BLIT_SDK_PATH)/pico.toolchain -DPICO_BOARD=pimoroni_picosystem
 

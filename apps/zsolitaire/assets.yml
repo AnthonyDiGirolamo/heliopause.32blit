@@ -1,0 +1,48 @@
+# All these assets will be created in assets.cpp, which CMake will
+# link automagically.
+# References can be picked up by including assets.hpp
+
+assets.cpp:
+  assets/no-image.png:
+    name: asset_no_image
+  assets/cards.tmx:
+    name: asset_map_cards
+    output_struct: True
+  assets/sprite_sheet.png:
+    name: asset_sprite_sheet
+    palette: ../assets/black_and_white_palette.gpl
+    strict: True
+    # transparent: 0,0,0
+
+# card_font.cpp:
+#   ../assets/MRMOTEXT-EX-text-oneline.png:
+#     name: mrmotext
+#     type: font/image
+#     height: 8
+#     space_width: 8
+
+custom_font.cpp:
+  ../assets/kitchen-sink.png:
+    name: kitchensink
+    type: font/image
+    height: 8
+    space_width: 6
+    num_chars: 96
+
+  # assets/custom-font.png:
+  #   name: kitchensink
+  #   type: font/image
+  #   height: 8
+  #   space_width: 6
+  #   num_chars: 96
+
+  # assets/m3x6.ttf:
+  #   name: m3x6_font
+  #   height: 16
+  #   space_width: 2
+
+  # assets/m6x11.ttf:
+  #   name: m6x11_font
+  #   height: 16
+  #   space_width: 2
+
