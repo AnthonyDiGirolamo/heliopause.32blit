@@ -3,14 +3,28 @@
 #include "colors.hpp"
 #include <string>
 
+#include "draw.hpp"
+
 namespace heliopause {
 
-Menu::Menu() {}
+void Menu::SetDefaults() {
+  border_size = 2;
+  color_background = blit::Pen(0, 0, 0, 128);
+  color_border = blit::Pen(255, 255, 255, 255);
+  color_title_foreground = PICO8_ORANGE;
+  color_text_foreground = PICO8_WHITE;
+  color_text_selected_foreground = PICO8_BLUE;
+  color_selected_background = PICO8_DARK_BLUE; // blit::Pen(0, 0, 0, 200);
+}
+
+Menu::Menu() { SetDefaults(); }
 
 Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
            const blit::Font *menu_font, int text_height,
            int rhs_item_top_padding, int rhs_item_bottom_padding,
            int rhs_left_margin, int rhs_right_margin) {
+  SetDefaults();
+
   close_button = blit::Button::X;
   toggle_button = blit::Button::A;
   size = blit::screen.bounds;
@@ -35,7 +49,7 @@ Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
   if (item_height == 0) {
     item_height = font->char_h + font->spacing_y;
   }
-  printf("MenuFont w:%u, h:%u\n", menu_font->char_w, menu_font->char_h);
+  // printf("MenuFont w:%u, h:%u\n", menu_font->char_w, menu_font->char_h);
 
   item_top_padding = rhs_item_top_padding;
   item_bottom_padding = rhs_item_bottom_padding;
@@ -65,40 +79,58 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   // int total_height = char_h * total_rows;
 
   // TODO: Right justify options text
-  int total_cols = max_name_length * 2;
-  int total_width = char_w * total_cols + left_margin + right_margin;
-  // Shaded Background Rect
-  framebuffer->pen = blit::Pen(0, 0, 0, 128);
-  framebuffer->rectangle(Rect(Point(posx, posy), size));
+  // int total_cols = max_name_length * 2;
+  // int total_width = char_w * total_cols + left_margin + right_margin;
+  int total_width = size.w - (border_size * 2);
 
-  posx += left_margin;
+  // Background Rect
+
+  if (border_size > 0) {
+    framebuffer->pen = color_border;
+    for (int i = 0; i < border_size; i++) {
+      Draw::rectangle(framebuffer, posx + i, posy + i, (posx + size.w) - i * 2,
+                      (posy + size.h) - i * 2, false);
+    }
+    framebuffer->pen = color_background;
+    framebuffer->rectangle(
+        Rect(Point(posx + border_size, posy + border_size),
+             Size(size.w - border_size * 2, size.h - border_size * 2)));
+  } else {
+    framebuffer->pen = color_background;
+    framebuffer->rectangle(Rect(Point(posx, posy), size));
+  }
+
+  posx += left_margin + border_size;
 
   int row = 0;
 
   // Menu title
-  framebuffer->pen = PICO8_ORANGE;
-  framebuffer->text(title, *font, blit::Point(posx, posy + item_top_padding));
+  framebuffer->pen = color_title_foreground;
+  framebuffer->text(title, *font,
+                    blit::Point(posx, posy + border_size + item_top_padding));
   row += 1;
 
   // Items
-  framebuffer->pen = PICO8_WHITE;
+  framebuffer->pen = color_text_foreground;
   int value_posx = max_name_length * char_w;
 
   for (const MenuItem item : items) {
     int y = posy + (row * char_h);
+    blit::Rect item_rect = Rect(posx - left_margin, y, total_width, char_h);
     if (row - 1 == selected_item_index) {
-      framebuffer->pen = blit::Pen(0, 0, 0, 200);
-      framebuffer->rectangle(Rect(posx - left_margin, y, total_width, char_h));
-
-      framebuffer->pen = PICO8_BLUE;
+      // Selected Item
+      framebuffer->pen = color_selected_background;
+      framebuffer->rectangle(item_rect);
+      framebuffer->pen = color_text_selected_foreground;
+    } else {
+      // Not Selected Item
+      framebuffer->pen = color_text_foreground;
     }
+
     framebuffer->text(item.name, *font,
                       blit::Point(posx, y + item_top_padding));
     framebuffer->text(item.get_value(), *font,
                       blit::Point(value_posx, y + item_top_padding));
-    if (row - 1 == selected_item_index) {
-      framebuffer->pen = PICO8_WHITE;
-    }
     row += 1;
   }
 }

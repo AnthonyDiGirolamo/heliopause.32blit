@@ -27,7 +27,16 @@ public:
   int item_bottom_padding;
   int left_margin;
   int right_margin;
+
   blit::Size size;
+  uint8_t border_size;
+
+  blit::Pen color_background;
+  blit::Pen color_border;
+  blit::Pen color_title_foreground;
+  blit::Pen color_text_foreground;
+  blit::Pen color_text_selected_foreground;
+  blit::Pen color_selected_background;
 
   std::span<const MenuItem> items;
   uint32_t repeat_rate;
@@ -37,6 +46,7 @@ public:
   Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
        const blit::Font *menu_font, int row_height, int item_top_padding,
        int item_bottom_padding, int left_margin, int right_margin);
+  void SetDefaults();
   void SetButtons(blit::Button closeb, blit::Button toggleb);
   void Draw(blit::Surface *framebuffer, int posx, int posy);
   bool Update(uint32_t time);
