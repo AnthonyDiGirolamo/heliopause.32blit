@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="8" height="8" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="1">
+<map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="8" height="8" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="1">
  <tileset firstgid="1" source="sprite_sheet.tsx"/>
- <layer id="3" name="Holder Background" width="8" height="8">
+ <layer id="4" name="Holder Background" width="8" height="8">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,
 0,40,40,40,0,0,0,0,
@@ -13,7 +13,7 @@
 0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer id="2" name="Holder Outline" width="8" height="8" opacity="0.6">
+ <layer id="3" name="Holder Outline" width="8" height="8" opacity="0.6">
   <data encoding="csv">
 11,47,47,47,12,0,0,0,
 48,0,0,0,48,0,0,0,
@@ -22,6 +22,18 @@
 48,0,0,0,48,0,0,0,
 48,0,0,0,48,0,0,0,
 27,47,47,47,28,0,0,0,
+0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer id="2" name="Card Shadow" width="8" height="8">
+  <data encoding="csv">
+43,77,77,77,44,0,0,0,
+75,2,2,2,76,0,0,0,
+75,2,2,2,76,0,0,0,
+75,2,2,2,76,0,0,0,
+75,2,2,2,76,0,0,0,
+75,2,2,2,76,0,0,0,
+59,78,78,78,60,0,0,0,
 0,0,0,0,0,0,0,0
 </data>
  </layer>

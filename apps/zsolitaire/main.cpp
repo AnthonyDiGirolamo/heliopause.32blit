@@ -1,5 +1,9 @@
 #include "main.hpp"
 
+#include <cstddef>
+#include <cstdint>
+#include <deque>
+
 #include "32blit.hpp"
 #include "pw_random/random.h"
 #include "pw_random/xor_shift.h"
@@ -27,33 +31,17 @@ const blit::Font kCardFont(mrmotext);
 
 uint32_t seed;
 static pw::random::XorShiftStarRng64 rng(123456);
-TileMap *map_card;
+TileMap *map_card_outline;
+TileMap *map_card_filled;
 TileMap *map_holder;
 TileMap *map_holder_background;
 
 enum CardMapLayer {
   Layer_CardOutline,
+  Layer_CardFilled,
   Layer_HolderOutline,
   Layer_HolderBackground,
 };
-
-void init() {
-  blit::set_screen_mode(ScreenMode::hires);
-
-  screen.sprites = Surface::load(asset_sprite_sheet);
-  screen.sprites->palette = sprite_colors;
-
-  map_card = TileMap::load_tmx((uint8_t *)asset_map_cards, screen.sprites,
-                               Layer_CardOutline);
-  map_holder = TileMap::load_tmx((uint8_t *)asset_map_cards, screen.sprites,
-                                 Layer_HolderOutline);
-  map_holder_background = TileMap::load_tmx(
-      (uint8_t *)asset_map_cards, screen.sprites, Layer_HolderBackground);
-
-  // Test sprite index fetch
-  printf("tile offset: %d %d %d\n", map_card->tile_at(Point(0, 0)),
-         map_card->tile_at(Point(1, 0)), map_card->tile_at(Point(0, 1)));
-}
 
 void draw_map(TileMap *map, Point pos) {
   for (int dy = 0; dy < map->bounds.h; dy++) {
@@ -67,52 +55,196 @@ void draw_map(TileMap *map, Point pos) {
   }
 }
 
-void draw_card(int x, int y, bool holder = false) {
-  Point pos(x, y);
-  Point pos_shadow(x + 2, y + 2);
-  Size map_size(5, 7);
-  Size size(8 * map_size.w, 8 * map_size.h);
-  Rect card_rect(pos, size);
+namespace Solitaire {
 
-  if (holder) {
-    // Holder
-    sprite_colors[FG] = ENDESGA64[Ocean2];
-    sprite_colors[BG] = clear;
-    // map_holder->draw(&screen, card_rect, nullptr);
-    draw_map(map_holder, pos);
-    // Holder background
-    sprite_colors[FG] = ENDESGA64[Ocean1];
-    sprite_colors[BG] = ENDESGA64[Ocean2];
-    // map_holder_background->draw(&screen, card_rect, nullptr);
-    draw_map(map_holder_background, pos);
-  }
+enum Suit {
+  Spade,
+  Heart,
+  Diamond,
+  Clover,
+  Tarot,
+  DragonDagger,
+  DragonMirror,
+  DragonWealth,
+};
+
+Pen SuitColors[]{
+    ENDESGA64[Black0],  // Spade
+    ENDESGA64[Blood],   // Heart
+    ENDESGA64[Blood],   // Diamond
+    ENDESGA64[Black0],  // Clover
+    ENDESGA64[Orange1], // Tarot
+    ENDESGA64[Blood],   // Dagger
+    ENDESGA64[Black0],  // Mirror
+    ENDESGA64[Green1],  // Wealth
+};
+
+class Card {
+public:
+  Card() = default;
+  constexpr Card(Suit s, uint8_t n) : suit(s), number(n) {}
+
+  Suit suit = Tarot;
+  uint8_t number = 0;
+  void Draw(Point pos, int32_t shadow_offset);
+};
+
+void Card::Draw(Point pos, int32_t shadow_offset = 2) {
+  const int32_t sprite_size = 8;
+  Size map_size(5, 7);
+  Size size(sprite_size * map_size.w, sprite_size * map_size.h);
 
   // Card Shadow
   sprite_colors[FG] = ENDESGA64[Coffee0];
   sprite_colors[FG].a = 128;
   sprite_colors[BG] = clear;
-  draw_map(map_card, pos + Point(2, 2));
+  draw_map(map_card_filled, pos + Point(shadow_offset, shadow_offset));
 
   // Card background color
-  screen.pen = ENDESGA64[Coffee7];
-  int bg_offset = 5;
-  Point bg_corner1 = pos + Point(bg_offset, bg_offset);
-  Point bg_corner2 =
-      bg_corner1 + Point(size.w - bg_offset * 2, size.h - bg_offset * 2);
-  screen.rectangle(Rect(bg_corner1, bg_corner2));
+  sprite_colors[FG] = ENDESGA64[Coffee7];
+  sprite_colors[BG] = clear;
+  draw_map(map_card_filled, pos);
 
   // Card Border
   sprite_colors[FG] = ENDESGA64[Coffee6];
   sprite_colors[BG] = clear;
-  // map_card->draw(&screen, card_rect, nullptr);
-  draw_map(map_card, pos);
+  draw_map(map_card_outline, pos);
 
   screen.pen = Pen(0, 0, 0, 255);
-  screen.text("234", kCardFont, pos + Vec2(8, 8));
-  screen.text("567", kCardFont, pos + Vec2(8, 16));
-  screen.text("891", kCardFont, pos + Vec2(8, 24));
-  screen.text("000", kCardFont, pos + Vec2(8, 32));
-  screen.text("000", kCardFont, pos + Vec2(8, 40));
+
+  const int32_t number_glyph_index = 80;
+  const int32_t suit_glyph_index = 16;
+  Point glyph_pos = pos + Point(sprite_size, sprite_size);
+
+  // Suit
+  sprite_colors[FG] = SuitColors[suit];
+  screen.sprite(suit_glyph_index + suit, glyph_pos);
+  glyph_pos.x += sprite_size;
+  int32_t ones_place = number % 10;
+
+  if (suit == Tarot) {
+    // No suit icon
+    // 0, 1, 2, 3, ..., 19, 20, 21, 22
+
+    glyph_pos.x -= 4;
+    if (number >= 20) {
+      screen.sprite(number_glyph_index + 2, glyph_pos);
+      glyph_pos.x += sprite_size;
+    } else if (number >= 10) {
+      // Center the 10 a bit more.
+      glyph_pos.x += 1;
+      screen.sprite(number_glyph_index + 1, glyph_pos);
+      glyph_pos.x += 6;
+    }
+    screen.sprite(number_glyph_index + ones_place, glyph_pos);
+    glyph_pos.x += sprite_size;
+
+  } else if (suit >= DragonDagger) {
+    // Dragons
+  } else {
+    // Suit icon
+    // 0, 1, 2, 3, ..., 10, J, Q, K, A
+
+    if (number == 10) {
+      screen.sprite(number_glyph_index + 10, glyph_pos);
+      glyph_pos.x += 5;
+      screen.sprite(number_glyph_index + ones_place, glyph_pos);
+      glyph_pos.x += sprite_size;
+    } else if (number <= 14) {
+      screen.sprite(number_glyph_index + number, glyph_pos);
+      glyph_pos.x += sprite_size;
+    }
+  }
+
+  glyph_pos = pos + Point(sprite_size, sprite_size * 2);
+
+  screen.text("123", kCardFont, glyph_pos + Point(0, 0));
+  screen.text("456", kCardFont, glyph_pos + Point(0, sprite_size));
+  screen.text("789", kCardFont, glyph_pos + Point(0, sprite_size * 2));
+  screen.text("#!$", kCardFont, glyph_pos + Point(0, sprite_size * 3));
+}
+
+class Stack {
+public:
+  Point screen_position = Point(0, 0);
+  std::deque<Card> cards;
+
+  Stack() = default;
+  void ScreenPosition(int32_t x, int32_t y);
+  void Draw();
+  void AddCard(Card c);
+  void DrawHolder();
+  Card BottomCard();
+};
+
+void Stack::DrawHolder() {
+  sprite_colors[FG] = ENDESGA64[Ocean2];
+  sprite_colors[BG] = clear;
+  draw_map(map_holder, screen_position);
+  // Holder background
+  sprite_colors[FG] = ENDESGA64[Ocean1];
+  sprite_colors[BG] = ENDESGA64[Ocean2];
+  draw_map(map_holder_background, screen_position);
+}
+
+void Stack::Draw() {
+  DrawHolder();
+
+  Point pos = screen_position;
+  // pos.x = 100;
+  for (auto &c : cards) {
+    c.Draw(pos);
+    pos.y += 14;
+    // pos.x -= 8;
+  }
+}
+
+void Stack::ScreenPosition(int32_t x, int32_t y) {
+  screen_position.x = x;
+  screen_position.y = y;
+}
+
+void Stack::AddCard(Card c) { cards.push_back(std::move(c)); }
+
+Card Stack::BottomCard() { return cards.back(); }
+
+} // namespace Solitaire
+
+void draw_card(int x, int y, bool holder = false) {}
+
+using namespace Solitaire;
+
+Stack stack1;
+
+void init() {
+  blit::set_screen_mode(ScreenMode::hires);
+
+  screen.sprites = Surface::load(asset_sprite_sheet);
+  screen.sprites->palette = sprite_colors;
+
+  map_card_outline = TileMap::load_tmx((uint8_t *)asset_map_cards,
+                                       screen.sprites, Layer_CardOutline);
+  map_card_filled = TileMap::load_tmx((uint8_t *)asset_map_cards,
+                                      screen.sprites, Layer_CardFilled);
+  map_holder = TileMap::load_tmx((uint8_t *)asset_map_cards, screen.sprites,
+                                 Layer_HolderOutline);
+  map_holder_background = TileMap::load_tmx(
+      (uint8_t *)asset_map_cards, screen.sprites, Layer_HolderBackground);
+
+  stack1.ScreenPosition(0, 0);
+  stack1.AddCard(Card(Spade, 14));
+  stack1.AddCard(Card(Spade, 13));
+  stack1.AddCard(Card(Spade, 12));
+  stack1.AddCard(Card(Spade, 11));
+  stack1.AddCard(Card(Heart, 10));
+  stack1.AddCard(Card(Diamond, 9));
+  stack1.AddCard(Card(Clover, 1));
+  stack1.AddCard(Card(Clover, 0));
+  stack1.AddCard(Card(Tarot, 22));
+  stack1.AddCard(Card(Tarot, 10));
+  stack1.AddCard(Card(DragonDagger, 0));
+  stack1.AddCard(Card(DragonMirror, 1));
+  stack1.AddCard(Card(DragonWealth, 2));
 }
 
 void render(uint32_t time_ms) {
@@ -135,11 +267,7 @@ void render(uint32_t time_ms) {
     }
   }
 
-  // Test card drawing
-  draw_card(24, 0, true);
-  draw_card(16, 14, false);
-  draw_card(8, 14 + 14, false);
-  draw_card(0, 14 + 14 + 14, false);
+  stack1.Draw();
 }
 
 void update(uint32_t time) {
