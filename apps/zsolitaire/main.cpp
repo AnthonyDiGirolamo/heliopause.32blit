@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <vector>
 
 #include "32blit.hpp"
 #include "pw_random/random.h"
@@ -57,26 +58,45 @@ void draw_map(TileMap *map, Point pos) {
 
 namespace Solitaire {
 
+Size card_sprite_size(8, 8);
+Size card_map_size(5, 7);
+Size card_pixel_size(card_sprite_size.w *card_map_size.w,
+                     card_sprite_size.h *card_map_size.h);
+
 enum Suit {
-  Spade,
-  Heart,
-  Diamond,
-  Clover,
-  Tarot,
-  DragonDagger,
-  DragonMirror,
-  DragonWealth,
+  Spade = 0,
+  Heart = 1,
+  Diamond = 2,
+  Clover = 3,
+  Tarot = 4,
+  DragonDagger = 5,
+  DragonMirror = 6,
+  DragonWealth = 7,
+  Flower = 8,
+};
+
+constexpr uint8_t SuitIcons[]{
+    16, // Spade
+    17, // Heart
+    18, // Diamond
+    19, // Clover
+    20, // Tarot
+    64, // DragonDagger
+    65, // DragonMirror
+    66, // DragonWealth
+    67, // Flower
 };
 
 Pen SuitColors[]{
-    ENDESGA64[Black0],  // Spade
-    ENDESGA64[Blood],   // Heart
-    ENDESGA64[Blood],   // Diamond
-    ENDESGA64[Black0],  // Clover
-    ENDESGA64[Orange1], // Tarot
-    ENDESGA64[Blood],   // Dagger
-    ENDESGA64[Black0],  // Mirror
-    ENDESGA64[Green1],  // Wealth
+    ENDESGA64[Black0],      // Spade
+    ENDESGA64[Blood],       // Heart
+    ENDESGA64[Blood],       // Diamond
+    ENDESGA64[Black0],      // Clover
+    ENDESGA64[Orange1],     // Tarot
+    ENDESGA64[Blood],       // Dagger
+    ENDESGA64[Black0],      // Mirror
+    ENDESGA64[Green1],      // Wealth
+    ENDESGA64[CandyGrape1], // Flower
 };
 
 class Card {
@@ -87,12 +107,57 @@ public:
   Suit suit = Tarot;
   uint8_t number = 0;
   void Draw(Point pos, int32_t shadow_offset);
+  void DrawSuit(Point pos);
 };
 
+void Card::DrawSuit(Point glyph_pos) {
+  const int32_t number_glyph_index = 80;
+  // Point glyph_pos = pos + ;
+
+  // Suit
+  sprite_colors[FG] = SuitColors[suit];
+  screen.sprite(SuitIcons[suit], glyph_pos);
+  glyph_pos.x += card_sprite_size.w;
+  int32_t ones_place = number % 10;
+
+  if (suit == Tarot) {
+    // No suit icon
+    // 0, 1, 2, 3, ..., 19, 20, 21, 22
+
+    glyph_pos.x -= 4;
+    if (number >= 20) {
+      screen.sprite(number_glyph_index + 2, glyph_pos);
+      glyph_pos.x += card_sprite_size.w;
+    } else if (number >= 10) {
+      // Center the 10 a bit more.
+      glyph_pos.x += 1;
+      screen.sprite(number_glyph_index + 1, glyph_pos);
+      glyph_pos.x += 6;
+    }
+    screen.sprite(number_glyph_index + ones_place, glyph_pos);
+    glyph_pos.x += card_sprite_size.w;
+
+  } else if (suit >= DragonDagger) {
+    // Dragons
+  } else {
+    // Suit icon
+    // 0, 1, 2, 3, ..., 10, J, Q, K, A
+
+    if (number == 10) {
+      screen.sprite(number_glyph_index + 10, glyph_pos);
+      glyph_pos.x += 5;
+      screen.sprite(number_glyph_index + ones_place, glyph_pos);
+      glyph_pos.x += card_sprite_size.w;
+    } else if (number <= 14) {
+      screen.sprite(number_glyph_index + number, glyph_pos);
+      glyph_pos.x += card_sprite_size.w;
+    }
+  }
+}
+
 void Card::Draw(Point pos, int32_t shadow_offset = 2) {
-  const int32_t sprite_size = 8;
-  Size map_size(5, 7);
-  Size size(sprite_size * map_size.w, sprite_size * map_size.h);
+  Size size(card_sprite_size.w * card_map_size.w,
+            card_sprite_size.h * card_map_size.h);
 
   // Card Shadow
   sprite_colors[FG] = ENDESGA64[Coffee0];
@@ -110,72 +175,36 @@ void Card::Draw(Point pos, int32_t shadow_offset = 2) {
   sprite_colors[BG] = clear;
   draw_map(map_card_outline, pos);
 
-  screen.pen = Pen(0, 0, 0, 255);
-
-  const int32_t number_glyph_index = 80;
-  const int32_t suit_glyph_index = 16;
-  Point glyph_pos = pos + Point(sprite_size, sprite_size);
-
-  // Suit
-  sprite_colors[FG] = SuitColors[suit];
-  screen.sprite(suit_glyph_index + suit, glyph_pos);
-  glyph_pos.x += sprite_size;
-  int32_t ones_place = number % 10;
-
-  if (suit == Tarot) {
-    // No suit icon
-    // 0, 1, 2, 3, ..., 19, 20, 21, 22
-
-    glyph_pos.x -= 4;
-    if (number >= 20) {
-      screen.sprite(number_glyph_index + 2, glyph_pos);
-      glyph_pos.x += sprite_size;
-    } else if (number >= 10) {
-      // Center the 10 a bit more.
-      glyph_pos.x += 1;
-      screen.sprite(number_glyph_index + 1, glyph_pos);
-      glyph_pos.x += 6;
-    }
-    screen.sprite(number_glyph_index + ones_place, glyph_pos);
-    glyph_pos.x += sprite_size;
-
-  } else if (suit >= DragonDagger) {
-    // Dragons
+  DrawSuit(pos + Point(card_sprite_size.w - 1, card_sprite_size.h));
+  if (suit >= DragonDagger && suit <= Flower) {
+    DrawSuit(pos + Point(card_sprite_size.w * 3 + 1, card_sprite_size.h * 5));
+  } else if (suit <= Clover) {
+    if (number == 10)
+      DrawSuit(pos + Point(card_sprite_size.w * 2 - 4, card_sprite_size.h * 5));
+    else
+      DrawSuit(pos + Point(card_sprite_size.w * 2 + 1, card_sprite_size.h * 5));
   } else {
-    // Suit icon
-    // 0, 1, 2, 3, ..., 10, J, Q, K, A
-
-    if (number == 10) {
-      screen.sprite(number_glyph_index + 10, glyph_pos);
-      glyph_pos.x += 5;
-      screen.sprite(number_glyph_index + ones_place, glyph_pos);
-      glyph_pos.x += sprite_size;
-    } else if (number <= 14) {
-      screen.sprite(number_glyph_index + number, glyph_pos);
-      glyph_pos.x += sprite_size;
-    }
   }
-
-  glyph_pos = pos + Point(sprite_size, sprite_size * 2);
-
-  screen.text("123", kCardFont, glyph_pos + Point(0, 0));
-  screen.text("456", kCardFont, glyph_pos + Point(0, sprite_size));
-  screen.text("789", kCardFont, glyph_pos + Point(0, sprite_size * 2));
-  screen.text("#!$", kCardFont, glyph_pos + Point(0, sprite_size * 3));
 }
 
 class Stack {
 public:
   Point screen_position = Point(0, 0);
   std::deque<Card> cards;
+  Size card_draw_offset = Size(0, 14);
+  int32_t draw_count = 1;
 
   Stack() = default;
+  Stack(Point position);
   void ScreenPosition(int32_t x, int32_t y);
   void Draw();
-  void AddCard(Card c);
+  bool AddCard(Card c);
   void DrawHolder();
   Card BottomCard();
+  void Clear();
 };
+
+Stack::Stack(Point position) { screen_position = position; }
 
 void Stack::DrawHolder() {
   sprite_colors[FG] = ENDESGA64[Ocean2];
@@ -194,7 +223,7 @@ void Stack::Draw() {
   // pos.x = 100;
   for (auto &c : cards) {
     c.Draw(pos);
-    pos.y += 14;
+    pos.y += card_draw_offset.h;
     // pos.x -= 8;
   }
 }
@@ -204,17 +233,153 @@ void Stack::ScreenPosition(int32_t x, int32_t y) {
   screen_position.y = y;
 }
 
-void Stack::AddCard(Card c) { cards.push_back(std::move(c)); }
+bool Stack::AddCard(Card c) {
+  cards.push_back(std::move(c));
+  return true;
+}
 
 Card Stack::BottomCard() { return cards.back(); }
 
-} // namespace Solitaire
+void Stack::Clear() { cards.clear(); }
 
-void draw_card(int x, int y, bool holder = false) {}
+// clang-format off
+constexpr Card shenzhen_deck[] = {
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
+  Card(Flower, 0),
+  Card(Spade, 1),
+  Card(Spade, 2),
+  Card(Spade, 3),
+  Card(Spade, 4),
+  Card(Spade, 5),
+  Card(Spade, 6),
+  Card(Spade, 7),
+  Card(Spade, 8),
+  Card(Spade, 9),
+  Card(Heart, 1),
+  Card(Heart, 2),
+  Card(Heart, 3),
+  Card(Heart, 4),
+  Card(Heart, 5),
+  Card(Heart, 6),
+  Card(Heart, 7),
+  Card(Heart, 8),
+  Card(Heart, 9),
+  Card(Diamond, 1),
+  Card(Diamond, 2),
+  Card(Diamond, 3),
+  Card(Diamond, 4),
+  Card(Diamond, 5),
+  Card(Diamond, 6),
+  Card(Diamond, 7),
+  Card(Diamond, 8),
+  Card(Diamond, 9),
+};
+// clang-format on
+constexpr std::span<const Card> shenzhen_deck_span(shenzhen_deck);
+
+class Board {
+public:
+  std::vector<Stack> stacks;
+  std::vector<Stack> temp_slots;
+  std::vector<Stack> discard_slots;
+  std::vector<Card> deal_deck;
+  Stack deal_stack;
+  uint32_t seed;
+
+  Board();
+  void Draw();
+  void Shuffle();
+};
+
+void Board::Shuffle() {
+  // Load base deck
+  deal_deck.clear();
+  for (auto &card : shenzhen_deck_span) {
+    deal_deck.push_back(card);
+  }
+
+  // Swap random cards
+  for (int i = 0; i < 400; i++) {
+    int c1 = Random::GetRandomInteger(deal_deck.size());
+    int c2 = Random::GetRandomInteger(deal_deck.size());
+    Card temp(std::move(deal_deck[c1]));
+    deal_deck[c1] = std::move(deal_deck[c2]);
+    deal_deck[c2] = std::move(temp);
+  }
+
+  // // Move cards to the deal stack
+  // for (auto &c : deal_deck) {
+  //   deal_stack.AddCard(c);
+  //   deal_deck.pop_back();
+  // }
+
+  // Deal cards to each stack
+  for (auto &stack : stacks) {
+    stack.Clear();
+    stack.AddCard(deal_deck.back());
+    deal_deck.pop_back();
+    stack.AddCard(deal_deck.back());
+    deal_deck.pop_back();
+    stack.AddCard(deal_deck.back());
+    deal_deck.pop_back();
+    stack.AddCard(deal_deck.back());
+    deal_deck.pop_back();
+    stack.AddCard(deal_deck.back());
+    deal_deck.pop_back();
+  }
+}
+
+Board::Board() {
+  const int stack_count = 8;
+  for (int i = 0; i < stack_count; i++) {
+    Stack stack1(Point(i * card_pixel_size.w,
+                       card_sprite_size.h * (card_map_size.h + 1)));
+    stacks.push_back(std::move(stack1));
+  }
+
+  for (int i = stack_count - 3; i < stack_count; i++) {
+    Stack discard1(Point(i * card_pixel_size.w, 0));
+    discard_slots.push_back(std::move(discard1));
+  }
+
+  deal_stack.ScreenPosition((4 * card_pixel_size.w) - card_sprite_size.w, 0);
+  deal_stack.card_draw_offset.h = 0;
+
+  for (int i = 0; i < 3; i++) {
+    Stack temp1(Point(i * card_pixel_size.w + card_sprite_size.w, 0));
+    temp_slots.push_back(std::move(temp1));
+  }
+}
+
+void Board::Draw() {
+  for (auto &s : stacks) {
+    s.Draw();
+  }
+  for (auto &s : discard_slots) {
+    s.Draw();
+  }
+  for (auto &s : temp_slots) {
+    s.Draw();
+  }
+  deal_stack.DrawHolder();
+}
+
+} // namespace Solitaire
 
 using namespace Solitaire;
 
-Stack stack1;
+Board game_board;
 
 void init() {
   blit::set_screen_mode(ScreenMode::hires);
@@ -231,20 +396,7 @@ void init() {
   map_holder_background = TileMap::load_tmx(
       (uint8_t *)asset_map_cards, screen.sprites, Layer_HolderBackground);
 
-  stack1.ScreenPosition(0, 0);
-  stack1.AddCard(Card(Spade, 14));
-  stack1.AddCard(Card(Spade, 13));
-  stack1.AddCard(Card(Spade, 12));
-  stack1.AddCard(Card(Spade, 11));
-  stack1.AddCard(Card(Heart, 10));
-  stack1.AddCard(Card(Diamond, 9));
-  stack1.AddCard(Card(Clover, 1));
-  stack1.AddCard(Card(Clover, 0));
-  stack1.AddCard(Card(Tarot, 22));
-  stack1.AddCard(Card(Tarot, 10));
-  stack1.AddCard(Card(DragonDagger, 0));
-  stack1.AddCard(Card(DragonMirror, 1));
-  stack1.AddCard(Card(DragonWealth, 2));
+  game_board.Shuffle();
 }
 
 void render(uint32_t time_ms) {
@@ -252,10 +404,10 @@ void render(uint32_t time_ms) {
   screen.mask = nullptr;
   screen.clear();
 
-  // Reset seed
   sprite_colors[FG] = ENDESGA64[Ocean0];
   sprite_colors[BG] = ENDESGA64[Ocean1];
 
+  // Reset seed
   rng = pw::random::XorShiftStarRng64(123456);
   // Draw background
   for (int x = 0; x < screen.bounds.w; x += 8) {
@@ -267,7 +419,7 @@ void render(uint32_t time_ms) {
     }
   }
 
-  stack1.Draw();
+  game_board.Draw();
 }
 
 void update(uint32_t time) {
