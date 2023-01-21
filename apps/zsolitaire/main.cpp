@@ -13,6 +13,7 @@
 #include "card_font.hpp"
 #include "colors.hpp"
 #include "random.hpp"
+#include "types/point.hpp"
 
 using namespace blit;
 
@@ -102,10 +103,14 @@ Pen SuitColors[]{
 class Card {
 public:
   Card() = default;
-  constexpr Card(Suit s, uint8_t n) : suit(s), number(n) {}
+  constexpr Card(Suit s, uint8_t n)
+      : suit(s), number(n), screen_position(Point(0, 0)) {}
+  constexpr Card(Suit s, uint8_t n, Point pos)
+      : suit(s), number(n), screen_position(pos) {}
 
   Suit suit = Tarot;
   uint8_t number = 0;
+  Point screen_position;
   void Draw(Point pos, int32_t shadow_offset);
   void DrawSuit(Point pos);
 };
@@ -198,6 +203,7 @@ public:
   Stack(Point position);
   void ScreenPosition(int32_t x, int32_t y);
   void Draw();
+  bool UpdateCardPositions(float delta_seconds);
   bool AddCard(Card c);
   void DrawHolder();
   Card BottomCard();
@@ -207,22 +213,118 @@ public:
 Stack::Stack(Point position) { screen_position = position; }
 
 void Stack::DrawHolder() {
+  // Outline
   sprite_colors[FG] = ENDESGA64[Ocean2];
   sprite_colors[BG] = clear;
   draw_map(map_holder, screen_position);
-  // Holder background
+  // Background
   sprite_colors[FG] = ENDESGA64[Ocean1];
   sprite_colors[BG] = ENDESGA64[Ocean2];
   draw_map(map_holder_background, screen_position);
 }
 
-void Stack::Draw() {
-  DrawHolder();
+void traverse_line(Point *location, int x2, int y2, int amount) {
+  int x1 = location->x;
+  int y1 = location->y;
+  int pixels_traversed = 0;
 
+  // Bresenham's Line Algorithm
+  int16_t steep_gradient = abs(y2 - y1) > abs(x2 - x1);
+  // Swap values
+  int16_t temp;
+  if (steep_gradient) {
+    temp = x1;
+    x1 = y1;
+    y1 = temp;
+    temp = x2;
+    x2 = y2;
+    y2 = temp;
+  }
+  if (x1 > x2) {
+    amount = abs(x2 - x1) - (amount / 2);
+    temp = x1;
+    x1 = x2;
+    x2 = temp;
+    temp = y1;
+    y1 = y2;
+    y2 = temp;
+  }
+
+  int16_t dx = x2 - x1;
+  int16_t dy = abs(y2 - y1);
+  int16_t error_value = dx / 2;
+  int16_t ystep = y1 < y2 ? 1 : -1;
+
+  screen.pen = Pen(255, 0, 255);
+  for (; x1 <= x2; x1++) {
+    if (steep_gradient) {
+      location->x = y1;
+      location->y = x1;
+      // screen.pixel(location);
+      // fb->SetPixel(y1, x1);
+    } else {
+      location->x = x1;
+      location->y = y1;
+      // fb->SetPixel(x1, y1);
+      // screen.pixel(location);
+    }
+    error_value -= dy;
+    if (error_value < 0) {
+      y1 += ystep;
+      error_value += dx;
+    }
+
+    pixels_traversed++;
+    if (pixels_traversed >= amount) {
+      break;
+    }
+  }
+}
+
+bool Stack::UpdateCardPositions(float delta_seconds) {
+  Point destination_position = screen_position;
+  for (auto &c : cards) {
+    if (c.screen_position != destination_position) {
+      // Vec2 start_pos(c.screen_position.x, c.screen_position.y);
+      // Vec2 end_pos(destination_position.x, destination_position.y);
+      // Vec2 move_vec = end_pos;
+      // move_vec -= start_pos;
+      // float move_len = move_vec.length();
+
+      // if (move_len < 0)
+      //   move_len *= -1;
+      // if (move_len <= 2) {
+      //   c.screen_position = destination_position;
+      // }
+
+      Point diff = destination_position - c.screen_position;
+      if (diff.x < 0)
+        diff.x *= -1;
+      if (diff.y < 0)
+        diff.y *= -1;
+      if (diff.x >= 0 && diff.x <= 4 && diff.y >= 0 && diff.y <= 4) {
+        c.screen_position = destination_position;
+      } else {
+        Point new_pos = Point(c.screen_position.x, c.screen_position.y);
+        traverse_line(&new_pos, destination_position.x, destination_position.y,
+                      8);
+        c.screen_position.x = new_pos.x;
+        c.screen_position.y = new_pos.y;
+      }
+      // one card at a time
+      return true;
+    }
+
+    destination_position.y += card_draw_offset.h;
+  }
+  return false;
+}
+
+void Stack::Draw() {
   Point pos = screen_position;
   // pos.x = 100;
   for (auto &c : cards) {
-    c.Draw(pos);
+    c.Draw(c.screen_position);
     pos.y += card_draw_offset.h;
     // pos.x -= 8;
   }
@@ -288,6 +390,12 @@ constexpr Card shenzhen_deck[] = {
 // clang-format on
 constexpr std::span<const Card> shenzhen_deck_span(shenzhen_deck);
 
+enum BoardState {
+  DEALING,
+  PLAYING,
+  WINNING,
+};
+
 class Board {
 public:
   std::vector<Stack> stacks;
@@ -296,9 +404,11 @@ public:
   std::vector<Card> deal_deck;
   Stack deal_stack;
   uint32_t seed;
+  BoardState state;
 
   Board();
   void Draw();
+  void Update(float delta_seconds);
   void Shuffle();
 };
 
@@ -306,41 +416,57 @@ void Board::Shuffle() {
   // Load base deck
   deal_deck.clear();
   for (auto &card : shenzhen_deck_span) {
-    deal_deck.push_back(card);
+    deal_deck.emplace_back(
+        Card(card.suit, card.number, deal_stack.screen_position));
   }
 
   // Swap random cards
-  for (int i = 0; i < 400; i++) {
-    int c1 = Random::GetRandomInteger(deal_deck.size());
-    int c2 = Random::GetRandomInteger(deal_deck.size());
-    Card temp(std::move(deal_deck[c1]));
-    deal_deck[c1] = std::move(deal_deck[c2]);
-    deal_deck[c2] = std::move(temp);
+  for (size_t i = 0; i < deal_deck.size(); i++) {
+    // int r1 = Random::GetRandomInteger(deal_deck.size());
+    int r2 = Random::GetRandomInteger(deal_deck.size());
+    Card temp(std::move(deal_deck[i]));
+    deal_deck[i] = std::move(deal_deck[r2]);
+    deal_deck[r2] = std::move(temp);
   }
 
   // // Move cards to the deal stack
   // for (auto &c : deal_deck) {
+  //   // c.screen_position = deal_stack.screen_position;
   //   deal_stack.AddCard(c);
   //   deal_deck.pop_back();
   // }
 
-  // Deal cards to each stack
+  // Clear each stack
   for (auto &stack : stacks) {
     stack.Clear();
-    stack.AddCard(deal_deck.back());
-    deal_deck.pop_back();
-    stack.AddCard(deal_deck.back());
-    deal_deck.pop_back();
-    stack.AddCard(deal_deck.back());
-    deal_deck.pop_back();
-    stack.AddCard(deal_deck.back());
-    deal_deck.pop_back();
-    stack.AddCard(deal_deck.back());
-    deal_deck.pop_back();
+  }
+
+  // Deal cards to each stack
+  for (size_t i = 0; i < 5; i++) {
+    for (auto &stack : stacks) {
+      stack.AddCard(deal_deck.back());
+      deal_deck.pop_back();
+    }
+  }
+
+  for (auto &stack : stacks) {
+    printf("\nSP: %d, %d\n", stack.screen_position.x, stack.screen_position.y);
+    Point destination_position = stack.screen_position;
+    for (auto &card : stack.cards) {
+      printf("CP: %d, %d\n", card.screen_position.x, card.screen_position.y);
+      printf("dest: %d, %d\n", destination_position.x, destination_position.y);
+      Point diff = destination_position - card.screen_position;
+      printf("diff: %d, %d\n", diff.x, diff.y);
+
+      destination_position.y += stack.card_draw_offset.h;
+    }
   }
 }
 
 Board::Board() {
+  state = DEALING;
+
+  // Position Stacks
   const int stack_count = 8;
   for (int i = 0; i < stack_count; i++) {
     Stack stack1(Point(i * card_pixel_size.w,
@@ -354,15 +480,42 @@ Board::Board() {
   }
 
   deal_stack.ScreenPosition((4 * card_pixel_size.w) - card_sprite_size.w, 0);
+  deal_stack.ScreenPosition(140, 0);
   deal_stack.card_draw_offset.h = 0;
 
   for (int i = 0; i < 3; i++) {
-    Stack temp1(Point(i * card_pixel_size.w + card_sprite_size.w, 0));
+    Stack temp1(Point(i * card_pixel_size.w, 0));
     temp_slots.push_back(std::move(temp1));
   }
 }
 
+void Board::Update(float delta_seconds) {
+  for (auto &s : stacks) {
+    if (s.UpdateCardPositions(delta_seconds))
+      return;
+  }
+  for (auto &s : discard_slots) {
+    if (s.UpdateCardPositions(delta_seconds))
+      return;
+  }
+  for (auto &s : temp_slots) {
+    if (s.UpdateCardPositions(delta_seconds))
+      return;
+  }
+}
+
 void Board::Draw() {
+  deal_stack.DrawHolder();
+  for (auto &s : stacks) {
+    s.DrawHolder();
+  }
+  for (auto &s : discard_slots) {
+    s.DrawHolder();
+  }
+  for (auto &s : temp_slots) {
+    s.DrawHolder();
+  }
+
   for (auto &s : stacks) {
     s.Draw();
   }
@@ -372,7 +525,6 @@ void Board::Draw() {
   for (auto &s : temp_slots) {
     s.Draw();
   }
-  deal_stack.DrawHolder();
 }
 
 } // namespace Solitaire
@@ -380,6 +532,8 @@ void Board::Draw() {
 using namespace Solitaire;
 
 Board game_board;
+uint32_t last_update_time = 0;
+uint32_t last_render_time = 0;
 
 void init() {
   blit::set_screen_mode(ScreenMode::hires);
@@ -400,6 +554,8 @@ void init() {
 }
 
 void render(uint32_t time_ms) {
+  // float delta_seconds = (time_ms - last_render_time) / 1000.0f;
+
   screen.alpha = 255;
   screen.mask = nullptr;
   screen.clear();
@@ -420,8 +576,11 @@ void render(uint32_t time_ms) {
   }
 
   game_board.Draw();
+  last_render_time = time_ms;
 }
 
 void update(uint32_t time) {
-  // Empty
+  float delta_seconds = (time - last_update_time) / 1000.0f;
+  game_board.Update(delta_seconds);
+  last_update_time = time;
 }
