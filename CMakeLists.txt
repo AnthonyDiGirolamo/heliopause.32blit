@@ -5,8 +5,8 @@ if(MSVC)
   add_compile_options("/W4" "/wd4244" "/wd4324" "/wd4458" "/wd4100")
 else()
   add_compile_options(
-    "-g"
-    "-Os"
+    # "-g"
+    # "-Os"
     "-Wall" "-Wextra" "-Wdouble-promotion" "-Wno-unused-parameter")
 endif()
 

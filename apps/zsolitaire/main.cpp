@@ -8,12 +8,12 @@
 #include "32blit.hpp"
 #include "pw_random/random.h"
 #include "pw_random/xor_shift.h"
+#include "pw_string/string_builder.h"
 
 #include "assets.hpp"
 #include "card_font.hpp"
 #include "colors.hpp"
 #include "random.hpp"
-#include "types/point.hpp"
 
 using namespace blit;
 
@@ -198,6 +198,8 @@ public:
   std::deque<Card> cards;
   Size card_draw_offset = Size(0, 14);
   int32_t draw_count = 1;
+  uint8_t animating = 0;
+  uint8_t card_limit = 0;
 
   Stack() = default;
   Stack(Point position);
@@ -255,7 +257,6 @@ void traverse_line(Point *location, int x2, int y2, int amount) {
   int16_t error_value = dx / 2;
   int16_t ystep = y1 < y2 ? 1 : -1;
 
-  screen.pen = Pen(255, 0, 255);
   for (; x1 <= x2; x1++) {
     if (steep_gradient) {
       location->x = y1;
@@ -282,6 +283,10 @@ void traverse_line(Point *location, int x2, int y2, int amount) {
 }
 
 bool Stack::UpdateCardPositions(float delta_seconds) {
+  if (animating == 0) {
+    return false;
+  }
+
   Point destination_position = screen_position;
   for (auto &c : cards) {
     if (c.screen_position != destination_position) {
@@ -317,6 +322,7 @@ bool Stack::UpdateCardPositions(float delta_seconds) {
 
     destination_position.y += card_draw_offset.h;
   }
+  animating = 0;
   return false;
 }
 
@@ -336,7 +342,14 @@ void Stack::ScreenPosition(int32_t x, int32_t y) {
 }
 
 bool Stack::AddCard(Card c) {
+  if (card_limit > 0) {
+    if (cards.size() >= card_limit) {
+      return false;
+    }
+  }
+
   cards.push_back(std::move(c));
+  animating = 1;
   return true;
 }
 
@@ -346,18 +359,6 @@ void Stack::Clear() { cards.clear(); }
 
 // clang-format off
 constexpr Card shenzhen_deck[] = {
-  Card(DragonDagger, 0),
-  Card(DragonDagger, 0),
-  Card(DragonDagger, 0),
-  Card(DragonDagger, 0),
-  Card(DragonMirror, 0),
-  Card(DragonMirror, 0),
-  Card(DragonMirror, 0),
-  Card(DragonMirror, 0),
-  Card(DragonWealth, 0),
-  Card(DragonWealth, 0),
-  Card(DragonWealth, 0),
-  Card(DragonWealth, 0),
   Card(Flower, 0),
   Card(Spade, 1),
   Card(Spade, 2),
@@ -386,14 +387,25 @@ constexpr Card shenzhen_deck[] = {
   Card(Diamond, 7),
   Card(Diamond, 8),
   Card(Diamond, 9),
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonDagger, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonMirror, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
+  Card(DragonWealth, 0),
 };
 // clang-format on
 constexpr std::span<const Card> shenzhen_deck_span(shenzhen_deck);
 
 enum BoardState {
-  DEALING,
-  PLAYING,
-  WINNING,
+  WAITING,
+  ANIMATING,
 };
 
 class Board {
@@ -449,22 +461,21 @@ void Board::Shuffle() {
     }
   }
 
-  for (auto &stack : stacks) {
-    printf("\nSP: %d, %d\n", stack.screen_position.x, stack.screen_position.y);
-    Point destination_position = stack.screen_position;
-    for (auto &card : stack.cards) {
-      printf("CP: %d, %d\n", card.screen_position.x, card.screen_position.y);
-      printf("dest: %d, %d\n", destination_position.x, destination_position.y);
-      Point diff = destination_position - card.screen_position;
-      printf("diff: %d, %d\n", diff.x, diff.y);
-
-      destination_position.y += stack.card_draw_offset.h;
-    }
-  }
+  // for (auto &stack : stacks) {
+  //   printf("\nSP: %d, %d\n", stack.screen_position.x,
+  //   stack.screen_position.y); Point destination_position =
+  //   stack.screen_position; for (auto &card : stack.cards) {
+  //     printf("CP: %d, %d\n", card.screen_position.x, card.screen_position.y);
+  //     printf("dest: %d, %d\n", destination_position.x,
+  //     destination_position.y); Point diff = destination_position -
+  //     card.screen_position; printf("diff: %d, %d\n", diff.x, diff.y);
+  //     destination_position.y += stack.card_draw_offset.h;
+  //   }
+  // }
 }
 
 Board::Board() {
-  state = DEALING;
+  state = ANIMATING;
 
   // Position Stacks
   const int stack_count = 8;
@@ -476,6 +487,7 @@ Board::Board() {
 
   for (int i = stack_count - 3; i < stack_count; i++) {
     Stack discard1(Point(i * card_pixel_size.w, 0));
+    discard1.card_draw_offset.h = 0;
     discard_slots.push_back(std::move(discard1));
   }
 
@@ -490,17 +502,48 @@ Board::Board() {
 }
 
 void Board::Update(float delta_seconds) {
+  bool card_updated = false;
+
+  if (!card_updated) {
+    for (auto &s : stacks) {
+      card_updated = s.UpdateCardPositions(delta_seconds);
+      if (card_updated)
+        break;
+    }
+  }
+
+  if (!card_updated) {
+    for (auto &s : discard_slots) {
+      card_updated = s.UpdateCardPositions(delta_seconds);
+      if (card_updated)
+        break;
+    }
+  }
+
+  if (!card_updated) {
+    for (auto &s : temp_slots) {
+      card_updated = s.UpdateCardPositions(delta_seconds);
+      if (card_updated)
+        break;
+    }
+  }
+
+  uint8_t animating_count = 0;
+
   for (auto &s : stacks) {
-    if (s.UpdateCardPositions(delta_seconds))
-      return;
+    animating_count += s.animating;
   }
   for (auto &s : discard_slots) {
-    if (s.UpdateCardPositions(delta_seconds))
-      return;
+    animating_count += s.animating;
   }
   for (auto &s : temp_slots) {
-    if (s.UpdateCardPositions(delta_seconds))
-      return;
+    animating_count += s.animating;
+  }
+
+  if (animating_count > 0) {
+    state = ANIMATING;
+  } else {
+    state = WAITING;
   }
 }
 
@@ -553,6 +596,8 @@ void init() {
   game_board.Shuffle();
 }
 
+pw::StringBuffer<64> board_state;
+
 void render(uint32_t time_ms) {
   // float delta_seconds = (time_ms - last_render_time) / 1000.0f;
 
@@ -576,11 +621,31 @@ void render(uint32_t time_ms) {
   }
 
   game_board.Draw();
+
+  screen.pen = Pen(255, 255, 255);
+  blit::screen.text(board_state.view(), minimal_font,
+                    blit::Point(2, blit::screen.bounds.h - 8),
+                    false // variable width?
+  );
   last_render_time = time_ms;
 }
+
+uint32_t animation_done = 0;
 
 void update(uint32_t time) {
   float delta_seconds = (time - last_update_time) / 1000.0f;
   game_board.Update(delta_seconds);
+
+  board_state.clear();
+  board_state.Format("Animating: %d", game_board.state);
   last_update_time = time;
+
+  if (game_board.state == WAITING) {
+    if (animation_done == 0) {
+      animation_done = time;
+    } else if (time > animation_done + 3000) {
+      animation_done = 0;
+      game_board.Shuffle();
+    }
+  }
 }
