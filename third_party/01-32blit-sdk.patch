@@ -1,34 +1,38 @@
 diff --git a/32blit-pico/CMakeLists.txt b/32blit-pico/CMakeLists.txt
-index 31113114..e637bac2 100644
+index 61965fe4..9dbb8ca5 100644
 --- a/32blit-pico/CMakeLists.txt
 +++ b/32blit-pico/CMakeLists.txt
-@@ -26,7 +26,7 @@ target_sources(BlitHalPico INTERFACE
+@@ -44,7 +44,7 @@ target_sources(BlitHalPico INTERFACE
+     ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+ )
  
- pico_generate_pio_header(BlitHalPico ${CMAKE_CURRENT_LIST_DIR}/st7789.pio)
- 
--target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_stdlib pico_unique_id tinyusb_device)
-+target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_stdlib pico_unique_id pico_bootrom tinyusb_device)
+-target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_multicore pico_stdlib pico_unique_id pico_rand tinyusb_device)
++target_link_libraries(BlitHalPico INTERFACE hardware_dma hardware_pio hardware_pwm hardware_spi pico_multicore pico_stdlib pico_unique_id pico_rand pico_bootrom tinyusb_device)
  target_include_directories(BlitHalPico INTERFACE
      ${CMAKE_CURRENT_LIST_DIR} # for tusb_config
      ${CMAKE_CURRENT_LIST_DIR}/../3rd-party/fatfs
-diff --git a/32blit-pico/usb.cpp b/32blit-pico/usb.cpp
-index a58e54d6..611e2187 100644
---- a/32blit-pico/usb.cpp
-+++ b/32blit-pico/usb.cpp
-@@ -3,6 +3,7 @@
- #include <cstring>
+diff --git a/32blit-pico/multiplayer.cpp b/32blit-pico/multiplayer.cpp
+index 3def9e47..ed4bb0c7 100644
+--- a/32blit-pico/multiplayer.cpp
++++ b/32blit-pico/multiplayer.cpp
+@@ -2,6 +2,7 @@
+ #include "multiplayer.hpp"
  
- #include "tusb.h"
+ #include "usb.hpp"
 +#include "pico/bootrom.h"
  
- #include "config.h"
- #include "file.hpp"
-@@ -183,6 +184,12 @@ void update_usb() {
+ #include "engine/api_private.hpp"
+ 
+@@ -76,6 +77,16 @@ void update_multiplayer() {
          mp_buffer_off = 0;
          mp_buffer = new uint8_t[mp_buffer_len];
  
 +      } else if(memcmp(cur_header + 4, "REBT", 4) == 0) {
-+        if(tud_cdc_read_char() != 0) {
++        uint8_t b;
++        usb_cdc_read(&b, 1);
++        bool read_check = b != 0;
++
++        if(read_check) {
 +          reset_usb_boot(0, 0);
 +        }
 +        // done
@@ -37,7 +41,7 @@ index a58e54d6..611e2187 100644
          printf("got: %c%c%c%c%c%c%c%c\n", cur_header[0], cur_header[1], cur_header[2], cur_header[3], cur_header[4], cur_header[5], cur_header[6], cur_header[7]);
          header_pos = 0;
 diff --git a/32blit/math/constants.hpp b/32blit/math/constants.hpp
-index 6207855f..8a200eae 100644
+index 6207855f..dc713f7b 100644
 --- a/32blit/math/constants.hpp
 +++ b/32blit/math/constants.hpp
 @@ -2,4 +2,12 @@
@@ -46,12 +50,12 @@ index 6207855f..8a200eae 100644
      constexpr float pi = 3.14159265358979323846f;
 -}
 \ No newline at end of file
-+constexpr float kPi = 3.1415926535897932384626433832795;
-+constexpr float kHalfPi = 1.5707963267948966192313216916398;
-+constexpr float kTwoPi = 6.283185307179586476925286766559;
-+constexpr float DegreesToRadians = 0.017453292519943295769236907684886;
-+constexpr float RadiansToDegrees = 57.295779513082320876798154814105;
++    constexpr float kPi = 3.1415926535897932384626433832795f;
++    constexpr float kHalfPi = 1.5707963267948966192313216916398f;
++    constexpr float kTwoPi = 6.283185307179586476925286766559f;
++    constexpr float DegreesToRadians = 0.017453292519943295769236907684886f;
++    constexpr float RadiansToDegrees = 57.295779513082320876798154814105f;
 +
-+#define radians(deg) ((deg)*DegreesToRadians)
-+#define degrees(rad) ((rad)*RadiansToDegrees)
++    inline float radians(float deg) { return DegreesToRadians * deg; }
++    inline float degrees(float rad) { return RadiansToDegrees * rad; }
 +}
