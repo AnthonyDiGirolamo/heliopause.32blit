@@ -150,6 +150,78 @@ reboot-picosystem-bootloader:  ## Reboots picosystem
 format:  ## clang-format code
 	clang-format -i $(SOURCE_FILES)
 
+.PHONY: download-%
+download-%: $(CACHEDIR)/
+	@$(ECHO_TAG_MESSAGE) "DOWNLOAD" "$*" ; \
+	mkdir -p $(CACHEDIR)/$* ; \
+	cd $(abspath $(CACHEDIR)/$*) ; \
+	URL="$($*_url)" ; \
+	EXPECTED_SHA256="$($*_sha256)" ; \
+	F=`basename $$URL` ; \
+	! test -f $$F && $(ECHO_TAG_MESSAGE) CURL $$URL && curl -L -O $$URL ; \
+	! test -f $$F && exit 1 ; \
+	sha256hash=`sha256sum $$F` ; \
+	$(ECHO_TAG_MESSAGE) DOWNLOADED $$sha256hash ; \
+	test "$$EXPECTED_SHA256  $$F" != "$$sha256hash" && echo "Invalid SHA256" && echo "   Expected: $$EXPECTED_SHA256" && exit 1 ; \
+	exit 0
+
+CD_TO_BUILD_DIR=cd $(abspath $(CACHEDIR)/$(subst build-,,$@)) ; URL="$($(subst build-,,$@)_url)" ; F=`basename $$URL` ; D=`tar tf $$F | head -n 1` ; ! test -d $$D && tar xf $$F ; cd $$D
+
+.PHONY: git-pull-%
+git-pull-%:
+	@URL=$($(subst git-pull-,,$@)_git_url) ; \
+	BRANCH=$($(subst git-pull-,,$@)_git_branch) ; \
+	GDIR=$$(basename -s .git $$URL) ; \
+	pushd third_party ; \
+	$(ECHO_TAG_MESSAGE) "CLONE" $${URL} ; \
+	rm -rf $$GDIR ; \
+	git clone --depth=1 -b $$BRANCH $$URL ; \
+	pushd $$GDIR ; \
+	git submodule update --init ; \
+	popd ; \
+	rm -rf $$GDIR/.git ; \
+	find $$GDIR -type f -iname .git -delete ; \
+	popd
+
+picosdk_git_url := https://github.com/raspberrypi/pico-sdk
+picosdk_git_branch := 1.4.0
+
+openocd_git_url := https://github.com/raspberrypi/openocd.git
+openocd_git_branch := picoprobe
+
+picotool_git_url := https://github.com/raspberrypi/picotool
+picotool_git_branch := master
+
+arm_mac_url := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/12.2.mpacbti-bet1/binrel/arm-gnu-toolchain-12.2.mpacbti-bet1-darwin-x86_64-arm-none-eabi.tar.xz
+arm_mac_sha256 := 946e5b1b93d48ac71a83bb907a0f8aaa05041ba8eb1007792cc2921475460d4e
+
+arm_linux_url := https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/12.2.mpacbti-bet1/binrel/arm-gnu-toolchain-12.2.mpacbti-bet1-x86_64-arm-none-eabi.tar.xz
+arm_linux_sha256 := 51d99d11950446ac64a5664c860b9e03b3241757db8dc9f673dbd8fa4a830b18
+
+.PHONY: build-arm_mac
+build-arm_mac: download-arm_mac
+	@$(ECHO_TAG_MESSAGE) "INSTALL" "arm-none-eabi-gcc" ; \
+	$(CD_TO_BUILD_DIR) ; \
+	mkdir -p $(abspath $(TOOLS_PATH)/arm-gcc) ; \
+	mv * $(abspath $(TOOLS_PATH)/arm-gcc)/
+
+.PHONY: build-arm_linux
+build-arm_linux: download-arm_linux
+	@$(ECHO_TAG_MESSAGE) "INSTALL" "arm-none-eabi-gcc" ; \
+	$(CD_TO_BUILD_DIR) ; \
+	mkdir -p $(abspath $(TOOLS_PATH)/arm-gcc) ; \
+	mv * $(abspath $(TOOLS_PATH)/arm-gcc)/
+
+ifeq ($(UNAME_S),Linux)
+.PHONY: install-arm-gcc
+install-arm-gcc: build-arm_linux ## download arm-none-eabi-gcc from https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads
+endif
+
+ifeq ($(UNAME_S),Darwin)
+.PHONY: install-arm-gcc
+install-arm-gcc: build-arm_mac
+endif
+
 .PHONY: mkdirs
 mkdirs: $(OUTDIR)/
 

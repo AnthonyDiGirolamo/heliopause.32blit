@@ -56,7 +56,7 @@ bool Ship::RotateTowardsHeading(float heading, float delta_seconds) {
     }
     // If between 270 and 360 and we are going to 0-45, pick the reverse
     // direction since it's shorter.
-    if (degrees(heading) < 45.0f && angle_degrees > 269.0f) {
+    if (degrees(heading) <= 45.0f && angle_degrees > 269.0f) {
       delta *= -1;
     }
     Rotate(delta);
@@ -191,8 +191,9 @@ void Ship::DampenSpeed(float delta_seconds) {
 
   Vec2 cvn = velocity_vector;
   cvn.normalize();
-  // 30.0 here should be influenced by the ship mass
-  velocity_vector += (cvn * delta_seconds * -30.0f);
+  // 30.0 here should be influenced by the ship mass,
+  // Higher values slow down faster.
+  velocity_vector += (cvn * delta_seconds * -60.0f);
   velocity = velocity_vector.length();
 }
 
