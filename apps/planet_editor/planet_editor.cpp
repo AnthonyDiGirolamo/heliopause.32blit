@@ -300,7 +300,7 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
     },
 };
 
-constexpr std::span<const heliopause::MenuItem>
+constexpr pw::span<const heliopause::MenuItem>
     planet_menu_items_span(planet_menu_items);
 
 } // namespace

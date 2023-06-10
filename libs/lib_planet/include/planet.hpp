@@ -11,8 +11,8 @@
 #include "random.hpp"
 
 #include "math.h"
+#include "pw_span/span.h"
 #include <cstdint>
-#include <span>
 #include <string>
 
 enum PlanetTerrainType {
@@ -43,7 +43,7 @@ struct PlanetTerrain {
   blit::Vec3 noise_scale_factor;
   float latitude_bias;
   int min_size;
-  std::span<const uint8_t> color_map;
+  pw::span<const uint8_t> color_map;
   uint8_t color_padding_start;
   uint8_t color_padding_end;
   uint8_t palette_dark_offset;

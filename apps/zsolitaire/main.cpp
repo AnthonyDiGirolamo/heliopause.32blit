@@ -401,7 +401,7 @@ constexpr Card shenzhen_deck[] = {
   Card(DragonWealth, 0),
 };
 // clang-format on
-constexpr std::span<const Card> shenzhen_deck_span(shenzhen_deck);
+constexpr pw::span<const Card> shenzhen_deck_span(shenzhen_deck);
 
 enum BoardState {
   WAITING,

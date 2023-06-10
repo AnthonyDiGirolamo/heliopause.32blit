@@ -12,6 +12,7 @@ if (NOT TARGET lib_planet)
 
   target_link_libraries(lib_planet INTERFACE
     pw_random
+    pw_span
     lib_draw
     lib_simplexnoise
   )

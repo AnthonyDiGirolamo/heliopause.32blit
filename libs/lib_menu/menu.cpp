@@ -19,7 +19,7 @@ void Menu::SetDefaults() {
 
 Menu::Menu() { SetDefaults(); }
 
-Menu::Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
+Menu::Menu(std::string_view menu_title, pw::span<const MenuItem> menu_items,
            const blit::Font *menu_font, int text_height,
            int rhs_item_top_padding, int rhs_item_bottom_padding,
            int rhs_left_margin, int rhs_right_margin) {

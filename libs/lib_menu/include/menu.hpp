@@ -1,7 +1,7 @@
 #pragma once
 
 #include "32blit.hpp"
-#include <span>
+#include "pw_span/span.h"
 #include <string>
 
 namespace heliopause {
@@ -38,12 +38,12 @@ public:
   blit::Pen color_text_selected_foreground;
   blit::Pen color_selected_background;
 
-  std::span<const MenuItem> items;
+  pw::span<const MenuItem> items;
   uint32_t repeat_rate;
   uint32_t last_update_time;
 
   Menu();
-  Menu(std::string_view menu_title, std::span<const MenuItem> menu_items,
+  Menu(std::string_view menu_title, pw::span<const MenuItem> menu_items,
        const blit::Font *menu_font, int row_height, int item_top_padding,
        int item_bottom_padding, int left_margin, int right_margin);
   void SetDefaults();

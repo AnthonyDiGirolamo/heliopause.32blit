@@ -107,7 +107,7 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
     },
 };
 
-constexpr std::span<const heliopause::MenuItem>
+constexpr pw::span<const heliopause::MenuItem>
     main_menu_items_span(main_menu_items);
 
 heliopause::Menu main_menu;

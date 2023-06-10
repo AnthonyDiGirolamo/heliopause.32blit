@@ -181,7 +181,7 @@ static constexpr uint8_t kTerranColors[] = {
 
 };
 
-constexpr std::span<const uint8_t> kTerranColorMap(kTerranColors);
+constexpr pw::span<const uint8_t> kTerranColorMap(kTerranColors);
 
 static constexpr uint8_t kLavaColors[] = {
 
@@ -242,7 +242,7 @@ static constexpr uint8_t kLavaColors[] = {
 
 };
 
-constexpr std::span<const uint8_t> kLavaColorMap(kLavaColors);
+constexpr pw::span<const uint8_t> kLavaColorMap(kLavaColors);
 
 static constexpr uint8_t kIslandColors[] = {
 
@@ -274,7 +274,7 @@ static constexpr uint8_t kIslandColors[] = {
     153, // #1e6f50
 };
 
-constexpr std::span<const uint8_t> kIslandColorMap(kIslandColors);
+constexpr pw::span<const uint8_t> kIslandColorMap(kIslandColors);
 
 static constexpr uint8_t kTundraColors[] = {
 
@@ -305,7 +305,7 @@ static constexpr uint8_t kTundraColors[] = {
 
 };
 
-constexpr std::span<const uint8_t> kTundraColorMap(kTundraColors);
+constexpr pw::span<const uint8_t> kTundraColorMap(kTundraColors);
 
 static constexpr uint8_t kBarrenColors[] = {
     // 0x5, 0x6, 0x5, 0x0, 0x5, 0x6, 0x7, 0x6, 0x5, 0x0, 0x5, 0x6,
@@ -331,7 +331,7 @@ static constexpr uint8_t kBarrenColors[] = {
 
 };
 
-constexpr std::span<const uint8_t> kBarrenColorMap(kBarrenColors);
+constexpr pw::span<const uint8_t> kBarrenColorMap(kBarrenColors);
 
 static constexpr uint8_t kDesertColors[] = {
     // pico8
@@ -399,29 +399,29 @@ static constexpr uint8_t kDesertColors[] = {
 
 };
 
-constexpr std::span<const uint8_t> kDesertColorMap(kDesertColors);
+constexpr pw::span<const uint8_t> kDesertColorMap(kDesertColors);
 
 static constexpr uint8_t kGasGiantRedColors[] = {
     0x7, 0xf, 0xe, 0x2, 0x1, 0x2, 0x8, 0x8,
 };
-constexpr std::span<const uint8_t> kGasGiantRedColorMap(kGasGiantRedColors);
+constexpr pw::span<const uint8_t> kGasGiantRedColorMap(kGasGiantRedColors);
 
 static constexpr uint8_t kGasGiantBlueColors[] = {
     0x7, 0x6, 0xd, 0x1, 0x2, 0x1, 0xc,
 };
-constexpr std::span<const uint8_t> kGasGiantBlueColorMap(kGasGiantBlueColors);
+constexpr pw::span<const uint8_t> kGasGiantBlueColorMap(kGasGiantBlueColors);
 
 static constexpr uint8_t kGasGiantYellowColors[] = {
     0xf, 0xa, 0x9, 0x4, 0x9, 0xa,
 };
-constexpr std::span<const uint8_t>
+constexpr pw::span<const uint8_t>
     kGasGiantYellowColorMap(kGasGiantYellowColors);
 
 static constexpr uint8_t kGasGiantRainbowColors[] = {
     0x1, 0xd, 0xc, 0xb, 0xa, 0x9, 0xe, 0x8, 0x2,
 };
 
-constexpr std::span<const uint8_t>
+constexpr pw::span<const uint8_t>
     kGasGiantRainbowColorMap(kGasGiantRainbowColors);
 
 static constexpr uint8_t kAtmosphereTerranColors[] = {
@@ -443,7 +443,7 @@ static constexpr uint8_t kAtmosphereTerranColors[] = {
     48,
 };
 
-constexpr std::span<const uint8_t>
+constexpr pw::span<const uint8_t>
     kAtmosphereTerranColorMap(kAtmosphereTerranColors);
 
 // clang-format off
@@ -684,7 +684,7 @@ constexpr PlanetTerrain kAllPlanets[] = {
     kAtmosphereTerranPlanet,
 };
 
-constexpr std::span<const PlanetTerrain> AllPlanetTypes(kAllPlanets);
+constexpr pw::span<const PlanetTerrain> AllPlanetTypes(kAllPlanets);
 
 // type_name,     noise_octaves, noise_zoom, noise_persistance, map_color, full_shadow, transparent_color, min_noise_stretch_factor, max_noise_stretch_factor, min_size, color_map
 // terran,        5,             .3,         .65,               11,        1,           14,                1,                        1,                        10,       1111111dcfbb3334567,

@@ -9,6 +9,7 @@ if (NOT TARGET lib_menu)
     ${CMAKE_CURRENT_LIST_DIR}/menu.cpp
   )
 
-  # target_link_libraries(lib_menu INTERFACE
-  # )
+  target_link_libraries(lib_menu INTERFACE
+    pw_span
+  )
 endif()
