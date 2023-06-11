@@ -35,13 +35,14 @@ Ship pilot = Ship();
 uint32_t last_update_time = 0;
 uint32_t last_render_time = 0;
 
-const int planet_width = 100;
-uint8_t planet_pixel_data[planet_width * planet_width];
-blit::Surface planet_framebuffer((uint8_t *)planet_pixel_data,
-                                 blit::PixelFormat::P,
-                                 blit::Size(planet_width, planet_width));
-Vec2 planet_sector_pos = Vec2(32.0, 32.0);
-Vec2 planet_screen_pos = Vec2(0, 0);
+const int scratch_planet_width = 240;
+uint8_t planet_pixel_data[scratch_planet_width * scratch_planet_width];
+blit::Surface scratch_planet_framebuffer((uint8_t *)planet_pixel_data,
+                                         blit::PixelFormat::P,
+                                         blit::Size(scratch_planet_width,
+                                                    scratch_planet_width));
+Vec2 scratch_planet_sector_pos = Vec2(32.0, 32.0);
+Vec2 scratch_planet_screen_pos = Vec2(0, 0);
 
 Sector sector = Sector(0xEE);
 
@@ -53,6 +54,7 @@ bool direction_input = false;
 bool absolute_steering = true;
 bool flight_assist = true;
 bool auto_thrust = false;
+bool hires_mode = false;
 
 // std::string_view text_test = {" !\"#$%@'()*+,-./\n"
 //                               "0123456789:;<=>?\n"
@@ -68,6 +70,20 @@ std::string_view on_string = {"On"};
 std::string_view off_string = {"Off"};
 
 } // namespace
+
+void reinit_screen(bool hires_mode) {
+  if (hires_mode)
+    set_screen_mode(ScreenMode::hires);
+  else
+    set_screen_mode(ScreenMode::lores);
+
+  screen_center =
+      Vec2(float(blit::screen.bounds.w) / 2, float(blit::screen.bounds.h) / 2);
+  sector.SetScreenCenter(screen_center);
+
+  stars.ResetAll();
+  sector.Draw(&blit::screen);
+}
 
 static constexpr heliopause::MenuItem main_menu_items[] = {
     {
@@ -105,6 +121,21 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
         .increase_function = []() { auto_thrust = not auto_thrust; },
         .decrease_function = nullptr,
     },
+    {
+        .name = std::string_view{"Hi-Res"},
+        .get_value =
+            []() {
+              if (hires_mode)
+                return on_string;
+              return off_string;
+            },
+        .increase_function =
+            []() {
+              hires_mode = not hires_mode;
+              reinit_screen(hires_mode);
+            },
+        .decrease_function = nullptr,
+    },
 };
 
 constexpr pw::span<const heliopause::MenuItem>
@@ -113,11 +144,11 @@ constexpr pw::span<const heliopause::MenuItem>
 heliopause::Menu main_menu;
 
 void init() {
-#ifdef SCREEN_MODE_HIRES
-  set_screen_mode(ScreenMode::hires);
-#else
+  // #ifdef SCREEN_MODE_HIRES
+  // set_screen_mode(ScreenMode::hires);
+  // #else
   set_screen_mode(ScreenMode::lores);
-#endif
+  // #endif
 
 #if defined(TARGET_32BLIT_HW)
   heliopause::kCurrentPlatform = heliopause::stm32blit;
@@ -127,15 +158,11 @@ void init() {
   heliopause::kCurrentPlatform = heliopause::sdl;
 #endif
 
-  screen_center =
-      Vec2(float(blit::screen.bounds.w) / 2, float(blit::screen.bounds.h) / 2);
-  sector.SetScreenCenter(screen_center);
-
-  planet_framebuffer.palette = PICO8;
-  planet_framebuffer.alpha = 0;
-  planet_framebuffer.transparent_index = 48;
-  planet_framebuffer.pen = 49;
-  planet_framebuffer.clear();
+  scratch_planet_framebuffer.palette = PICO8;
+  scratch_planet_framebuffer.alpha = 0;
+  scratch_planet_framebuffer.transparent_index = 48;
+  scratch_planet_framebuffer.pen = 49;
+  scratch_planet_framebuffer.clear();
 
   main_menu = heliopause::Menu( // Pause menu
       std::string_view{"Options"},
@@ -150,27 +177,14 @@ void init() {
   main_menu.SetButtons(blit::Button::B, blit::Button::A);
 
   Random::RestartSeed();
-  stars.ResetAll();
+  reinit_screen(hires_mode);
 
-  // Tilt the planet down a bit
-  current_planet.AdjustViewpointLatitude(blit::pi * -0.1f);
-  // current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
-  // Render the planet into the dedicated framebuffer
-  current_planet.SetDrawPosition(0, 0);
-  current_planet.setup_render_orthographic(&planet_framebuffer,
-                                           planet_width, // width
-                                           planet_width, // height
-                                           0,            // camera_zoom,
-                                           0,            // camera_pan_x,
-                                           0,            // camera_pan_y,
-                                           blit::now());
-  current_planet.Regen();
-  current_planet.render_orthographic_all();
+  sector.RenderPlanets(&scratch_planet_framebuffer);
 
   sector.Update(pilot.sector_position);
 
-  planet_screen_pos =
-      screen_center - (pilot.sector_position - planet_sector_pos);
+  scratch_planet_screen_pos =
+      screen_center - (pilot.sector_position - scratch_planet_sector_pos);
 }
 
 void render(uint32_t time) {
@@ -195,9 +209,9 @@ void render(uint32_t time) {
   //   current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
   //   // Render the planet into the dedicated framebuffer
   //   current_planet.SetDrawPosition(0, 0);
-  //   current_planet.setup_render_orthographic(&planet_framebuffer,
-  //                                            planet_width, // width
-  //                                            planet_width, // height
+  //   current_planet.setup_render_orthographic(&scratch_planet_framebuffer,
+  //                                            scratch_planet_width, // width
+  //                                            scratch_planet_width, // height
   //                                            0,            // camera_zoom,
   //                                            0,            // camera_pan_x,
   //                                            0,            // camera_pan_y,
@@ -205,10 +219,11 @@ void render(uint32_t time) {
   //   current_planet.render_orthographic_all();
   // }
 
-  // Copy the planet_framebuffer onto the screen
-  blit::screen.blit(&planet_framebuffer,
-                    blit::Rect(0, 0, planet_width, planet_width),
-                    planet_screen_pos);
+  // Copy the scratch_planet_framebuffer onto the screen
+  blit::screen.blit(
+      &scratch_planet_framebuffer,
+      blit::Rect(0, 0, scratch_planet_width, scratch_planet_width),
+      scratch_planet_screen_pos);
 
   sector.Draw(&blit::screen);
 
@@ -237,7 +252,7 @@ void render(uint32_t time) {
   );
 
   if (direction_input) {
-    blit::screen.pen = PICO8_WHITE;
+    blit::screen.pen = PICO8_GREEN;
     Vec2 arrow_start = screen_center + (dpad_direction * 20.0f);
     Vec2 arrow_end = screen_center + (dpad_direction * 30.0f);
     blit::screen.line(arrow_start, arrow_end);
@@ -345,8 +360,8 @@ void update(uint32_t time) {
 
   sector.Update(pilot.sector_position);
 
-  planet_screen_pos =
-      screen_center - (pilot.sector_position - planet_sector_pos);
+  scratch_planet_screen_pos =
+      screen_center - (pilot.sector_position - scratch_planet_sector_pos);
 
   stars.Scroll(pilot.velocity_vector, delta_seconds);
 
@@ -355,8 +370,8 @@ void update(uint32_t time) {
                     static_cast<double>(pilot.velocity),
                     static_cast<double>(pilot.sector_position.x),
                     static_cast<double>(pilot.sector_position.y),
-                    static_cast<double>(planet_screen_pos.x),
-                    static_cast<double>(planet_screen_pos.y));
+                    static_cast<double>(scratch_planet_screen_pos.x),
+                    static_cast<double>(scratch_planet_screen_pos.y));
 
   ship_debug.clear();
   ship_debug.Format("Heading: %.2f %.2f [%.2f, %.2f]",

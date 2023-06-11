@@ -166,11 +166,20 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
   cur_gees = dv * (30.0f / 9.806f);
   Vec2 additional_velocity_vector(cosf(angle_radians) * dv,
                                   sinf(angle_radians) * dv);
+
   // Save the additional_velocity_vector to vary the thrust flame size.
   add_vv = additional_velocity_vector;
 
-  velocity_vector += additional_velocity_vector;
-  velocity = velocity_vector.length();
+  float new_velocity;
+  Vec2 new_velocity_vector;
+
+  new_velocity_vector = velocity_vector + additional_velocity_vector;
+  new_velocity = velocity_vector.length();
+  if (new_velocity > 150)
+    return;
+
+  velocity_vector = new_velocity_vector;
+  velocity = new_velocity;
 
   velocity_angle = atan2f(velocity_vector.y, velocity_vector.x);
   if (velocity_angle < 0) {

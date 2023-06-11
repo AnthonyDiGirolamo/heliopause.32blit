@@ -32,6 +32,7 @@ public:
   blit::Vec2 screen_center;
 
   void SetScreenCenter(blit::Vec2 center);
+  void RenderPlanets(blit::Surface *fb);
   void Draw(blit::Surface *fb);
   void Update(blit::Vec2 pilot_position);
 };

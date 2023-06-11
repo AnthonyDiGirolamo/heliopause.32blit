@@ -32,8 +32,11 @@ target_link_libraries(${FLIGHT_NAME}
 
 # Platform specific libs
 if (PICO_BOARD STREQUAL "pimoroni_picosystem")
-  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
+  # add_compile_definitions(ALLOW_HIRES=0)
+
   target_link_libraries(${FLIGHT_NAME}
     pico_multicore
   )
+
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
 endif()

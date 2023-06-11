@@ -69,6 +69,8 @@ void Menu::SetButtons(blit::Button closeb, blit::Button toggleb) {
 }
 
 void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
+  size = blit::screen.bounds;
+
   if (not active)
     return;
 

@@ -99,6 +99,52 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
 
 void Sector::SetScreenCenter(blit::Vec2 center) { screen_center = center; }
 
+void Sector::RenderPlanets(blit::Surface *fb) {
+  // TODO:
+  // Render the closesed planets into scratch fb
+  Point position(0, 0);
+
+  int i = 1;
+  for (auto &&sector_planet : planets) {
+    int planet_width = sector_planet.planet_radius * 2;
+
+    if (position.x + planet_width >= fb->bounds.w) {
+      position.x = 0;
+      position.y += planet_width;
+    }
+    if (position.y + planet_width >= fb->bounds.h)
+      break;
+
+    printf("Render Planet %d  ", i);
+    printf("Position: [%.2f, %.2f]\n", static_cast<double>(position.x),
+           static_cast<double>(position.y));
+    // Tilt the planet down a bit
+    sector_planet.planet.AdjustViewpointLatitude(blit::pi * -0.1f);
+    // current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+    // Render the planet into the dedicated framebuffer
+    sector_planet.planet.SetDrawPosition(position.x, position.y);
+    sector_planet.planet.setup_render_orthographic(fb,
+                                                   planet_width, // width
+                                                   planet_width, // height
+                                                   0,            // camera_zoom,
+                                                   0, // camera_pan_x,
+                                                   0, // camera_pan_y,
+                                                   blit::now());
+    sector_planet.planet.Regen();
+    sector_planet.planet.render_orthographic_all();
+
+    position.x += planet_width;
+    if (position.x >= fb->bounds.w) {
+      position.x = 0;
+      position.y += planet_width;
+    }
+    if (position.y >= fb->bounds.h)
+      break;
+
+    i++;
+  }
+}
+
 void Sector::Draw(blit::Surface *fb) {
   for (auto &&sector_planet : planets) {
     fb->pen = PICO8_WHITE;
