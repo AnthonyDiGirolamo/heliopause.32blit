@@ -18,6 +18,7 @@ public:
   int planet_radius;
   blit::Vec2 sector_position;
   blit::Vec2 screen_position;
+  float distance_to_pilot;
 
   void UpdatePosition(blit::Vec2 pilot_position, blit::Vec2 screen_center);
 };
@@ -29,6 +30,7 @@ public:
   uint32_t seed;
   pw::random::XorShiftStarRng64 rng;
   std::forward_list<SectorPlanet> planets;
+  SectorPlanet *closest_planet;
   blit::Vec2 screen_center;
 
   void SetScreenCenter(blit::Vec2 center);

@@ -21,17 +21,21 @@ constexpr int kMaxPlanetRadius = 64;
 } // namespace
 
 SectorPlanet::SectorPlanet()
-    : planet(), sector_position(0.0f, 0.0f), screen_position(0.0f, 0.0f) {}
+    : planet(), sector_position(0.0f, 0.0f), screen_position(0.0f, 0.0f),
+      distance_to_pilot(-1.0f) {}
 
 SectorPlanet::SectorPlanet(uint32_t seed, PlanetTerrain terrain, int radius,
                            blit::Vec2 position)
     : planet(seed, terrain), planet_radius(radius),
-      sector_position(position.x, position.y), screen_position(0.0f, 0.0f) {}
+      sector_position(position.x, position.y), screen_position(0.0f, 0.0f),
+      distance_to_pilot(-1.0f) {}
 
 void SectorPlanet::UpdatePosition(blit::Vec2 pilot_position,
                                   blit::Vec2 screen_center) {
 
-  screen_position = screen_center - (pilot_position - sector_position);
+  Vec2 pilot_vector = pilot_position - sector_position;
+  screen_position = screen_center - pilot_vector;
+  distance_to_pilot = pilot_vector.length();
 }
 
 Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
@@ -147,30 +151,44 @@ void Sector::RenderPlanets(blit::Surface *fb) {
 
 void Sector::Draw(blit::Surface *fb) {
   for (auto &&sector_planet : planets) {
-    fb->pen = PICO8_WHITE;
-    blit::Rect planet_rect =
-        blit::Rect(sector_planet.screen_position,
-                   blit::Size(sector_planet.planet_radius * 2,
-                              sector_planet.planet_radius * 2));
+    int planet_diameter = sector_planet.planet_radius * 2;
+    blit::Rect planet_rect = blit::Rect(
+        // Upper left corner
+        sector_planet.screen_position -
+            Point(sector_planet.planet_radius, sector_planet.planet_radius),
+        blit::Size(planet_diameter, planet_diameter));
 
     Rect cr = fb->clip.intersection(planet_rect);
+    // Out of bounds check.
     if (cr.empty())
       continue;
 
-    Vec2 center =
-        sector_planet.screen_position +
-        Vec2(sector_planet.planet_radius, sector_planet.planet_radius);
-
+    // Get the center for drawing the placeholder circle
+    Vec2 center = sector_planet.screen_position;
+    fb->pen = PICO8_WHITE;
     fb->circle(center, sector_planet.planet_radius);
+
+    // Draw the center as a blue rect
     fb->pen = PICO8_BLUE;
     fb->rectangle(blit::Rect(center - blit::Vec2(1, 1), blit::Size(3, 3)));
     fb->pen = PICO8_WHITE;
     fb->pixel(center);
+
+    // Draw a line to the pilot
+    fb->pen = PICO8_RED;
+    Point quarter_screen = Point(fb->bounds.w / 2, fb->bounds.h / 2);
+    blit::screen.line(quarter_screen, center);
   }
 }
 
 void Sector::Update(blit::Vec2 pilot_position) {
+  float closest_planet_distance = -1;
   for (auto &&sector_planet : planets) {
     sector_planet.UpdatePosition(pilot_position, screen_center);
+    if (closest_planet_distance < 0 ||
+        sector_planet.distance_to_pilot < closest_planet_distance) {
+      closest_planet_distance = sector_planet.distance_to_pilot;
+      closest_planet = &sector_planet;
+    }
   }
 }

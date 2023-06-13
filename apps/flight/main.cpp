@@ -35,12 +35,13 @@ Ship pilot = Ship();
 uint32_t last_update_time = 0;
 uint32_t last_render_time = 0;
 
-const int scratch_planet_width = 240;
-uint8_t planet_pixel_data[scratch_planet_width * scratch_planet_width];
+const int scratch_planet_width = 120;
+const int scratch_planet_height = 240;
+uint8_t planet_pixel_data[scratch_planet_width * scratch_planet_height];
 blit::Surface scratch_planet_framebuffer((uint8_t *)planet_pixel_data,
                                          blit::PixelFormat::P,
                                          blit::Size(scratch_planet_width,
-                                                    scratch_planet_width));
+                                                    scratch_planet_height));
 Vec2 scratch_planet_sector_pos = Vec2(32.0, 32.0);
 Vec2 scratch_planet_screen_pos = Vec2(0, 0);
 
@@ -211,7 +212,7 @@ void render(uint32_t time) {
   //   current_planet.SetDrawPosition(0, 0);
   //   current_planet.setup_render_orthographic(&scratch_planet_framebuffer,
   //                                            scratch_planet_width, // width
-  //                                            scratch_planet_width, // height
+  //                                            scratch_planet_height, // height
   //                                            0,            // camera_zoom,
   //                                            0,            // camera_pan_x,
   //                                            0,            // camera_pan_y,
@@ -222,7 +223,7 @@ void render(uint32_t time) {
   // Copy the scratch_planet_framebuffer onto the screen
   blit::screen.blit(
       &scratch_planet_framebuffer,
-      blit::Rect(0, 0, scratch_planet_width, scratch_planet_width),
+      blit::Rect(0, 0, scratch_planet_width, scratch_planet_height),
       scratch_planet_screen_pos);
 
   sector.Draw(&blit::screen);
@@ -366,12 +367,11 @@ void update(uint32_t time) {
   stars.Scroll(pilot.velocity_vector, delta_seconds);
 
   ship_speed.clear();
-  ship_speed.Format("v:%.2f s:[%.2f, %.2f] s-p[%.2f, %.2f]",
-                    static_cast<double>(pilot.velocity),
-                    static_cast<double>(pilot.sector_position.x),
-                    static_cast<double>(pilot.sector_position.y),
-                    static_cast<double>(scratch_planet_screen_pos.x),
-                    static_cast<double>(scratch_planet_screen_pos.y));
+  ship_speed.Format(
+      "v:%.2f s:[%.2f, %.2f] p8: %.2f", static_cast<double>(pilot.velocity),
+      static_cast<double>(pilot.sector_position.x),
+      static_cast<double>(pilot.sector_position.y),
+      static_cast<double>(sector.closest_planet->distance_to_pilot));
 
   ship_debug.clear();
   ship_debug.Format("Heading: %.2f %.2f [%.2f, %.2f]",
