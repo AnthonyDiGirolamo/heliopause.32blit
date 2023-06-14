@@ -175,8 +175,8 @@ void Ship::ApplyThrust(float max_deltav, float delta_seconds) {
 
   new_velocity_vector = velocity_vector + additional_velocity_vector;
   new_velocity = velocity_vector.length();
-  if (new_velocity > 150)
-    return;
+  // if (new_velocity > 150)
+  //   return;
 
   velocity_vector = new_velocity_vector;
   velocity = new_velocity;

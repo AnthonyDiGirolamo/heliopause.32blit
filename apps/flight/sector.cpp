@@ -68,15 +68,14 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
     // TODO: Fix the -1 here for kAtmosphereTerranPlanet
     int planet_type = Random::GetRandomInteger(&rng, AllPlanetTypes.size() - 1);
     int min_radius = AllPlanetTypes[planet_type].min_size;
-    int planet_radius =
-        Random::GetRandomInteger(&rng, min_radius, kMaxPlanetRadius);
+    int planet_radius = Random::GetRandomInteger(&rng, min_radius, 24);
 
     int npc_count = Random::GetRandomInteger(&rng, 4);
     total_npcs += npc_count;
     printf("Planet %d: seed=%u  type=%d  radius=%d  npcs=%d  ", i, planet_seed,
            planet_type, planet_radius, npc_count);
 
-    float distance_from_star = Random::GetRandomFloat(&rng, 2048);
+    float distance_from_star = Random::GetRandomFloat(&rng, 400);
     float angle_around_star = Random::GetRandomFloat(&rng, blit::kTwoPi);
 
     blit::Vec2 planet_position =
@@ -94,6 +93,9 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
 
     planets.push_front(SectorPlanet(planet_seed, AllPlanetTypes[planet_type],
                                     planet_radius, planet_position));
+  }
+  for (auto &&sector_planet : planets) {
+    sector_planet.planet.AdjustViewpointLatitude(blit::pi * -0.1f);
   }
 
   int pirate_count = Random::GetRandomInteger(&rng, 1, 3);
@@ -119,12 +121,12 @@ void Sector::RenderPlanets(blit::Surface *fb) {
     if (position.y + planet_width >= fb->bounds.h)
       break;
 
-    printf("Render Planet %d  ", i);
-    printf("Position: [%.2f, %.2f]\n", static_cast<double>(position.x),
-           static_cast<double>(position.y));
+    // printf("Render Planet %d  ", i);
+    // printf("Position: [%.2f, %.2f]\n", static_cast<double>(position.x),
+    //        static_cast<double>(position.y));
     // Tilt the planet down a bit
-    sector_planet.planet.AdjustViewpointLatitude(blit::pi * -0.1f);
-    // current_planet.AdjustViewpointLongitude(blit::pi * 0.01f);
+    // sector_planet.planet.AdjustViewpointLatitude(blit::pi * -0.1f);
+    sector_planet.planet.AdjustViewpointLongitude(blit::pi * 0.004f);
     // Render the planet into the dedicated framebuffer
     sector_planet.planet.SetDrawPosition(position.x, position.y);
     sector_planet.planet.setup_render_orthographic(fb,

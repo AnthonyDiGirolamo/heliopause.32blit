@@ -45,7 +45,7 @@ blit::Surface scratch_planet_framebuffer((uint8_t *)planet_pixel_data,
 Vec2 scratch_planet_sector_pos = Vec2(32.0, 32.0);
 Vec2 scratch_planet_screen_pos = Vec2(0, 0);
 
-Sector sector = Sector(0xEE);
+Sector sector = Sector(0xE2);
 
 // uint32_t last_planet_render_time = 0;
 Vec2 screen_center = Vec2(0, 0);
@@ -55,7 +55,7 @@ bool direction_input = false;
 bool absolute_steering = true;
 bool flight_assist = true;
 bool auto_thrust = false;
-bool hires_mode = false;
+bool hires_mode = true;
 
 // std::string_view text_test = {" !\"#$%@'()*+,-./\n"
 //                               "0123456789:;<=>?\n"
@@ -381,6 +381,8 @@ void update(uint32_t time) {
                     static_cast<double>(dpad_direction.y)
                     // static_cast<double>(degrees(dpad_angle))
   );
+
+  sector.RenderPlanets(&scratch_planet_framebuffer);
 
   last_update_time = time;
 }
