@@ -11,8 +11,10 @@ void Menu::SetDefaults() {
   border_size = 2;
   color_background = blit::Pen(0, 0, 0, 128);
   color_border = blit::Pen(255, 255, 255, 255);
-  color_title_foreground = PICO8_ORANGE;
+  color_title_foreground = PICO8_YELLOW;
+  color_title_shadow = blit::Pen(0, 0, 0, 192);
   color_text_foreground = PICO8_WHITE;
+  color_text_shadow = blit::Pen(0, 0, 0, 192);
   color_text_selected_foreground = PICO8_BLUE;
   color_selected_background = PICO8_DARK_BLUE; // blit::Pen(0, 0, 0, 200);
 }
@@ -107,18 +109,35 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   int row = 0;
 
   // Menu title
+  framebuffer->pen = color_title_shadow;
+  framebuffer->text(
+      title, *font,
+      blit::Point(posx + 1, posy + 1 + border_size + item_top_padding));
   framebuffer->pen = color_title_foreground;
   framebuffer->text(title, *font,
                     blit::Point(posx, posy + border_size + item_top_padding));
   row += 1;
 
+  int starting_item = 0;
+  // Item count + title
+  int required_height = ((int)items.size() * char_h) + char_h;
+  int available_height = size.h - posy;
+
   // Items
   framebuffer->pen = color_text_foreground;
-  int value_posx = max_name_length * char_w;
+  int value_posx = (1 + max_name_length) * char_w;
+  value_posx += left_margin + border_size;
 
   for (const MenuItem item : items) {
     int y = posy + (row * char_h);
     blit::Rect item_rect = Rect(posx - left_margin, y, total_width, char_h);
+
+    framebuffer->pen = color_text_shadow;
+    framebuffer->text(item.name, *font,
+                      blit::Point(posx + 1, y + 1 + item_top_padding));
+    framebuffer->text(item.get_value(), *font,
+                      blit::Point(value_posx + 1, y + 1 + item_top_padding));
+
     if (row - 1 == selected_item_index) {
       // Selected Item
       framebuffer->pen = color_selected_background;

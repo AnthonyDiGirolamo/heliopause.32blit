@@ -34,15 +34,46 @@ std::string_view disabled_string = {"false"};
 std::string_view orthographic_string = {"3D"};
 std::string_view equirectangular_string = {"Flat"};
 
+std::string_view on_string = {"On"};
+std::string_view off_string = {"Off"};
+
 pw::StringBuffer<20> menu_item_value;
 
+bool show_atmo = true;
+int atmo_offset = 3;
 bool auto_rotation = false;
+bool hires_mode = true;
+bool quarter_render_mode = false;
+int planet_fb_width = PLANET_FRAMEBUFFER_WIDTH;
+int planet_fb_height = PLANET_FRAMEBUFFER_HEIGHT;
 
 float camera_zoom = 1.0;
 int camera_pan_x = 0;
 int camera_pan_y = 0;
 
 int selected_planet_index = 0;
+
+void reinit_screen(bool hires_mode) {
+  planet_fb_width = PLANET_FRAMEBUFFER_WIDTH;
+  planet_fb_height = PLANET_FRAMEBUFFER_HEIGHT;
+  if (hires_mode)
+    set_screen_mode(ScreenMode::hires);
+  else {
+    set_screen_mode(ScreenMode::lores);
+    planet_fb_width = PLANET_FRAMEBUFFER_WIDTH / 2;
+    planet_fb_height = PLANET_FRAMEBUFFER_HEIGHT / 2;
+  }
+
+  if (quarter_render_mode) {
+    planet_fb_width = planet_fb_width / 2;
+    planet_fb_height = planet_fb_height / 2;
+  }
+
+  atmo_offset = 3;
+  if (quarter_render_mode || !hires_mode) {
+    atmo_offset = 3;
+  }
+}
 
 std::string_view get_planet_type_string() {
   return current_planet.terrain.type_string;
@@ -120,13 +151,6 @@ void decrease_seed() {
   current_planet.SetSeed(current_planet.seed - 1);
   atmosphere_terran.SetSeed((atmosphere_terran.seed - ATMO_SEED_OFFSET) - 1);
 }
-
-std::string_view get_auto_rotation_string() {
-  if (auto_rotation)
-    return enabled_string;
-  return disabled_string;
-}
-void toggle_auto_rotation() { auto_rotation = not auto_rotation; }
 
 // std::string_view get_display_mode_string() {
 //   if (display_mode_orthographic)
@@ -233,19 +257,19 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .decrease_function = &decrease_seed,
     },
     {
-        .name = std::string_view{"Noise Octaves"},
+        .name = std::string_view{"Octaves"},
         .get_value = &get_noise_octaves_string,
         .increase_function = &increase_noise_octaves,
         .decrease_function = &decrease_noise_octaves,
     },
     {
-        .name = std::string_view{"Noise Zoom"},
+        .name = std::string_view{"Zoom"},
         .get_value = &get_noise_zoom_string,
         .increase_function = &increase_noise_zoom,
         .decrease_function = &decrease_noise_zoom,
     },
     {
-        .name = std::string_view{"Noise Persistance"},
+        .name = std::string_view{"Persistance"},
         .get_value = &get_noise_persistance_string,
         .increase_function = &increase_noise_persistance,
         .decrease_function = &decrease_noise_persistance,
@@ -257,13 +281,13 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .decrease_function = &decrease_latitude_bias,
     },
     {
-        .name = std::string_view{"ColorPadding Start"},
+        .name = std::string_view{"Padding Start"},
         .get_value = &get_color_padding_start_string,
         .increase_function = &increase_color_padding_start,
         .decrease_function = &decrease_color_padding_start,
     },
     {
-        .name = std::string_view{"ColorPadding End"},
+        .name = std::string_view{"Padding End"},
         .get_value = &get_color_padding_end_string,
         .increase_function = &increase_color_padding_end,
         .decrease_function = &decrease_color_padding_end,
@@ -293,10 +317,66 @@ static constexpr heliopause::MenuItem planet_menu_items[] = {
         .decrease_function = &decrease_camera_pan_y,
     },
     {
+        .name = std::string_view{"Show Atmo"},
+        .get_value =
+            []() {
+              if (show_atmo)
+                return enabled_string;
+              return disabled_string;
+            },
+        .increase_function = []() { show_atmo = true; },
+        .decrease_function = []() { show_atmo = false; },
+    },
+    {
         .name = std::string_view{"AutoRotate"},
-        .get_value = &get_auto_rotation_string,
-        .increase_function = &toggle_auto_rotation,
-        .decrease_function = &toggle_auto_rotation,
+        .get_value =
+            []() {
+              if (auto_rotation)
+                return enabled_string;
+              return disabled_string;
+            },
+        .increase_function = []() { auto_rotation = true; },
+        .decrease_function = []() { auto_rotation = false; },
+    },
+    {
+        .name = std::string_view{"Quarter FB Size"},
+        .get_value =
+            []() {
+              if (quarter_render_mode)
+                return on_string;
+              return off_string;
+            },
+        .increase_function =
+            []() {
+              quarter_render_mode = true;
+              not_rendered = true;
+              reinit_screen(hires_mode);
+            },
+        .decrease_function =
+            []() {
+              quarter_render_mode = false;
+              not_rendered = true;
+              reinit_screen(hires_mode);
+            },
+    },
+    {
+        .name = std::string_view{"Hi-Res"},
+        .get_value =
+            []() {
+              if (hires_mode)
+                return on_string;
+              return off_string;
+            },
+        .increase_function =
+            []() {
+              hires_mode = true;
+              reinit_screen(hires_mode);
+            },
+        .decrease_function =
+            []() {
+              hires_mode = false;
+              reinit_screen(hires_mode);
+            },
     },
 };
 
@@ -310,7 +390,7 @@ pw::StringBuffer<32> planet_metadata;
 
 heliopause::Menu planet_menu =
     heliopause::Menu(std::string_view{"Planet Parameters"},
-                     planet_menu_items_span, &kCustomFont, 8, 3, 2, 0, 0);
+                     planet_menu_items_span, &kCustomFont, 8, 3, 2, 2, 2);
 
 void render_planet() {
   uint32_t start_time = blit::now();
@@ -322,14 +402,13 @@ void render_planet() {
 
   if (display_mode_orthographic) {
     current_planet.SetDrawPosition(0, 0);
-    current_planet.render_orthographic(
-        &planet_framebuffer, PLANET_FRAMEBUFFER_WIDTH,
-        PLANET_FRAMEBUFFER_HEIGHT, camera_zoom, camera_pan_x, camera_pan_y);
+    current_planet.render_orthographic(&planet_framebuffer, planet_fb_width,
+                                       planet_fb_height, camera_zoom,
+                                       camera_pan_x, camera_pan_y);
   } else {
     current_planet.SetDrawPosition(0, 0);
-    current_planet.render_equirectangular(&planet_framebuffer,
-                                          PLANET_FRAMEBUFFER_WIDTH,
-                                          PLANET_FRAMEBUFFER_HEIGHT);
+    current_planet.render_equirectangular(&planet_framebuffer, planet_fb_width,
+                                          planet_fb_height);
   }
 
   /*
@@ -374,6 +453,8 @@ bool auto_rotate() {
 }
 
 void init() {
+  reinit_screen(hires_mode);
+
   planet_framebuffer.palette = PICO8;
   // TODO: Does this matter?
   planet_framebuffer.alpha = 0;
@@ -388,6 +469,9 @@ void init() {
   atmosphere_framebuffer.transparent_index = 48;
   atmosphere_framebuffer.pen = 49;
   atmosphere_framebuffer.clear();
+  planet_menu.color_background = blit::Pen(0, 0, 0, 64);
+  planet_menu.color_border = blit::Pen(0, 255, 255, 255);
+  planet_menu.border_size = 1;
 
   planet_metadata.Format("Rendering...");
   current_planet.AdjustViewpointLatitude(blit::pi * -0.2f);
@@ -412,8 +496,8 @@ void render(uint32_t time) {
   // // Debug: Show planet_framebuffer draw bounds
   // blit::screen.pen = PICO8_INDIGO;
   // int xoffset = 32;
-  // Draw::rectangle(&blit::screen, xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH,
-  //                 PLANET_FRAMEBUFFER_HEIGHT);
+  // Draw::rectangle(&blit::screen, xoffset + 0, 0, planet_fb_width,
+  //                 planet_fb_height);
 
   // if (blit::screen.bounds.w > blit::screen.bounds.h) {
   //   xoffset += (int)((blit::screen.bounds.w - blit::screen.bounds.h) * 0.5f);
@@ -423,39 +507,41 @@ void render(uint32_t time) {
     xoffset = 0;
 
   blit::screen.alpha = 255;
-#ifdef PICO_ON_DEVICE
-  // #if 1
-  // Draw at 2x size
-  blit::screen.stretch_blit(
-      &planet_framebuffer,
-      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-      blit::Rect(xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH * 2,
-                 PLANET_FRAMEBUFFER_HEIGHT * 2));
-
-  if (selected_planet_index == 0 || selected_planet_index == 3) {
-    blit::screen.alpha = 180;
+  if (quarter_render_mode) {
+    // #if 1
+    // Draw at 2x size
     blit::screen.stretch_blit(
-        &atmosphere_framebuffer,
-        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-        blit::Rect(xoffset + 0, 0, PLANET_FRAMEBUFFER_WIDTH * 2,
-                   PLANET_FRAMEBUFFER_HEIGHT * 2));
-  }
-#else
-  // Draw at 1x size
-  blit::screen.blit(
-      &planet_framebuffer,
-      blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-      // TODO: This atmo to planet -3 should be relative to the total size
-      blit::Point(xoffset + 0 + 3, 0 + 3));
+        &planet_framebuffer,
+        blit::Rect(0, 0, planet_fb_width, planet_fb_height),
+        blit::Rect(xoffset + 0 + atmo_offset, 0 + atmo_offset,
+                   planet_fb_width * 2, planet_fb_height * 2));
 
-  if (selected_planet_index == 0 || selected_planet_index == 3) {
-    blit::screen.alpha = 200;
+    if (selected_planet_index == 0 || selected_planet_index == 3) {
+      blit::screen.alpha = 180;
+      blit::screen.stretch_blit(
+          &atmosphere_framebuffer,
+          blit::Rect(0, 0, planet_fb_width, planet_fb_height),
+          blit::Rect(xoffset + 0, 0, planet_fb_width * 2,
+                     planet_fb_height * 2));
+    }
+  } else {
+
+    // Draw at 1x size
     blit::screen.blit(
-        &atmosphere_framebuffer,
-        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT),
-        blit::Point(xoffset + 0, 0));
+        &planet_framebuffer,
+        blit::Rect(0, 0, planet_fb_width, planet_fb_height),
+        // TODO: This atmo to planet -3 should be relative to the total size
+        blit::Point(xoffset + 0 + atmo_offset, 0 + atmo_offset));
+
+    if (selected_planet_index == 0 || selected_planet_index == 3) {
+      if (show_atmo) {
+        blit::screen.alpha = 200;
+        blit::screen.blit(&atmosphere_framebuffer,
+                          blit::Rect(0, 0, planet_fb_width, planet_fb_height),
+                          blit::Point(xoffset + 0, 0));
+      }
+    }
   }
-#endif
   blit::screen.alpha = 255;
 
   int text_height = heliopause::kCustomFont.char_h;
@@ -587,18 +673,18 @@ void update(uint32_t time) {
     // Clear draw area
     planet_framebuffer.pen = 49; // Erase to non-existent color palette index
     planet_framebuffer.rectangle(
-        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+        blit::Rect(0, 0, planet_fb_width, planet_fb_height));
     atmosphere_framebuffer.pen = 49;
     atmosphere_framebuffer.rectangle(
-        blit::Rect(0, 0, PLANET_FRAMEBUFFER_WIDTH, PLANET_FRAMEBUFFER_HEIGHT));
+        blit::Rect(0, 0, planet_fb_width, planet_fb_height));
 
     if (selected_planet_index == 0 || selected_planet_index == 3) {
       atmosphere_terran.SetDrawPosition(0, 0);
-      atmosphere_terran.setup_render_orthographic(
-          &atmosphere_framebuffer,
-          PLANET_FRAMEBUFFER_WIDTH,  // width
-          PLANET_FRAMEBUFFER_HEIGHT, // height
-          camera_zoom, camera_pan_x, camera_pan_y, blit::now());
+      atmosphere_terran.setup_render_orthographic(&atmosphere_framebuffer,
+                                                  planet_fb_width,  // width
+                                                  planet_fb_height, // height
+                                                  camera_zoom, camera_pan_x,
+                                                  camera_pan_y, blit::now());
       atmosphere_terran.Regen();
     }
 
@@ -606,8 +692,8 @@ void update(uint32_t time) {
     current_planet.setup_render_orthographic(
         &planet_framebuffer,
         // TODO: This atmo to planet -6 should be relative to the total size
-        PLANET_FRAMEBUFFER_WIDTH - 6,  // width
-        PLANET_FRAMEBUFFER_HEIGHT - 6, // height
+        planet_fb_width - 6,  // width
+        planet_fb_height - 6, // height
         camera_zoom, camera_pan_x, camera_pan_y, blit::now());
     current_planet.Regen();
 
@@ -618,7 +704,8 @@ void update(uint32_t time) {
 #else
     current_planet.render_orthographic_all();
     if (selected_planet_index == 0 || selected_planet_index == 3) {
-      atmosphere_terran.render_orthographic_all();
+      if (show_atmo)
+        atmosphere_terran.render_orthographic_all();
     }
     render_planet_complete();
 #endif

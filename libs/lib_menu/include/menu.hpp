@@ -34,7 +34,9 @@ public:
   blit::Pen color_background;
   blit::Pen color_border;
   blit::Pen color_title_foreground;
+  blit::Pen color_title_shadow;
   blit::Pen color_text_foreground;
+  blit::Pen color_text_shadow;
   blit::Pen color_text_selected_foreground;
   blit::Pen color_selected_background;
 
