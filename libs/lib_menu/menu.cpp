@@ -13,6 +13,7 @@ void Menu::SetDefaults() {
   color_border = blit::Pen(255, 255, 255, 255);
   color_title_foreground = PICO8_YELLOW;
   color_title_shadow = blit::Pen(0, 0, 0, 192);
+  color_title_background = blit::Pen(0, 0, 0, 0);
   color_text_foreground = PICO8_WHITE;
   color_text_shadow = blit::Pen(0, 0, 0, 192);
   color_text_selected_foreground = PICO8_BLUE;
@@ -27,8 +28,8 @@ Menu::Menu(std::string_view menu_title, pw::span<const MenuItem> menu_items,
            int rhs_left_margin, int rhs_right_margin) {
   SetDefaults();
 
-  close_button = blit::Button::X;
-  toggle_button = blit::Button::A;
+  close_button = blit::Button::Y;
+  select_button = blit::Button::A;
   size = blit::screen.bounds;
 
   items = menu_items;
@@ -65,13 +66,13 @@ Menu::Menu(std::string_view menu_title, pw::span<const MenuItem> menu_items,
   // top_padding = 3;
 }
 
-void Menu::SetButtons(blit::Button closeb, blit::Button toggleb) {
+void Menu::SetButtons(blit::Button closeb, blit::Button selectb) {
   close_button = closeb;
-  toggle_button = toggleb;
+  select_button = selectb;
 }
 
 void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
-  size = blit::screen.bounds;
+  size = framebuffer->bounds;
 
   if (not active)
     return;
@@ -104,24 +105,32 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
     framebuffer->rectangle(Rect(Point(posx, posy), size));
   }
 
-  posx += left_margin + border_size;
+  posx += border_size;
+
+  framebuffer->pen = color_title_background;
+  blit::Rect title_rect = Rect(posx, posy + border_size, total_width, char_h);
+  framebuffer->rectangle(title_rect);
+
+  posx += left_margin;
 
   int row = 0;
 
   // Menu title
+
   framebuffer->pen = color_title_shadow;
   framebuffer->text(
       title, *font,
       blit::Point(posx + 1, posy + 1 + border_size + item_top_padding));
+
   framebuffer->pen = color_title_foreground;
   framebuffer->text(title, *font,
                     blit::Point(posx, posy + border_size + item_top_padding));
   row += 1;
 
-  int starting_item = 0;
-  // Item count + title
-  int required_height = ((int)items.size() * char_h) + char_h;
-  int available_height = size.h - posy;
+  // int starting_item = 0;
+  // // Item count + title
+  // int required_height = ((int)items.size() * char_h) + char_h;
+  // int available_height = size.h - posy;
 
   // Items
   framebuffer->pen = color_text_foreground;
@@ -129,7 +138,7 @@ void Menu::Draw(blit::Surface *framebuffer, int posx, int posy) {
   value_posx += left_margin + border_size;
 
   for (const MenuItem item : items) {
-    int y = posy + (row * char_h);
+    int y = posy + (row * char_h) + border_size;
     blit::Rect item_rect = Rect(posx - left_margin, y, total_width, char_h);
 
     framebuffer->pen = color_text_shadow;
@@ -194,7 +203,7 @@ bool Menu::Update(uint32_t time) {
       PrevItem();
 
     } else if ((blit::buttons & blit::Button::DPAD_RIGHT) |
-               (blit::buttons.pressed & toggle_button)) {
+               (blit::buttons.pressed & select_button)) {
       input_occured = true;
       items[selected_item_index].increase_function();
       menu_action_was_run = true;

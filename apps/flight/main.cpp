@@ -54,7 +54,7 @@ Vec2 dpad_direction = Vec2(0.0f, 0.0f);
 bool direction_input = false;
 bool absolute_steering = true;
 bool flight_assist = true;
-bool auto_thrust = false;
+bool auto_thrust = true;
 bool hires_mode = true;
 
 // std::string_view text_test = {" !\"#$%@'()*+,-./\n"
@@ -95,9 +95,8 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
                 return absolute_steering_enabled_string;
               return absolute_steering_disabled_string;
             },
-        .increase_function =
-            []() { absolute_steering = not absolute_steering; },
-        .decrease_function = nullptr,
+        .increase_function = []() { absolute_steering = true; },
+        .decrease_function = []() { absolute_steering = false; },
     },
     {
         .name = std::string_view{"Flight Assist "},
@@ -107,20 +106,19 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
                 return on_string;
               return off_string;
             },
-        .increase_function = []() { flight_assist = not flight_assist; },
-        .decrease_function = nullptr,
+        .increase_function = []() { flight_assist = true; },
+        .decrease_function = []() { flight_assist = false; },
     },
     {
-        .name = std::string_view{"Thrust on Direction Input"},
-        // .get_value = &get_auto_thrust_string,
+        .name = std::string_view{"Auto Thrust"},
         .get_value =
             []() {
               if (auto_thrust)
                 return on_string;
               return off_string;
             },
-        .increase_function = []() { auto_thrust = not auto_thrust; },
-        .decrease_function = nullptr,
+        .increase_function = []() { auto_thrust = true; },
+        .decrease_function = []() { auto_thrust = false; },
     },
     {
         .name = std::string_view{"Hi-Res"},
@@ -132,10 +130,14 @@ static constexpr heliopause::MenuItem main_menu_items[] = {
             },
         .increase_function =
             []() {
-              hires_mode = not hires_mode;
+              hires_mode = true;
               reinit_screen(hires_mode);
             },
-        .decrease_function = nullptr,
+        .decrease_function =
+            []() {
+              hires_mode = false;
+              reinit_screen(hires_mode);
+            },
     },
 };
 
@@ -172,10 +174,17 @@ void init() {
       0,                        // text row height
       3,                        // item top padding
       2,                        // item bottom padding
-      0,                        // left margin
-      0                         // right margin
+      2,                        // left margin
+      2                         // right margin
   );
-  main_menu.SetButtons(blit::Button::B, blit::Button::A);
+  main_menu.SetButtons(blit::Button::Y, blit::Button::A);
+  main_menu.color_title_foreground = ENDESGA64[34];
+  main_menu.color_title_shadow = ENDESGA64[39];
+  main_menu.color_title_background = ENDESGA64[12];
+  main_menu.color_background = ENDESGA64[14];
+  main_menu.color_background.a = 128;
+  main_menu.color_border = blit::Pen(0, 0, 0, 0);
+  main_menu.border_size = 20;
 
   Random::RestartSeed();
   reinit_screen(hires_mode);
@@ -382,7 +391,7 @@ void update(uint32_t time) {
                     // static_cast<double>(degrees(dpad_angle))
   );
 
-  sector.RenderPlanets(&scratch_planet_framebuffer);
+  // sector.RenderPlanets(&scratch_planet_framebuffer);
 
   last_update_time = time;
 }

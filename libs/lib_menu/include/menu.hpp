@@ -16,7 +16,7 @@ struct MenuItem {
 class Menu {
 public:
   blit::Button close_button;
-  blit::Button toggle_button;
+  blit::Button select_button;
   std::string_view title;
   int selected_item_index;
   int max_name_length;
@@ -35,6 +35,7 @@ public:
   blit::Pen color_border;
   blit::Pen color_title_foreground;
   blit::Pen color_title_shadow;
+  blit::Pen color_title_background;
   blit::Pen color_text_foreground;
   blit::Pen color_text_shadow;
   blit::Pen color_text_selected_foreground;
@@ -49,7 +50,7 @@ public:
        const blit::Font *menu_font, int row_height, int item_top_padding,
        int item_bottom_padding, int left_margin, int right_margin);
   void SetDefaults();
-  void SetButtons(blit::Button closeb, blit::Button toggleb);
+  void SetButtons(blit::Button closeb, blit::Button selectb);
   void Draw(blit::Surface *framebuffer, int posx, int posy);
   bool Update(uint32_t time);
   void ToggleActive();

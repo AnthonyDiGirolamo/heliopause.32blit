@@ -635,7 +635,7 @@ void update(uint32_t time) {
 
   if (heliopause::PlanetEditor::planet_menu.active) {
     rerender = planet_menu.Update(time);
-  } else if (buttons.pressed & Button::X) {
+  } else if (buttons.pressed & Button::Y) {
     // Activate menu
     planet_menu.ToggleActive();
   } else if (buttons.pressed & Button::DPAD_UP) {
