@@ -9,8 +9,11 @@
 #include "planet_types.hpp"
 #include "random.hpp"
 #include "starfield.hpp"
+#include "trig.hpp"
 #include "types/rect.hpp"
 #include "types/vec2.hpp"
+
+using namespace lib_trig;
 
 namespace {
 
@@ -76,7 +79,7 @@ Sector::Sector(uint32_t seed_value) : seed(seed_value), rng(seed_value) {
            planet_type, planet_radius, npc_count);
 
     float distance_from_star = Random::GetRandomFloat(&rng, 400);
-    float angle_around_star = Random::GetRandomFloat(&rng, blit::kTwoPi);
+    float angle_around_star = Random::GetRandomFloat(&rng, kTwoPi);
 
     blit::Vec2 planet_position =
         blit::Vec2(distance_from_star * cosf(angle_around_star),

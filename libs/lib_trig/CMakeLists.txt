@@ -5,9 +5,9 @@ if (NOT TARGET lib_trig)
     ${CMAKE_CURRENT_LIST_DIR}/include
   )
 
-  # target_sources(lib_trig INTERFACE
-  #   ${CMAKE_CURRENT_LIST_DIR}/trig.cpp
-  # )
+  target_sources(lib_trig INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/trig.cpp
+  )
 
   # target_link_libraries(lib_trig INTERFACE
   # )

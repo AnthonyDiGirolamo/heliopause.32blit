@@ -2,8 +2,11 @@
 #include "colors.hpp"
 #include "planet_types.hpp"
 #include "pw_random/xor_shift.h"
+#include "trig.hpp"
 #include <cstdint>
 #include <math.h>
+
+using namespace lib_trig;
 
 // constexpr float kPi = blit::pi;
 // constexpr float kHalfPi = blit::pi * 0.5f;

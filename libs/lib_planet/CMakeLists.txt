@@ -15,5 +15,6 @@ if (NOT TARGET lib_planet)
     pw_span
     lib_draw
     lib_simplexnoise
+    lib_trig
   )
 endif()

@@ -21,8 +21,10 @@
 #include "sector.hpp"
 #include "ship.hpp"
 #include "starfield.hpp"
+#include "trig.hpp"
 
 using namespace blit;
+using namespace lib_trig;
 
 namespace {
 

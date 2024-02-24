@@ -1,8 +1,10 @@
 #include "ship.hpp"
 #include "colors.hpp"
 #include "random.hpp"
+#include "trig.hpp"
 
 using namespace blit;
+using namespace lib_trig;
 
 Ship::Ship(void) {
   cur_deltav = 0.0;

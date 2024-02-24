@@ -61,20 +61,20 @@ static const uint8_t atan8[] = {
 } // namespace
 
 float rsin(float theta) {
-  int16_t itheta = ((65536L * (theta)) / (2 * M_PI));
+  int16_t itheta = ((65536L * (theta)) / (2 * kPi));
   int16_t result = rsin((int16_t)15'000, itheta);
   return (float)result / (float)15'000;
 }
 
 float rcos(float theta) {
-  int16_t itheta = ((65536L * (theta)) / (2 * M_PI));
+  int16_t itheta = ((65536L * (theta)) / (2 * kPi));
   int16_t result = rcos((int16_t)15'000, itheta);
   return (float)result / (float)15'000;
 }
 
 int16_t rsin(int16_t r, uint16_t th) {
   th >>= 6; // angle 0-1023
-  // return int(r * sin((2 * M_PI) * th / 1024.));
+  // return int(r * sin((2 * kPi) * th / 1024.0));
   int th4 = th & 511;
   if (th4 & 256)
     th4 = 512 - th4; // 256->256 257->255, etc

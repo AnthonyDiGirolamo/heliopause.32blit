@@ -27,6 +27,7 @@ target_link_libraries(${FLIGHT_NAME}
   lib_menu
   lib_planet
   lib_random
+  lib_trig
   pw_string
 )
 
