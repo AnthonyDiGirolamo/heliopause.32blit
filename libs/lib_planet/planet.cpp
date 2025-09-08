@@ -405,15 +405,18 @@ void Planet::render_orthographic_all() {
 }
 
 void Planet::render_orthographic_line() {
+  // Increment y coord
   if (ortho_render.current_y <
       ortho_render.pixel_height - ortho_render.zoom_offset_y) {
     ortho_render.current_y++;
   } else {
     ortho_render.done = true;
   }
+  // Do nothing if done
   if (ortho_render.done)
     return;
 
+  // DEBUG y coord
   // printf("y = %d, modified = %d", ortho_render.current_y, draw_position_y +
   //        ortho_render.zoom_offset_y + ortho_render.current_y);
 
@@ -432,9 +435,6 @@ void Planet::render_orthographic_line() {
   int start_x_coord =
       circle_start_x_coord(y_coord, radius) + ortho_render.pixel_radius;
   int end_x_coord = (ortho_render.pixel_radius * 2) - start_x_coord;
-
-  // debug draw x points
-  // ortho_render.framebuffer->pen = 10;
 
   // Stop if there's no pixels to draw
   if (start_x_coord == end_x_coord) {
@@ -458,13 +458,12 @@ void Planet::render_orthographic_line() {
     // Directly set the color in the framebuffer data
     uint32_t data_offset = ortho_render.framebuffer->offset(draw_x, draw_y);
     ortho_render.framebuffer->data[data_offset] = palette_color_index;
-
-    // Set the color using pen and point
+    // Set the color using pen and point functions
     // ortho_render.framebuffer->pen = palette_color_index;
     // ortho_render.framebuffer->pixel(blit::Point(draw_x, draw_y));
   }
 
-  // // debug draw start+end points
+  // // DEBUG draw start+end x coord points
   // ortho_render.framebuffer->pen = 12;
   // ortho_render.framebuffer->pixel(
   //     blit::Point(draw_position_x + ortho_render.zoom_offset_x +

@@ -8,8 +8,8 @@ constexpr float kTwoPi = 6.283185307179586476925286766559;
 constexpr float DegreesToRadians = 0.017453292519943295769236907684886;
 constexpr float RadiansToDegrees = 57.295779513082320876798154814105;
 
-#define radians(deg) ((deg)*DegreesToRadians)
-#define degrees(rad) ((rad)*RadiansToDegrees)
+#define radians(deg) ((deg) * DegreesToRadians)
+#define degrees(rad) ((rad) * RadiansToDegrees)
 
 class Vec2 {
 public:
